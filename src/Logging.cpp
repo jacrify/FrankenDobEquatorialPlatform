@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <WebSerial.h>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
@@ -10,4 +11,5 @@ void log(const char *fmt, ...) {
   vsnprintf(buf, 128, fmt, args);
   va_end(args);
   Serial.println(buf);
+  WebSerial.println(buf);
 }

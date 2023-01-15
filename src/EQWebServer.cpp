@@ -2,6 +2,7 @@
 #include "Logging.h"
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
+#include <WebSerial.h>
 
 AsyncWebServer server(80);
 
@@ -41,6 +42,9 @@ AsyncWebServer setupWebServer(DigitalCaliper &caliper) {
   });
 
   // AsyncElegantOTA.begin(&server); // Start ElegantOTA
+
+  // WebSerial is accessible at "<IP Address>/webserial" in browser
+  WebSerial.begin(&server);
 
   server.begin();
   // webserver.begin();
