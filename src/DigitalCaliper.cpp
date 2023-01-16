@@ -42,8 +42,7 @@ void DigitalCaliper::clear() {
   velocities.clear();
 }
 
-void DigitalCaliper::setSampleDelay(int delay) { sampleDelay = delay; }
-//
+
 void DigitalCaliper::takeSample() {
   // unsigned long lastReadTime = millis();
 
@@ -80,7 +79,7 @@ void DigitalCaliper::takeSample() {
   velocities.push(velocity);
 }
 
-void DigitalCaliper::sleepBetweenSamples() { delay(sampleDelay); }
+void DigitalCaliper::sleepBetweenSamples() { delay(SAMPLEDELAY); }
 
 int DigitalCaliper::getBit() {
   int data;
@@ -132,6 +131,7 @@ long DigitalCaliper::getMicrons(long packet) {
   }
   return data;
 }
+
 void sampleLoop(void *parameter) {
   DigitalCaliper *caliper = (DigitalCaliper *)parameter;
   while (true) {

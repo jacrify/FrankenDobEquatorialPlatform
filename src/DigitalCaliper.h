@@ -18,6 +18,7 @@
 #define MIN_RANGE -(1 << 20)
 
 #define STARTING_WINDOW_SIZE 10
+#define SAMPLEDELAY 1000 // milliseconds
 #define SENSIBLE_MOVEMENT 1000
 
 class DigitalCaliper {
@@ -33,12 +34,10 @@ public:
   void reset();
   void clear();
   void takeSample();
-  void sleepBetweenSamples() ;
+  void sleepBetweenSamples();
   void setWindowSize(int size); // resize and clear averages
-  void setSampleDelay(int delay);
 
 private:
-  int sampleDelay = 1;
   int dataPin = 35;  // purple
   int clockPin = 34; // grey
   //  blue is negative: goes to gnd on pin 2
