@@ -9,9 +9,9 @@ AsyncWebServer server(80);
 
 void setupWebServer(DigitalCaliper &caliper) {
 
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/plain", "Hi! I am ESP32.");
-  });
+  // server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+  //   request->send(200, "text/plain", "Hi! I am ESP32.");
+  // });
 
   server.on("/position", HTTP_GET, [&caliper](AsyncWebServerRequest *request) {
     log("/position");
@@ -21,7 +21,7 @@ void setupWebServer(DigitalCaliper &caliper) {
     request->send(200, "text/plain", outbuffer);
   });
 
-  server.serveStatic("/fs", LittleFS, "/");
+  server.serveStatic("/", LittleFS, "/fs/");
 
   server.on("/velocity", HTTP_GET, [&caliper](AsyncWebServerRequest *request) {
     // Create a JSON object with the data
