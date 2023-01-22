@@ -35,26 +35,6 @@ void setupOTA() {
       });
 
   ArduinoOTA.begin();
-
-  Serial.println("Ready");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-
-  LittleFS.begin();
-  // ssid expected on first line
-  // password expected on second
-  File file = LittleFS.open("/wifi.txt");
-  if (!file || file.isDirectory()) {
-    Serial.println("- failed to open file for reading");
-    return;
-  }
-
-  Serial.println("- read from file:");
-  String ssid = file.readString();
-  String wifipassword = file.readString();
-  file.close();
-  Serial.println(ssid);
-  log("ESSID: %s PW: %s");
 }
 
 void loopOTA() { ArduinoOTA.handle(); }

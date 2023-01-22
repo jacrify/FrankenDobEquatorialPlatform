@@ -27,8 +27,8 @@ void setup() {
   Serial.println("Booting");
   LittleFS.begin();
   setupWifi();
-  // setupOTA();
-  setupWebServer(caliper);
+  setupWebServer(caliper); // don't use log() before this point
+  setupOTA();
   xTaskCreate(sampleLoop, "sampleLoop", 10000, &caliper, 1, NULL);
   
 
