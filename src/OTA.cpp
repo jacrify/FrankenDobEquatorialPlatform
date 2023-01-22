@@ -14,6 +14,7 @@ void setupOTA() {
 
         // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS
         // using SPIFFS.end()
+        LittleFS.end();
         Serial.println("Start updating " + type);
       })
       .onEnd([]() { Serial.println("\nEnd"); })
