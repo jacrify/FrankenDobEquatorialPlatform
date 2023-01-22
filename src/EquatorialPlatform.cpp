@@ -15,11 +15,11 @@ DigitalCaliper caliper;
 // 24/60
 
 void sampleLoop(void *parameter) {
-  DigitalCaliper *caliper = (DigitalCaliper *)parameter;
+  // DigitalCaliper *caliper = (DigitalCaliper *)parameter;
   while (true) {
     log("In loop");
-    caliper->takeSample();
-    caliper->sleepBetweenSamples();
+    caliper.takeSample();
+    caliper.sleepBetweenSamples();
   }
 }
 void setup() {
@@ -29,10 +29,8 @@ void setup() {
   setupWifi();
   setupWebServer(caliper); // don't use log() before this point
   setupOTA();
-  xTaskCreate(sampleLoop, "sampleLoop", 10000, &caliper, 1, NULL);
-  
-
-  
+  xTaskCreate(sampleLoop, "sampleLoop", 10000, NULL, 1, NULL); 
 }
 
 void loop() { loopOTA(); }
+   
