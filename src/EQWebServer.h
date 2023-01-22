@@ -3,5 +3,5 @@
 #include <ESPAsyncWebServer.h>
 #include "DigitalCaliper.h"
 
-AsyncWebServer setupWebServer(DigitalCaliper &caliper);
+void setupWebServer(DigitalCaliper &caliper);
 #endif

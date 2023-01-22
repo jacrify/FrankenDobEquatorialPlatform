@@ -1,12 +1,13 @@
 #include "DigitalCaliper.h"
 #include "Logging.h"
+#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <WebSerial.h>
 
 AsyncWebServer server(80);
 
-AsyncWebServer setupWebServer(DigitalCaliper &caliper) {
+void setupWebServer(DigitalCaliper &caliper) {
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(200, "text/plain", "Hi! I am ESP32.");
@@ -47,6 +48,7 @@ AsyncWebServer setupWebServer(DigitalCaliper &caliper) {
   WebSerial.begin(&server);
 
   server.begin();
+  log("Server started");
   // webserver.begin();
-  return server;
+  return ;
 }

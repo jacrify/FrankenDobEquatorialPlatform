@@ -37,6 +37,7 @@ public:
   void sleepBetweenSamples();
   void setWindowSize(int size); // resize and clear averages
 
+
 private:
   int dataPin = 35;  // purple
   int clockPin = 34; // grey
