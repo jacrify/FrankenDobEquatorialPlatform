@@ -10,9 +10,6 @@ DigitalCaliper::DigitalCaliper() {
   analogReadResolution(11);
   analogSetAttenuation(ADC_6db);
   adc1_config_width(ADC_WIDTH_BIT_10);
-
-  xTaskCreate(sampleLoop, "sampleLoop", 10000, this, 1, &TaskHandle);
-  log("Sample Thread started\n");
 }
 
 long DigitalCaliper::getPosition() { return positions.front(); }
@@ -42,7 +39,6 @@ void DigitalCaliper::clear() {
   velocities.clear();
 }
 
-
 void DigitalCaliper::takeSample() {
   // unsigned long lastReadTime = millis();
 
@@ -65,10 +61,12 @@ void DigitalCaliper::takeSample() {
   unsigned long deltaTime = now - times.back(); // oldest time
   long deltaPos = microns - positions.back();
   // TODO filter here
-   if (abs(deltaPos) < SENSIBLE_MOVEMENT) {
-    log("Dropping sample as out of sensible movement range, actual position reported is %d",microns);
+  if (abs(deltaPos) < SENSIBLE_MOVEMENT) {
+    log("Dropping sample as out of sensible movement range, actual position "
+        "reported is %d",
+        microns);
     return;
-   }
+  }
   times.push(now);
   positions.push(microns);
   float velocity =
@@ -130,12 +128,4 @@ long DigitalCaliper::getMicrons(long packet) {
     data = data * 254 / 200;
   }
   return data;
-}
-
-void sampleLoop(void *parameter) {
-  DigitalCaliper *caliper = (DigitalCaliper *)parameter;
-  while (true) {
-    caliper->takeSample();
-    caliper->sleepBetweenSamples();
-  }
 }

@@ -12,4 +12,5 @@ void log(const char *fmt, ...) {
   va_end(args);
   Serial.println(buf);
   WebSerial.println(buf);
+ 
 }
