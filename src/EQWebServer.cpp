@@ -21,7 +21,7 @@ void setupWebServer(DigitalCaliper &caliper) {
     request->send(200, "text/plain", outbuffer);
   });
 
-  server.serveStatic("/", LittleFS, "/fs/");
+  server.serveStatic("/www/", LittleFS, "/fs/");
 
   server.on("/velocity", HTTP_GET, [&caliper](AsyncWebServerRequest *request) {
     // Create a JSON object with the data
@@ -38,6 +38,7 @@ void setupWebServer(DigitalCaliper &caliper) {
   });
 
   server.on("/reset", HTTP_GET, [&caliper](AsyncWebServerRequest *request) {
+    log("Reset");
     caliper.reset();
     request->send(200, "text/plain", "Position Reset");
   });
