@@ -6,20 +6,18 @@
 #include <functional>
 
 
-// timeout in milliseconds for a bit read ($TODO - change to micros() )
-#define BIT_READ_TIMEOUT 125
-// timeout for a packet read
-#define PACKET_READ_TIMEOUT 250
 // Packet format: [0 .. 19]=data, 20=sign, [21..22]=unused?, 23=inch
-#define PACKET_BITS 24
+
 // minimum reading
 #define MIN_RANGE -(1 << 20)
 
-#define STARTING_WINDOW_SIZE 10
+#define STARTING_WINDOW_SIZE 40
 #define SAMPLEDELAY 1000 // milliseconds? (check)
-#define SENSIBLE_MOVEMENT 1000
+#define SENSIBLE_SPEED 0.5
+#define SENSIBLE_SHIFT 10
 #define MAX_SENSIBLE_POS 7000
 #define MIN_SENSIBLE_POS -7000
+#define MIN_SAMPLES_FOR_VELOCITY 10
 
 #define DATAPIN  35  // purple
 #define CLOCKPIN  34 // grey

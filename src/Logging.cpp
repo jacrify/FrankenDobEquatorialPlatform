@@ -16,9 +16,11 @@ void loga(char *fmt, ...) {
 }
 
 void logWrite() {
-  Serial.print(logString.c_str());
-  Serial.print('\n');
-  logString = "";
+  if (logString.length() > 0) {
+    Serial.print(logString.c_str());
+    Serial.print('\n');
+    logString = "";
+  }
 }
 void log(const char *fmt, ...) {
   char buf[128];
@@ -28,5 +30,4 @@ void log(const char *fmt, ...) {
   va_end(args);
   Serial.println(buf);
   // WebSerial.println(buf);
- 
 }

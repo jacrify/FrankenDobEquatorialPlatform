@@ -12,6 +12,7 @@ void setupWebServer(DigitalCaliper &caliper) {
   // server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
   //   request->send(200, "text/plain", "Hi! I am ESP32.");
   // });
+  
 
   server.on("/position", HTTP_GET, [&caliper](AsyncWebServerRequest *request) {
     log("/position");
@@ -21,14 +22,14 @@ void setupWebServer(DigitalCaliper &caliper) {
     request->send(200, "text/plain", outbuffer);
   });
 
-  server.serveStatic("/www/", LittleFS, "/fs/");
+  
 
   server.on("/velocity", HTTP_GET, [&caliper](AsyncWebServerRequest *request) {
     // Create a JSON object with the data
 
     char buffer[80];
-    sprintf(buffer, "{\"timestamp\":%d,\"position\":%d,\"velocity\":%5.2f}",
-            caliper.getTime(), caliper.getPosition(), caliper.getVelocity());
+    sprintf(buffer, "{\"timestamp\":%10.2f,\"position\":%d,\"velocity\":%5.2f}",
+            ((float)caliper.getTime())/1000.0, caliper.getPosition(), caliper.getVelocity());
     String json = buffer;
 
     // String json = "{\"timestamp\":" + String(times.get()) + ",\"position\":"
@@ -42,14 +43,13 @@ void setupWebServer(DigitalCaliper &caliper) {
     caliper.reset();
     request->send(200, "text/plain", "Position Reset");
   });
-
-  // AsyncElegantOTA.begin(&server); // Start ElegantOTA
+  server.serveStatic("/www/", LittleFS, "/fs/");
+  server.serveStatic("/", LittleFS, "/fs/index.htm");
 
   // WebSerial is accessible at "<IP Address>/webserial" in browser
   WebSerial.begin(&server);
 
   server.begin();
   log("Server started");
-  // webserver.begin();
   return ;
 }
