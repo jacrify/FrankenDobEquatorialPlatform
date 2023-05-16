@@ -18,7 +18,7 @@
 #define microsteps 8
 #define threadedRodPitch 2 // mm
 
-#define limitSwitchToMiddleDistance 68 // mm
+#define limitSwitchToMiddleDistance 62 // mm
 #define limitSwitchToEndDistance 135   // mm
 
 // See
@@ -29,35 +29,8 @@ double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
 
 double greatCircleRadius =
-    355.0; // this is millimeters from pivot to center touch
+    469.0; // this is millimeters from pivot to center touch
 
-int calculateFowardSpeedInMilliHz(double distanceFromCenter) {
-
-  log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
-
-  // ignore distance for now
-  double distanceToMoveAlongRodPerMinuteAtZero =
-      tan(greatCircleRadiansPerMinute) * greatCircleRadius; // mm
-  log("distanceToMoveAlongRodPerMinuteAtZero %f",
-      distanceToMoveAlongRodPerMinuteAtZero);
-
-  double numberOfTurnsPerMinuteOfRod =
-      distanceToMoveAlongRodPerMinuteAtZero / threadedRodPitch;
-  log("numberOfTurnsPerMinuteOfRod %f", numberOfTurnsPerMinuteOfRod);
-  double numberOfTurnsPerMinuteOfStepper =
-      numberOfTurnsPerMinuteOfRod * rodStepperRatio;
-  log("numberOfTurnsPerMinuteOfStepper %f", numberOfTurnsPerMinuteOfStepper);
-
-  double numberOfStepsPerMinute =
-      numberOfTurnsPerMinuteOfStepper * stepperStepsPerRevolution * microsteps;
-  log("numberOfStepsPerMinute %f", numberOfStepsPerMinute);
-
-  double stepperSpeedInHertz = numberOfStepsPerMinute / 60.0;
-  log("stepperSpeedInHertz %f", stepperSpeedInHertz);
-  int stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
-  log("stepperSpeedInMilliHertz %d", stepperSpeedInMilliHertz);
-  return stepperSpeedInMilliHertz;
-}
 int forwardSpeed = 0;
 int backwardSpeed = 0;
 
@@ -73,7 +46,8 @@ long stepsPerMM = (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
 // Limit position is highest. Then it counts down to zero at end.
 // this  is expressed in microsteps
 int32_t limitPosition = limitSwitchToEndDistance * stepsPerMM;
-int32_t middlePosition = limitPosition-(limitSwitchToMiddleDistance * stepsPerMM);
+int32_t middlePosition =
+    limitPosition - (limitSwitchToMiddleDistance * stepsPerMM);
 
 int calibrationSpeed = 15000; // this could be faster as platform unloaded
 int runBackspeed = 5000;
@@ -81,8 +55,63 @@ int runBackspeed = 5000;
 // Number of steps per output rotation
 const int stepsPerRevolution = 200;
 
+long lastCheckTime = 0;
+
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *stepper = NULL;
+
+int calculateFowardSpeedInMilliHz(double distanceFromCenterInMM) {
+
+  log("distanceFromCenter %f", distanceFromCenterInMM);
+  log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
+
+  double absoluteAngleMovedAtThisPoint =
+      atan(distanceFromCenterInMM / greatCircleRadius);
+  log("Current angle (deg) %f", absoluteAngleMovedAtThisPoint * 180.0 / PI);
+
+  // TODO handle -
+  double absoluteAngleAfterOneMoreMinute =
+      absoluteAngleMovedAtThisPoint + greatCircleRadiansPerMinute;
+
+  log("New angle (deg) %f", absoluteAngleAfterOneMoreMinute * 180.0 / PI);
+
+  double distanceAlongRodAfterOneMoreMinute =
+      greatCircleRadius * tan(absoluteAngleAfterOneMoreMinute);
+
+  log("distanceAlongRodAfterOneMoreMinute %f",
+      distanceAlongRodAfterOneMoreMinute);
+
+  double threadDistancePerMinute =
+      distanceAlongRodAfterOneMoreMinute - distanceFromCenterInMM;
+
+  log("threadDistancePerMinute %f", threadDistancePerMinute);
+  // // ignore distance for now
+  // double distanceToMoveAlongRodPerMinuteAtZero =
+  //     tan(greatCircleRadiansPerMinute) * greatCircleRadius; // mm
+
+  // log("distanceToMoveAlongRodPerMinuteAtZero %f",
+  //     distanceToMoveAlongRodPerMinuteAtZero);
+
+  double numberOfTurnsPerMinuteOfRod =
+      threadDistancePerMinute / threadedRodPitch;
+
+  log("numberOfTurnsPerMinuteOfRod %f", numberOfTurnsPerMinuteOfRod);
+  double numberOfTurnsPerMinuteOfStepper =
+      numberOfTurnsPerMinuteOfRod * rodStepperRatio;
+  log("numberOfTurnsPerMinuteOfStepper %f", numberOfTurnsPerMinuteOfStepper);
+
+  double numberOfStepsPerMinuteInMiddle =
+      numberOfTurnsPerMinuteOfStepper * stepperStepsPerRevolution * microsteps;
+
+  log("numberOfStepsPerMinute %f", numberOfStepsPerMinuteInMiddle);
+
+  double stepperSpeedInHertz = numberOfStepsPerMinuteInMiddle / 60.0;
+  log("stepperSpeedInHertz %f", stepperSpeedInHertz);
+  int stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
+  log("stepperSpeedInMilliHertz %d", stepperSpeedInMilliHertz);
+  return stepperSpeedInMilliHertz;
+}
+
 
 void setupMotor() {
   pinMode(forwardSwitchPin, INPUT_PULLUP);
@@ -95,11 +124,13 @@ void setupMotor() {
     stepper->setDirectionPin(dirPinStepper);
     stepper->setAutoEnable(true);
 
-    stepper->setSpeedInHz(5000);
+    // stepper->setSpeedInHz(5000);
     stepper->setAcceleration(1000000); // 100 steps/s²
   }
 
-  calculateFowardSpeedInMilliHz(0);
+  // calculateFowardSpeedInMilliHz(-62.0);
+  // calculateFowardSpeedInMilliHz(-0);
+  // calculateFowardSpeedInMilliHz(60);
 }
 
 bool isSwitchForward() { return digitalRead(forwardSwitchPin) == LOW; }
@@ -133,7 +164,7 @@ void calibrationModeSwitchCheck() {
         log("Middle hit, stopping calibration");
         calibrationMode = false;
         runningForward = false;
-        runningBackward = true;  //switch is still up. This makes it stop. 
+        runningBackward = true; // switch is still up. This makes it stop.
         stepper->stopMove();
         return;
       }
@@ -150,7 +181,8 @@ void calibrationModeSwitchCheck() {
     }
 
     if (isLimitSwitchHit()) {
-      log("Start Position Hit. Setting position to %d and moving to %d", limitPosition,middlePosition);
+      log("Start Position Hit. Setting position to %d and moving to %d",
+          limitPosition, middlePosition);
       stepper->stopMove();
       limitSwitchFound = true;
       runningForward = false;
@@ -180,13 +212,20 @@ void calibrationModeSwitchCheck() {
   }
 }
 
+
 void runModeSwitchCheck() {
   // In run mode, platform moves forward slowly, but back at
   // reset speed.
   if (isSwitchForward()) {
-    if (!runningForward) {
+    //update speed periodically
+    long now = millis();
+    if (now - lastCheckTime > 1000) {
+
+      lastCheckTime = now;
+      // if (!runningForward) {
       log("Run Mode Forward");
-      stepper->setSpeedInMilliHz(calculateFowardSpeedInMilliHz(0));
+      stepper->setSpeedInMilliHz(calculateFowardSpeedInMilliHz(
+          ((double)(middlePosition - stepper->getCurrentPosition())) / stepsPerMM));
       // stepper->setSpeedInHz(calibrationSpeed); //for finding end fast
       stepper->moveTo(0);
 
@@ -221,10 +260,10 @@ void runModeSwitchCheck() {
 void onLoop() {
 
   if (calibrationMode) {
-    log("Current Position %d", stepper->getCurrentPosition());
+    // log("Current Position %d", stepper->getCurrentPosition());
     calibrationModeSwitchCheck();
   } else {
-    log("Current Position %d", stepper->getCurrentPosition());
+    // log("Current Position %d", stepper->getCurrentPosition());
     runModeSwitchCheck();
   }
 }
