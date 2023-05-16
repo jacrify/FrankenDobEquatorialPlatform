@@ -5,7 +5,7 @@
 #include <cstring>
 // log async to avoid blocking
 std::string logString = "";
-void loga(char *fmt, ...) {
+void IRAM_ATTR loga(char *fmt, ...) {
   char buf[128];
   va_list args;
   va_start(args, fmt);

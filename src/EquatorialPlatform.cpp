@@ -1,7 +1,8 @@
-//#include "DigitalCaliper.h"
+// #include "DigitalCaliper.h"
 #include "EQWebServer.h"
 #include "FS.h"
 #include "Logging.h"
+#include "MotorUnit.h"
 #include "Network.h"
 #include "OTA.h"
 #include <ESPAsyncWebServer.h>
@@ -30,15 +31,16 @@ void setup() {
   Serial.println("Booting");
   LittleFS.begin();
   setupWifi();
-  caliper.setUp();
-  setupWebServer(caliper); // don't use log() before this point
+  setupMotor();
+  // caliper.setUp();
+  // setupWebServer(caliper); // don't use log() before this point
   setupOTA();
-
 }
 
 void loop() {
-  loopOTA();
-  delay(1000);
-  caliper.takeSample();
+  // loopOTA();
+  delay(100);
+  // caliper.takeSample();
+  onLoop();
   logWrite();
 }
