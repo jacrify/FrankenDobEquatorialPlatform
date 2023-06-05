@@ -15,7 +15,7 @@
 #define teethOnStepperPulley 16
 #define teethOnRodPulley 36
 #define stepperStepsPerRevolution 200
-#define microsteps 8
+#define microsteps 16
 #define threadedRodPitch 2 // mm
 
 #define limitSwitchToMiddleDistance 62 // mm
