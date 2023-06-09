@@ -8,10 +8,11 @@ long lastReadTime = micros();
 int bitIndex = 0;
 long packet = 0;
 long microns = 0;
+unsigned long lastsampletime=0;
 std::string bitString = "";
 
 int sampleCount = 0;
-int windowSize=STARTING_WINDOW_SIZE;
+int windowSize = STARTING_WINDOW_SIZE;
 
 // convert a packet to signed microns
 long DigitalCaliper::getMicrons(long packet) {
@@ -29,7 +30,7 @@ void IRAM_ATTR clockFall() { DigitalCaliper::dpInstance->interruptHandler(); }
 
 void DigitalCaliper::interruptHandler() {
   int data = digitalRead(DATAPIN);
-  long now = micros();
+  unsigned long now = micros();
 
   bitString = (data ? "1" : "0") + bitString;
   packet |= (data & 1) << bitIndex;
@@ -48,6 +49,7 @@ void DigitalCaliper::interruptHandler() {
 
     // loga(&bitString[0]);
     microns = getMicrons(packet);
+    lastsampletime = now;
     // loga("Packet Value: %d which is microns: %d", packet, microns);
     packet = 0;
     bitString = "";
@@ -81,7 +83,7 @@ void DigitalCaliper::reset() {
   // vTaskResume(TaskHandle);
 }
 void DigitalCaliper::setWindowSize(int size) {
-  windowSize=size;
+  windowSize = size;
   positions.resize(size);
   times.resize(size);
   velocities.resize(size);
@@ -104,57 +106,39 @@ void DigitalCaliper::takeSample() {
     return;
   }
 
-  unsigned long now = millis();
+  unsigned long lasttime=times.front();
+  long lastpos=positions.front();
 
-  if ((microns > MAX_SENSIBLE_POS) || (microns < MIN_SENSIBLE_POS)) {
-    log("Dropping sample as out of sensible position range, actual position "
-        "reported is %d",
-        microns);
+  if (lasttime==lastsampletime) {
+    log("Sample time is same as last time, skipping cycle %d", lasttime);
+    return;
+  }
+
+
+  sampleCount++;
+  times.push(lastsampletime);
+  positions.push(microns);
+  if (sampleCount == 1) {
+    // can't get velocity on first sample
+    log("Building initial samples , position %d", microns);
+    return;
+  }
+
+  long deltaToLast = lastpos - microns;
+  if (abs(deltaToLast) > SENSIBLE_SHIFT) {
+    log("Not calculating velocity as position reported is "
+        "%d, which makes change in pos %d  ",
+        microns, deltaToLast);
     errorCount++;
     return;
   }
-  sampleCount++;
-  if (sampleCount == 1) {
-    // can't check for jumps on first sample, just need to grab it and hope it's
-    // not noisy
-    times.push(now);
-    positions.push(microns);
-    log("Building initial time samples , position %d", microns);
-  } else {
-    long deltaToLast = positions.front() - microns;
-    if (abs(deltaToLast) > SENSIBLE_SHIFT) {
-      log("Dropping sample as shift is too far "
-          "position "
-          "reported is %d, which makes change in pos %d  ",
-          microns, deltaToLast);
-      errorCount++;
-      return;
-    }
 
-    unsigned long deltaTime = now - times.back(); // oldest time
-    long deltaPos = microns - positions.back();
+  unsigned long deltaTime = lastsampletime - lasttime; // last time
 
-    float velocity =
-        (float)deltaPos / (float)deltaTime *1000; // mm per minute ??
-    log("Delta time: %d \t delta pos %d \t current pos %d \t Velocity: %f",
-        deltaTime, deltaPos, microns, velocity);
+  float velocity =
+      (float)deltaToLast / (float)deltaTime * 1000000; // microns per second ??
+  log("Delta time: %d \t delta pos %d \t current pos %d \t Velocity: %f",
+      deltaTime, deltaToLast, microns, velocity);
 
-    // if (abs(velocity) > SENSIBLE_SPEED) {
-    //   log("Dropping sample as speed is too fast, actual "
-    //       "position "
-    //       "reported is %d, which makes change in pos %d and velocity ",
-    //       microns, deltaPos, velocity);
-    //   errorCount++;
-    //   return;
-    // }
-    times.push(now);
-    positions.push(microns);
-    // only store velocities when sample rate high enough
-    if (sampleCount > MIN_SAMPLES_FOR_VELOCITY) {
-
-      velocities.push(velocity);
-    } else {
-      log("Skipping velocity due to low sample count %d",sampleCount);
-    }
-  }
+  velocities.push(velocity);
 }

@@ -32,15 +32,21 @@ void setup() {
   LittleFS.begin();
   setupWifi();
   setupMotor();
-  // caliper.setUp();
-  // setupWebServer(caliper); // don't use log() before this point
+  caliper.setUp();
+  setupWebServer(caliper); // don't use log() before this point
   setupOTA();
 }
+
+int sampleStopper = 0;
 
 void loop() {
   // loopOTA();
   delay(100);
-  // caliper.takeSample();
+  sampleStopper++;
+   if (sampleStopper >= 50) {
+    caliper.takeSample();
+    sampleStopper = 0;
+  }
   onLoop();
   logWrite();
 }
