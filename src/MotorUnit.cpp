@@ -62,29 +62,29 @@ FastAccelStepper *stepper = NULL;
 
 int calculateFowardSpeedInMilliHz(double distanceFromCenterInMM) {
 
-  log("distanceFromCenter %f", distanceFromCenterInMM);
-  log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
+  // log("distanceFromCenter %f", distanceFromCenterInMM);
+  // log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
 
   double absoluteAngleMovedAtThisPoint =
       atan(distanceFromCenterInMM / greatCircleRadius);
-  log("Current angle (deg) %f", absoluteAngleMovedAtThisPoint * 180.0 / PI);
+  // log("Current angle (deg) %f", absoluteAngleMovedAtThisPoint * 180.0 / PI);
 
   // TODO handle -
   double absoluteAngleAfterOneMoreMinute =
       absoluteAngleMovedAtThisPoint + greatCircleRadiansPerMinute;
 
-  log("New angle (deg) %f", absoluteAngleAfterOneMoreMinute * 180.0 / PI);
+  // log("New angle (deg) %f", absoluteAngleAfterOneMoreMinute * 180.0 / PI);
 
   double distanceAlongRodAfterOneMoreMinute =
       greatCircleRadius * tan(absoluteAngleAfterOneMoreMinute);
 
-  log("distanceAlongRodAfterOneMoreMinute %f",
-      distanceAlongRodAfterOneMoreMinute);
+  // log("distanceAlongRodAfterOneMoreMinute %f",
+      // distanceAlongRodAfterOneMoreMinute);
 
   double threadDistancePerMinute =
       distanceAlongRodAfterOneMoreMinute - distanceFromCenterInMM;
 
-  log("threadDistancePerMinute %f", threadDistancePerMinute);
+  // log("threadDistancePerMinute %f", threadDistancePerMinute);
   // // ignore distance for now
   // double distanceToMoveAlongRodPerMinuteAtZero =
   //     tan(greatCircleRadiansPerMinute) * greatCircleRadius; // mm
@@ -95,20 +95,20 @@ int calculateFowardSpeedInMilliHz(double distanceFromCenterInMM) {
   double numberOfTurnsPerMinuteOfRod =
       threadDistancePerMinute / threadedRodPitch;
 
-  log("numberOfTurnsPerMinuteOfRod %f", numberOfTurnsPerMinuteOfRod);
+  // log("numberOfTurnsPerMinuteOfRod %f", numberOfTurnsPerMinuteOfRod);
   double numberOfTurnsPerMinuteOfStepper =
       numberOfTurnsPerMinuteOfRod * rodStepperRatio;
-  log("numberOfTurnsPerMinuteOfStepper %f", numberOfTurnsPerMinuteOfStepper);
+  // log("numberOfTurnsPerMinuteOfStepper %f", numberOfTurnsPerMinuteOfStepper);
 
   double numberOfStepsPerMinuteInMiddle =
       numberOfTurnsPerMinuteOfStepper * stepperStepsPerRevolution * microsteps;
 
-  log("numberOfStepsPerMinute %f", numberOfStepsPerMinuteInMiddle);
+  // log("numberOfStepsPerMinute %f", numberOfStepsPerMinuteInMiddle);
 
   double stepperSpeedInHertz = numberOfStepsPerMinuteInMiddle / 60.0;
-  log("stepperSpeedInHertz %f", stepperSpeedInHertz);
+  // log("stepperSpeedInHertz %f", stepperSpeedInHertz);
   int stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
-  log("stepperSpeedInMilliHertz %d", stepperSpeedInMilliHertz);
+  // log("stepperSpeedInMilliHertz %d", stepperSpeedInMilliHertz);
   return stepperSpeedInMilliHertz;
 }
 
@@ -188,7 +188,7 @@ void calibrationModeSwitchCheck() {
       runningForward = false;
       runningBackward = true;
       stepper->setCurrentPosition(limitPosition);
-      stepper->moveTo(middlePosition);
+      // stepper->moveTo(middlePosition);
       return;
     }
     // run till limit hit
@@ -212,6 +212,23 @@ void calibrationModeSwitchCheck() {
   }
 }
 
+/*
+This function checks the status of two limit switches and controls the movement
+of a stepper motor accordingly.
+
+If the forward limit switch is active, the motor moves forward slowly, and the
+speed is updated once per second. When moving forward, it checks if the motor is
+not already running forward, which prevents duplicate log messages and speed
+updates. The motor's target position is set to 0, and the runningForward flag is
+set to true. If the backward limit switch is active and the motor is not already
+running backward, the motor moves backward at the runBackspeed and goes all the
+way back to the limitPosition. The runningBackward flag is set to true in this
+case.
+
+If neither switch is active, it checks whether the motor is currently running
+either forward or backward. If so, it stops the motor using the stopMove()
+function and sets both running flags to false.
+*/
 
 void runModeSwitchCheck() {
   // In run mode, platform moves forward slowly, but back at
@@ -223,7 +240,7 @@ void runModeSwitchCheck() {
 
       lastCheckTime = now;
       // if (!runningForward) {
-      log("Run Mode Forward");
+      // log("Run Mode Forward");
       stepper->setSpeedInMilliHz(calculateFowardSpeedInMilliHz(
           ((double)(middlePosition - stepper->getCurrentPosition())) / stepsPerMM));
       // stepper->setSpeedInHz(calibrationSpeed); //for finding end fast
