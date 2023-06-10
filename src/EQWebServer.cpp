@@ -10,7 +10,7 @@ AsyncWebServer server(80);
 void moveTo(AsyncWebServerRequest *request, MotorUnit &motor) {
   log("/moveTo");
   if (request->hasArg("position")) {
-    String position = request->arg("position");
+    String position = request->arg("value");
 
     int positionValue = position.toInt();
     if (positionValue == 0 && position != "0") {
@@ -28,8 +28,8 @@ void moveTo(AsyncWebServerRequest *request, MotorUnit &motor) {
 void setCalibrationSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
 
   log("/setCalibrationSpeed");
-  if (request->hasArg("speed")) {
-    String speed = request->arg("speed");
+  if (request->hasArg("value")) {
+    String speed = request->arg("value");
 
     int speedValue = speed.toInt();
     if (speedValue == 0 && speed != "0") {
@@ -41,10 +41,10 @@ void setCalibrationSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
   }
   log("No speed arg found");
 }
-void setrunbackSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
+void setRunbackSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
   log("/setrunbackSpeed");
-  if (request->hasArg("speed")) {
-    String speed = request->arg("speed");
+  if (request->hasArg("value")) {
+    String speed = request->arg("value");
 
     int speedValue = speed.toInt();
     if (speedValue == 0 && speed != "0") {
@@ -57,8 +57,43 @@ void setrunbackSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
   log("No speed arg found");
 }
 
+void setGreatCircleRadius(AsyncWebServerRequest *request, MotorUnit &motor) {
+
+  log("/setGreatCircleRadius");
+  if (request->hasArg("value")) {
+    String radius = request->arg("value");
+
+    double radValue = radius.toDouble();
+    if (radValue == 0 && radius != "0.0") {
+      log("Could not parse radius");
+      return;
+    }
+    motor.setGreatCircleRadius(radValue);
+    return;
+  }
+  log("No speed arg found");
+}
+
 void getStatus(AsyncWebServerRequest *request, MotorUnit &motor) {
-  log("/getStatus");
+  // log("/getStatus");
+
+  char buffer[300];
+  sprintf(
+      buffer,
+      R"({
+        "runbackSpeed" : %d,
+        "calibrationSpeed" : %d,
+        "greatCircleRadius": %f,
+        "position" : %d,
+        "velocity" : %d
+      })",motor.getRunBackSpeed(),motor.getCalibrationSpeed(),motor.getGreatCircleRadius(),motor.getPosition(),motor.getVelocity());
+
+  String json = buffer;
+
+  // String json = "{\"timestamp\":" + String(times.get()) + ",\"position\":"
+  // + String(positions.get()) + ",\"velocity\":" + String(velocities.get()) +
+  // "}";
+  request->send(200, "application/json", json);
 }
 
   void setupWebServer(MotorUnit & motor) {
@@ -66,17 +101,22 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor) {
     server.on("/getStatus", HTTP_GET,
               [&motor](AsyncWebServerRequest *request) {getStatus(request,motor);  });
 
-    server.on("/setCalibrationSpeed", HTTP_GET,
+    server.on("/calibrationSpeed", HTTP_POST,
               [&motor](AsyncWebServerRequest *request) {
                 setCalibrationSpeed(request, motor);
               });
 
-    server.on("/setrunbackSpeed", HTTP_GET,
+    server.on("/runbackSpeed", HTTP_POST,
               [&motor](AsyncWebServerRequest *request) {
-                setrunbackSpeed(request, motor);
+                setRunbackSpeed(request, motor);
               });
 
-    server.on("/moveTo", HTTP_GET, [&motor](AsyncWebServerRequest *request) {
+    server.on("/greatCircleRadius", HTTP_POST,
+              [&motor](AsyncWebServerRequest *request) {
+                setGreatCircleRadius(request, motor);
+              });
+
+    server.on("/moveTo", HTTP_POST, [&motor](AsyncWebServerRequest *request) {
       moveTo(request, motor);
     });
 

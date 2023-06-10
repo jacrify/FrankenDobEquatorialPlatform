@@ -1,175 +1,107 @@
+<!DOCTYPE html>
 <html>
 
 <head>
+    <title>Your Web Page</title>
     <script src="/www/jquery3.6.0.min.js"></script>
     <script src="/www/chart2.9.3.min.js"></script>
-    <style>
-        /* Set up the CSS for the graphs */
-        .graph {
-            width: 500px;
-            height: 300px;
-        }
-    </style>
-
-
-
-    <script>
-        // Set up an array to store the data received from the "/velocity" endpoint
-        let data = [];
-
-        // Set up a function to retrieve data from the "/velocity" endpoint
-        function getData() {
-            // Make an HTTP GET request to the "/velocity" endpoint
-            $.get("/velocity", function (response) {
-                // Add the received data to the array
-                data.push(response);
-
-                // If the array has more than 500 elements, remove the oldest one
-                if (data.length > 500) {
-                    data.shift();
-                }
-
-                // Update the table with the latest data
-                updateTable();
-                setTimeout(function () {
-                    updateCharts();
-                }, 0);;
-            });
-        }
-
-        // Set up a function to update the table with the latest data
-        function updateTable() {
-            // Clear the table
-            $("#dataTable tbody").empty();
-
-            // Iterate through the data array and add a row to the table for each element
-            for (let i = 0; i < data.length; i++) {
-                $("#dataTable tbody").append(`
-						<tr>
-							<td>${data[i].timestamp}</td>
-							<td>${data[i].position}</td>
-							<td>${data[i].velocity}</td>
-						</tr>
-					`);
-            }
-        }
-
-
-
-
-        // Set up global variables to store the position and velocity charts
-        let positionChart;
-        let velocityChart;
-
-        // Set up a function to create the charts
-        function createCharts() {
-            // Set up the data for the position and velocity charts
-            let positionData = data.map(d => d.position);
-            let velocityData = data.map(d => d.velocity);
-            let labels = data.map(d => d.timestamp);
-
-            // Set up the datasets for the position and velocity charts
-            let positionDataset = {
-                label: "Position",
-                data: positionData,
-                borderColor: "blue",
-                fill: false
-            };
-            let velocityDataset = {
-                label: "Velocity",
-                data: velocityData,
-                borderColor: "green",
-                fill: false
-            };
-
-            // Set up the chart options
-            let options = {
-                scales: {
-                    xAxes: [{
-                        display: true
-                    }],
-                    yAxes: [{
-                        display: true
-                    }]
-                }
-            };
-
-            // Create the position and velocity charts
-            positionChart = new Chart(document.getElementById("positionGraph").getContext("2d"), {
-                type: "line",
-                data: {
-                    labels: labels,
-
-                    datasets: [positionDataset]
-                },
-                options: options
-            });
-            velocityChart = new Chart(document.getElementById("velocityGraph").getContext("2d"), {
-                type: "line",
-                data: {
-                    labels: labels,
-                    datasets: [velocityDataset]
-                },
-                options: options
-            });
-        }
-
-        // Call the createCharts function when the page loads
-        $(document).ready(function () {
-            createCharts();
-        });
-
-
-        // Set up a function to update the charts with the latest data
-        function updateCharts() {
-            // Set up the data for the position and velocity charts
-            let positionData = data.map(d => d.position);
-            let velocityData = data.map(d => d.velocity);
-            let labels = data.map(d => d.timestamp);
-
-            // Update the data and labels of the position and velocity charts
-            positionChart.data.datasets[0].data = positionData;
-            velocityChart.data.datasets[0].data = velocityData;
-            positionChart.data.labels = labels;
-            velocityChart.data.labels = labels;
-            positionChart.update();
-            velocityChart.update();
-        }
-
-
-        // Set up a function to clear the data array, the table, and the graphs
-        function reset() {
-            $.ajaxSetup({ async: false });
-            $.get("/reset");
-            $.ajaxSetup({ async: true });
-            data = [];
-            updateTable();
-            // Clear the graphs by removing the line paths
-            createCharts();
-        }
-
-        // Call the getData function every 1000ms (1 second)
-        setInterval(getData, 1000);
-    </script>
 </head>
 
 <body>
+    <label for="runbackSpeed">RunBack Speed</label>
+    <input type="number" id="runbackSpeed"><br />
 
-    <button onclick="reset()">Reset</button>
-    <canvas id="positionGraph"></canvas>
-    <canvas id="velocityGraph"></canvas>
+    <label for="calibrationSpeed">Calibration Speed</label>
+    <input type="number" id="calibrationSpeed"><br />
 
-    <table id="dataTable" border=1>
-        <thead>
-            <tr>
-                <th>Time</th>
-                <th>Position</th>
-                <th>Velocity</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    <a href="/webserial">Web Serial Log</a>
+    <label for="greatCircleRadius">Great Circle Radius</label>
+    <input type="number" id="greatCircleRadius"><br />
+    
+    <label for="moveTo">Move To</label>
+    <input type="number" id="moveTo"><br />
+
+    <label for="position">Position:</label>
+    <span id="position">0</span><br />
+
+    <label for="velocity">Velocity:</label>
+    <span id="velocity">0</span><br />
+
+    <button id="resetButton">Reset Graph</button><br />
+    <canvas id="chart"></canvas>
+
+    <script>
+        var previousPosition = -1;
+        var chartData = {
+            labels: [],
+            datasets: [{
+                label: 'Position vs Velocity',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        var chartOptions = {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        };
+
+        var chart = new Chart(document.getElementById('chart').getContext('2d'), {
+            type: 'line',
+            data: chartData,
+            options: chartOptions
+        });
+
+        function updateChart() {
+
+            // $.getJSON("/getStatus")
+            //     .done(function (data) {
+            //         console.log("Data received: ", data);
+            //     })
+            //     .fail(function (jqxhr, textStatus, error) {
+            //         console.log("Request Failed: " + textStatus + ", " + error);
+            //     });
+
+            $.getJSON("/getStatus", function (data) {
+                if (!$("#runbackSpeed").is(":focus")) {
+                    $("#runbackSpeed").val(data.runbackSpeed);
+                }
+                if (!$("#calibrationSpeed").is(":focus")) {
+                    $("#calibrationSpeed").val(data.calibrationSpeed);
+                }
+
+                if (!$("#greatCircleRadius").is(":focus")) {
+                    $("#greatCircleRadius").val(data.greatCircleRadius);
+                }
+
+                $("#position").text(data.position);
+                $("#velocity").text(data.velocity);
+
+                if (data.position !== -1 && data.position !== previousPosition) {
+                    chartData.labels.push(data.position);
+                    chartData.datasets[0].data.push(data.velocity);
+                    previousPosition = data.position;
+                }
+                chart.update();
+            });
+        }
+
+        $("#resetButton").click(function () {
+            chartData.labels = [];
+            chartData.datasets[0].data = [];
+            chart.update();
+        });
+
+        $("#runbackSpeed, #calibrationSpeed, #greatCircleRadius, #moveTo").change(function () {
+            $.post("/" + $(this).attr('id'), { value: $(this).val() });
+        });
+
+        setInterval(updateChart, 1000);
+    </script>
 </body>
 
 </html>
