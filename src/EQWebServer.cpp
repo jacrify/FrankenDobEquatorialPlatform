@@ -1,5 +1,5 @@
-#include "DigitalCaliper.h"
 #include "Logging.h"
+#include "MotorUnit.h"
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
@@ -7,49 +7,86 @@
 
 AsyncWebServer server(80);
 
-void setupWebServer(DigitalCaliper &caliper) {
+void moveTo(AsyncWebServerRequest *request, MotorUnit &motor) {
+  log("/moveTo");
+  if (request->hasArg("position")) {
+    String position = request->arg("position");
 
-  // server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-  //   request->send(200, "text/plain", "Hi! I am ESP32.");
-  // });
-  
+    int positionValue = position.toInt();
+    if (positionValue == 0 && position != "0") {
+      log("Could not parse position");
+      return;
+    }
 
-  server.on("/position", HTTP_GET, [&caliper](AsyncWebServerRequest *request) {
-    log("/position");
-    char buffer[40];
-    sprintf(buffer, "%d", caliper.getPosition());
-    String outbuffer = buffer;
-    request->send(200, "text/plain", outbuffer);
-  });
+    motor.moveTo(positionValue);
+    return;
+  }
 
-  
-
-  server.on("/velocity", HTTP_GET, [&caliper](AsyncWebServerRequest *request) {
-    // Create a JSON object with the data
-
-    char buffer[80];
-    sprintf(buffer, "{\"timestamp\":%10.2f,\"position\":%d,\"velocity\":%5.2f}",
-            ((float)caliper.getTime())/1000.0, caliper.getPosition(), caliper.getVelocity());
-    String json = buffer;
-
-    // String json = "{\"timestamp\":" + String(times.get()) + ",\"position\":"
-    // + String(positions.get()) + ",\"velocity\":" + String(velocities.get()) +
-    // "}";
-    request->send(200, "application/json", json);
-  });
-
-  server.on("/reset", HTTP_GET, [&caliper](AsyncWebServerRequest *request) {
-    log("Reset");
-    caliper.reset();
-    request->send(200, "text/plain", "Position Reset");
-  });
-  server.serveStatic("/www/", LittleFS, "/fs/");
-  server.serveStatic("/", LittleFS, "/fs/index.htm");
-
-  // WebSerial is accessible at "<IP Address>/webserial" in browser
-  WebSerial.begin(&server);
-
-  server.begin();
-  log("Server started");
-  return ;
+  log("No position arg found");
 }
+
+void setCalibrationSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
+
+  log("/setCalibrationSpeed");
+  if (request->hasArg("speed")) {
+    String speed = request->arg("speed");
+
+    int speedValue = speed.toInt();
+    if (speedValue == 0 && speed != "0") {
+      log("Could not parse speed");
+      return;
+    }
+    motor.setCalibrationSpeed(speedValue);
+    return;
+  }
+  log("No speed arg found");
+}
+void setrunbackSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
+  log("/setrunbackSpeed");
+  if (request->hasArg("speed")) {
+    String speed = request->arg("speed");
+
+    int speedValue = speed.toInt();
+    if (speedValue == 0 && speed != "0") {
+      log("Could not parse speed");
+      return;
+    }
+    motor.setrunbackSpeed(speedValue);
+    return;
+  }
+  log("No speed arg found");
+}
+
+void getStatus(AsyncWebServerRequest *request, MotorUnit &motor) {
+  log("/getStatus");
+}
+
+  void setupWebServer(MotorUnit & motor) {
+
+    server.on("/getStatus", HTTP_GET,
+              [&motor](AsyncWebServerRequest *request) {getStatus(request,motor);  });
+
+    server.on("/setCalibrationSpeed", HTTP_GET,
+              [&motor](AsyncWebServerRequest *request) {
+                setCalibrationSpeed(request, motor);
+              });
+
+    server.on("/setrunbackSpeed", HTTP_GET,
+              [&motor](AsyncWebServerRequest *request) {
+                setrunbackSpeed(request, motor);
+              });
+
+    server.on("/moveTo", HTTP_GET, [&motor](AsyncWebServerRequest *request) {
+      moveTo(request, motor);
+    });
+
+    server.serveStatic("/www/", LittleFS, "/fs/");
+    server.serveStatic("/", LittleFS, "/fs/index.htm");
+
+    // WebSerial is accessible at "<IP Address>/webserial" in browser
+    WebSerial.begin(&server);
+
+    server.begin();
+    log("Server started");
+    return;
+  }

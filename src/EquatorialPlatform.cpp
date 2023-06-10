@@ -9,6 +9,7 @@
 #include <LittleFS.h>
 
 DigitalCaliper caliper;
+MotorUnit motorUnit;
 // DigitalCaliper caliper;
 
 // Radius of circle from platform rotaion axis to caliper strip is 230.5mm
@@ -31,7 +32,7 @@ void setup() {
   Serial.println("Booting");
   LittleFS.begin();
   setupWifi();
-  setupMotor();
+  motorUnit.setupMotor();
   caliper.setUp();
   setupWebServer(caliper); // don't use log() before this point
   setupOTA();
@@ -47,6 +48,6 @@ void loop() {
     caliper.takeSample();
     sampleStopper = 0;
   }
-  onLoop();
+  motorUnit.onLoop();
   logWrite();
 }

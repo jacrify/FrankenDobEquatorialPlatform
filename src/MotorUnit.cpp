@@ -21,10 +21,15 @@
 #define limitSwitchToMiddleDistance 62 // mm
 #define limitSwitchToEndDistance 135   // mm
 
+
+
 // See
 // https://github.com/gin66/FastAccelStepper/blob/master/extras/doc/FastAccelStepper_API.md
 
 double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
+int calibrationSpeed = 15000; // this could be faster as platform unloaded
+int runBackspeed = 5000;
+
 double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
 
@@ -48,9 +53,6 @@ long stepsPerMM = (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
 int32_t limitPosition = limitSwitchToEndDistance * stepsPerMM;
 int32_t middlePosition =
     limitPosition - (limitSwitchToMiddleDistance * stepsPerMM);
-
-int calibrationSpeed = 15000; // this could be faster as platform unloaded
-int runBackspeed = 5000;
 
 // Number of steps per output rotation
 const int stepsPerRevolution = 200;
@@ -79,7 +81,7 @@ int calculateFowardSpeedInMilliHz(double distanceFromCenterInMM) {
       greatCircleRadius * tan(absoluteAngleAfterOneMoreMinute);
 
   // log("distanceAlongRodAfterOneMoreMinute %f",
-      // distanceAlongRodAfterOneMoreMinute);
+  // distanceAlongRodAfterOneMoreMinute);
 
   double threadDistancePerMinute =
       distanceAlongRodAfterOneMoreMinute - distanceFromCenterInMM;
@@ -112,8 +114,7 @@ int calculateFowardSpeedInMilliHz(double distanceFromCenterInMM) {
   return stepperSpeedInMilliHertz;
 }
 
-
-void setupMotor() {
+void MotorUnit::setupMotor() {
   pinMode(forwardSwitchPin, INPUT_PULLUP);
   pinMode(backwardSwitchPin, INPUT_PULLUP);
   pinMode(limitSwitchPin, INPUT_PULLUP);
@@ -234,7 +235,7 @@ void runModeSwitchCheck() {
   // In run mode, platform moves forward slowly, but back at
   // reset speed.
   if (isSwitchForward()) {
-    //update speed periodically
+    // update speed periodically
     long now = millis();
     if (now - lastCheckTime > 1000) {
 
@@ -242,7 +243,8 @@ void runModeSwitchCheck() {
       // if (!runningForward) {
       // log("Run Mode Forward");
       stepper->setSpeedInMilliHz(calculateFowardSpeedInMilliHz(
-          ((double)(middlePosition - stepper->getCurrentPosition())) / stepsPerMM));
+          ((double)(middlePosition - stepper->getCurrentPosition())) /
+          stepsPerMM));
       // stepper->setSpeedInHz(calibrationSpeed); //for finding end fast
       stepper->moveTo(0);
 
@@ -283,4 +285,24 @@ void onLoop() {
     // log("Current Position %d", stepper->getCurrentPosition());
     runModeSwitchCheck();
   }
+}
+
+double MotorUnit::getGreatCircleRadius() { return greatCircleRadius; }
+void MotorUnit::setGreatCircleRadius(double radius) {
+  greatCircleRadius = radius;
+}
+
+int MotorUnit::getCalibrationSpeed() { return calibrationSpeed; }
+void MotorUnit::setCalibrationSpeed(int speed) { calibrationSpeed = speed; }
+
+int MotorUnit::getRunBackSpeed() { return runBackspeed; }
+void MotorUnit::setrunbackSpeed(int speed) { runBackspeed = speed; }
+
+int MotorUnit::getLimitSwitchToEndDistance() {
+  return limitSwitchToEndDistance;
+}
+
+void MotorUnit::moveTo(int location) {
+  int i=1;
+  //TODO
 }
