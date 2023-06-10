@@ -1,7 +1,8 @@
 #ifndef MYWEBSERVER_H
 #define MYWEBSERVER_H
 #include <ESPAsyncWebServer.h>
-#include "DigitalCaliper.h"
+// #include "DigitalCaliper.h"
+#include "MotorUnit.h"
 
-void setupWebServer(DigitalCaliper &caliper);
+void setupWebServer(MotorUnit &motor);
 #endif
