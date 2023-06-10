@@ -276,7 +276,7 @@ void runModeSwitchCheck() {
     return;
   }
 }
-void onLoop() {
+void MotorUnit::onLoop() {
 
   if (calibrationMode) {
     // log("Current Position %d", stepper->getCurrentPosition());
