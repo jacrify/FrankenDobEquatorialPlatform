@@ -17,6 +17,10 @@ public:
 
   int getLimitSwitchToEndDistance();
 
-  void moveTo(int location);
+  int getPosition();
+  int getVelocity();
+
+      void
+      moveTo(int location);
 };
 #endif

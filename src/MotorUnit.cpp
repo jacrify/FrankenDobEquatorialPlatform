@@ -21,20 +21,18 @@
 #define limitSwitchToMiddleDistance 62 // mm
 #define limitSwitchToEndDistance 135   // mm
 
-
-
 // See
 // https://github.com/gin66/FastAccelStepper/blob/master/extras/doc/FastAccelStepper_API.md
 
 double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
-int calibrationSpeed = 15000; // this could be faster as platform unloaded
-int runBackspeed = 5000;
+int calibrationSpeed = 30000; // this could be faster as platform unloaded
+int runBackspeed = 10000;
 
 double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
 
 double greatCircleRadius =
-    469.0; // this is millimeters from pivot to center touch
+    482.5; // this is millimeters from pivot to center rod
 
 int forwardSpeed = 0;
 int backwardSpeed = 0;
@@ -174,6 +172,7 @@ void calibrationModeSwitchCheck() {
         // even though we are moving forward, we count as back.
         log("Restarting calibration move");
         stepper->moveTo(middlePosition);
+        // stepper->moveTo(0); // for testing end point
         runningForward = false;
         runningBackward = true;
         return;
@@ -190,6 +189,7 @@ void calibrationModeSwitchCheck() {
       runningBackward = true;
       stepper->setCurrentPosition(limitPosition);
       // stepper->moveTo(middlePosition);
+      // stepper->moveTo(0);
       return;
     }
     // run till limit hit
@@ -302,7 +302,8 @@ int MotorUnit::getLimitSwitchToEndDistance() {
   return limitSwitchToEndDistance;
 }
 
-void MotorUnit::moveTo(int location) {
-  int i=1;
-  //TODO
-}
+int MotorUnit::getVelocity() { return stepper->getCurrentSpeedInMilliHz(); }
+
+int MotorUnit::getPosition() { return stepper->getCurrentPosition(); }
+
+void MotorUnit::moveTo(int location) { stepper->moveTo(location); }
