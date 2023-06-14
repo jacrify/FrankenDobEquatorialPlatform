@@ -1,6 +1,5 @@
 #include "Logging.h"
 #include "MotorUnit.h"
-// #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <WebSerial.h>
@@ -78,15 +77,17 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor) {
   // log("/getStatus");
 
   char buffer[300];
-  sprintf(
-      buffer,
-      R"({
+  sprintf(buffer,
+          R"({
         "runbackSpeed" : %d,
         "calibrationSpeed" : %d,
         "greatCircleRadius": %f,
-        "position" : %d,
+        "position" : %f,
         "velocity" : %d
-      })",motor.getRunBackSpeed(),motor.getCalibrationSpeed(),motor.getGreatCircleRadius(),motor.getPosition(),motor.getVelocity());
+      })",
+          motor.getRunBackSpeed(), motor.getCalibrationSpeed(),
+          motor.getGreatCircleRadius(), motor.getPositionInMM(),
+          motor.getVelocityInMMPerMinute());
 
   String json = buffer;
 
@@ -96,37 +97,38 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor) {
   request->send(200, "application/json", json);
 }
 
-  void setupWebServer(MotorUnit & motor) {
+void setupWebServer(MotorUnit &motor) {
 
-    server.on("/getStatus", HTTP_GET,
-              [&motor](AsyncWebServerRequest *request) {getStatus(request,motor);  });
+  server.on("/getStatus", HTTP_GET, [&motor](AsyncWebServerRequest *request) {
+    getStatus(request, motor);
+  });
 
-    server.on("/calibrationSpeed", HTTP_POST,
-              [&motor](AsyncWebServerRequest *request) {
-                setCalibrationSpeed(request, motor);
-              });
+  server.on("/calibrationSpeed", HTTP_POST,
+            [&motor](AsyncWebServerRequest *request) {
+              setCalibrationSpeed(request, motor);
+            });
 
-    server.on("/runbackSpeed", HTTP_POST,
-              [&motor](AsyncWebServerRequest *request) {
-                setRunbackSpeed(request, motor);
-              });
+  server.on("/runbackSpeed", HTTP_POST,
+            [&motor](AsyncWebServerRequest *request) {
+              setRunbackSpeed(request, motor);
+            });
 
-    server.on("/greatCircleRadius", HTTP_POST,
-              [&motor](AsyncWebServerRequest *request) {
-                setGreatCircleRadius(request, motor);
-              });
+  server.on("/greatCircleRadius", HTTP_POST,
+            [&motor](AsyncWebServerRequest *request) {
+              setGreatCircleRadius(request, motor);
+            });
 
-    server.on("/moveTo", HTTP_POST, [&motor](AsyncWebServerRequest *request) {
-      moveTo(request, motor);
-    });
+  server.on("/moveTo", HTTP_POST, [&motor](AsyncWebServerRequest *request) {
+    moveTo(request, motor);
+  });
 
-    server.serveStatic("/www/", LittleFS, "/fs/");
-    server.serveStatic("/", LittleFS, "/fs/index.htm");
+  server.serveStatic("/www/", LittleFS, "/fs/");
+  server.serveStatic("/", LittleFS, "/fs/index.htm");
 
-    // WebSerial is accessible at "<IP Address>/webserial" in browser
-    WebSerial.begin(&server);
+  // WebSerial is accessible at "<IP Address>/webserial" in browser
+  WebSerial.begin(&server);
 
-    server.begin();
-    log("Server started");
-    return;
-  }
+  server.begin();
+  log("Server started");
+  return;
+}

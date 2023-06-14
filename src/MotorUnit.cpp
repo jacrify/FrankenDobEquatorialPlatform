@@ -31,10 +31,11 @@ int runBackspeed = 30000;
 double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
 
-double greatCircleRadius = 448; // this is millimeters from pivot to center rod. This value is the tuned value
-    // 482.5; // And this is the value by design !!
+double greatCircleRadius = 448; // this is millimeters from pivot to center rod.
+                                // This value is the tuned value
+// 482.5; // And this is the value by design !!
 
-    int forwardSpeed = 0;
+int forwardSpeed = 0;
 int backwardSpeed = 0;
 
 bool runningForward = false;
@@ -43,8 +44,12 @@ bool runningBackward = false;
 bool calibrationMode = true;
 bool limitSwitchFound = false;
 
-long stepsPerMM = (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
-                  (teethOnStepperPulley * threadedRodPitch);
+int moveToLocation = 0;
+bool moveToMode = false;
+
+double stepsPerMM =
+    (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
+    (teethOnStepperPulley * threadedRodPitch);
 
 // Limit position is highest. Then it counts down to zero at end.
 // this  is expressed in microsteps
@@ -268,8 +273,19 @@ void runModeSwitchCheck() {
     return;
   }
 
-  // switch is off, stop.
+  // switch is off. Check for moveto move (set via web ui), and stop otherwise.
   if (runningForward || runningBackward) {
+    if (moveToMode) {
+      if (stepper->getCurrentPosition() != moveToLocation) {
+        stepper->setSpeedInHz(runBackspeed);
+        stepper->moveTo(moveToLocation);
+        return;
+      } else {
+        moveToMode = false;
+        stepper->stopMove();
+        return;
+      }
+    }
     runningForward = false;
     runningBackward = false;
     stepper->stopMove();
@@ -302,8 +318,19 @@ int MotorUnit::getLimitSwitchToEndDistance() {
   return limitSwitchToEndDistance;
 }
 
-int MotorUnit::getVelocity() { return stepper->getCurrentSpeedInMilliHz(); }
+double MotorUnit::getVelocityInMMPerMinute() {
+  double speedInHz = stepper->getCurrentSpeedInMilliHz() / 1000.0;
+  double speedInMMPerSecond = speedInHz / stepsPerMM;
+  double speedInMMPerMinute = speedInMMPerSecond * 60.0;
+  return speedInMMPerMinute;
+}
+double MotorUnit::getPositionInMM() {
+  return ((double)stepper->getCurrentPosition()) / (double)stepsPerMM;
+}
 
-int MotorUnit::getPosition() { return stepper->getCurrentPosition(); }
-
-void MotorUnit::moveTo(int location) { stepper->moveTo(location); }
+// set via web ui:
+void MotorUnit::moveTo(int location) {
+  moveToLocation = location * stepsPerMM;
+  moveToMode = true;
+  ;
+}
