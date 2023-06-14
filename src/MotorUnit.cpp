@@ -26,15 +26,15 @@
 
 double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 int calibrationSpeed = 30000; // this could be faster as platform unloaded
-int runBackspeed = 10000;
+int runBackspeed = 30000;
 
 double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
 
-double greatCircleRadius =
-    482.5; // this is millimeters from pivot to center rod
+double greatCircleRadius = 448; // this is millimeters from pivot to center rod. This value is the tuned value
+    // 482.5; // And this is the value by design !!
 
-int forwardSpeed = 0;
+    int forwardSpeed = 0;
 int backwardSpeed = 0;
 
 bool runningForward = false;
