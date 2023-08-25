@@ -56,7 +56,7 @@ void setRunbackSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
   log("No speed arg found");
 }
 
-void setGreatCircleRadius(AsyncWebServerRequest *request, MotorUnit &motor) {
+void setGreatCircleRadius(AsyncWebServerRequest *request, PlatformModel &model) {
 
   log("/setGreatCircleRadius");
   if (request->hasArg("value")) {
@@ -67,13 +67,13 @@ void setGreatCircleRadius(AsyncWebServerRequest *request, MotorUnit &motor) {
       log("Could not parse radius");
       return;
     }
-    motor.setGreatCircleRadius(radValue);
+    model.setGreatCircleRadius(radValue);
     return;
   }
   log("No speed arg found");
 }
 
-void getStatus(AsyncWebServerRequest *request, MotorUnit &motor) {
+void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,PlatformModel &model) {
   // log("/getStatus");
 
   char buffer[300];
@@ -86,7 +86,7 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor) {
         "velocity" : %d
       })",
           motor.getRunBackSpeed(), motor.getCalibrationSpeed(),
-          motor.getGreatCircleRadius(), motor.getPositionInMM(),
+          model.getGreatCircleRadius(), motor.getPositionInMM(),
           motor.getVelocityInMMPerMinute());
 
   String json = buffer;
@@ -97,10 +97,11 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor) {
   request->send(200, "application/json", json);
 }
 
-void setupWebServer(MotorUnit &motor) {
+void setupWebServer(MotorUnit &motor, PlatformModel &model) {
+  
 
-  server.on("/getStatus", HTTP_GET, [&motor](AsyncWebServerRequest *request) {
-    getStatus(request, motor);
+  server.on("/getStatus", HTTP_GET, [&motor,&model](AsyncWebServerRequest *request) {
+    getStatus(request, motor,model);
   });
 
   server.on("/calibrationSpeed", HTTP_POST,
@@ -114,8 +115,8 @@ void setupWebServer(MotorUnit &motor) {
             });
 
   server.on("/greatCircleRadius", HTTP_POST,
-            [&motor](AsyncWebServerRequest *request) {
-              setGreatCircleRadius(request, motor);
+            [&model](AsyncWebServerRequest *request) {
+              setGreatCircleRadius(request, model);
             });
 
   server.on("/moveTo", HTTP_POST, [&motor](AsyncWebServerRequest *request) {

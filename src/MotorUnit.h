@@ -1,9 +1,12 @@
 #ifndef MOTORUNIT_H
 #define MOTORUNIT_H
 
+#include "PlatformModel.h"
+
 class MotorUnit {
 public:
-  void setupMotor();
+  PlatformModel model;
+  void setupMotor(PlatformModel model);
   void onLoop();
 
   double getGreatCircleRadius();
@@ -21,5 +24,9 @@ public:
   double getVelocityInMMPerMinute();
 
   void moveTo(int location);
+private:
+  void runModeSwitchCheck();
+  void calibrationModeSwitchCheck();
 };
+
 #endif
