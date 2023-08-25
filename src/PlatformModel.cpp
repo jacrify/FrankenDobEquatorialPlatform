@@ -15,6 +15,9 @@ double greatCircleRadius = 448; // this is millimeters from pivot to center rod.
 #define limitSwitchToMiddleDistance 62 // mm
 #define limitSwitchToEndDistance 135   // mm
 
+int calibrationSpeed = 30000; // this could be faster as platform unloaded
+int runBackspeed = 30000;
+
 double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
 
@@ -95,3 +98,9 @@ double PlatformModel::getStepsPerMM(){
 int PlatformModel::getMiddlePosition() { return middlePosition; }
 
 int PlatformModel::getLimitPosition() { return limitPosition; }
+
+int PlatformModel::getCalibrationSpeed() { return calibrationSpeed; }
+void PlatformModel::setCalibrationSpeed(int speed) { calibrationSpeed = speed; }
+
+int PlatformModel::getRunBackSpeed() { return runBackspeed; }
+void PlatformModel::setrunbackSpeed(int speed) { runBackspeed = speed; }

@@ -24,7 +24,7 @@ void moveTo(AsyncWebServerRequest *request, MotorUnit &motor) {
   log("No position arg found");
 }
 
-void setCalibrationSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
+void setCalibrationSpeed(AsyncWebServerRequest *request, PlatformModel &model) {
 
   log("/setCalibrationSpeed");
   if (request->hasArg("value")) {
@@ -35,12 +35,12 @@ void setCalibrationSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
       log("Could not parse speed");
       return;
     }
-    motor.setCalibrationSpeed(speedValue);
+    model.setCalibrationSpeed(speedValue);
     return;
   }
   log("No speed arg found");
 }
-void setRunbackSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
+void setRunbackSpeed(AsyncWebServerRequest *request, PlatformModel &model) {
   log("/setrunbackSpeed");
   if (request->hasArg("value")) {
     String speed = request->arg("value");
@@ -50,7 +50,7 @@ void setRunbackSpeed(AsyncWebServerRequest *request, MotorUnit &motor) {
       log("Could not parse speed");
       return;
     }
-    motor.setrunbackSpeed(speedValue);
+    model.setrunbackSpeed(speedValue);
     return;
   }
   log("No speed arg found");
@@ -85,7 +85,7 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,PlatformModel &m
         "position" : %f,
         "velocity" : %d
       })",
-          motor.getRunBackSpeed(), motor.getCalibrationSpeed(),
+          model.getRunBackSpeed(), model.getCalibrationSpeed(),
           model.getGreatCircleRadius(), motor.getPositionInMM(),
           motor.getVelocityInMMPerMinute());
 
@@ -105,13 +105,13 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model) {
   });
 
   server.on("/calibrationSpeed", HTTP_POST,
-            [&motor](AsyncWebServerRequest *request) {
-              setCalibrationSpeed(request, motor);
+            [&model](AsyncWebServerRequest *request) {
+              setCalibrationSpeed(request, model);
             });
 
   server.on("/runbackSpeed", HTTP_POST,
-            [&motor](AsyncWebServerRequest *request) {
-              setRunbackSpeed(request, motor);
+            [&model](AsyncWebServerRequest *request) {
+              setRunbackSpeed(request, model);
             });
 
   server.on("/greatCircleRadius", HTTP_POST,
