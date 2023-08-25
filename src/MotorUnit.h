@@ -12,12 +12,7 @@ public:
   double getGreatCircleRadius();
   void setGreatCircleRadius(double radius);
 
-  int getCalibrationSpeed();
-  void setCalibrationSpeed(int speed);
-
-  int getRunBackSpeed();
-  void setrunbackSpeed(int speed);
-
+  
   int getLimitSwitchToEndDistance();
 
   double getPositionInMM();

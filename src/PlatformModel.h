@@ -3,6 +3,10 @@
 
 
 
+//Represents the static attributes of the platform.
+//Use to perform calculations using intrinsic platform attributes
+//Exposes methods to change some of those attributes (eg circle radius)
+//Does not hold dynamic state of the platform, ie position, as that comes from the motor
 
 class PlatformModel {
 public:
@@ -12,6 +16,11 @@ public:
   double getStepsPerMM();
   int getMiddlePosition();
   int getLimitPosition();
+  int getCalibrationSpeed();
+  void setCalibrationSpeed(int speed);
+
+  int getRunBackSpeed();
+  void setrunbackSpeed(int speed);
 };
 
 #endif

@@ -1,9 +1,8 @@
 #include "MotorUnit.h"
 #include "FastAccelStepper.h"
-#include "PlatformModel.h"
 #include "Logging.h"
+#include "PlatformModel.h"
 #include <Arduino.h>
-
 
 #define dirPinStepper 19
 #define stepPinStepper 18
@@ -13,15 +12,8 @@
 
 #define limitSwitchPin 21
 
-
-
 // See
 // https://github.com/gin66/FastAccelStepper/blob/master/extras/doc/FastAccelStepper_API.md
-
-
-int calibrationSpeed = 30000; // this could be faster as platform unloaded
-int runBackspeed = 30000;
-
 
 int forwardSpeed = 0;
 int backwardSpeed = 0;
@@ -35,7 +27,6 @@ bool limitSwitchFound = false;
 int moveToLocation = 0;
 bool moveToMode = false;
 
-
 long lastCheckTime = 0;
 
 FastAccelStepperEngine engine = FastAccelStepperEngine();
@@ -46,7 +37,7 @@ void MotorUnit::setupMotor(PlatformModel m) {
   pinMode(backwardSwitchPin, INPUT_PULLUP);
   pinMode(limitSwitchPin, INPUT_PULLUP);
 
-  model=m;
+  model = m;
 
   engine.init();
   stepper = engine.stepperConnectToPin(stepPinStepper);
@@ -76,7 +67,7 @@ void MotorUnit::calibrationModeSwitchCheck() {
   if (isSwitchForward()) { // running forward is for convenience only
     if (!runningForward) {
       log("Calibration Forward");
-      stepper->setSpeedInHz(calibrationSpeed);
+      stepper->setSpeedInHz(model.getCalibrationSpeed());
       // lol wiring is other way around and there is no way I am resoldering
       stepper->runBackward();
       runningForward = true;
@@ -126,7 +117,7 @@ void MotorUnit::calibrationModeSwitchCheck() {
     // run till limit hit
     if (!runningBackward) {
       log("Calibration Backward");
-      stepper->setSpeedInHz(calibrationSpeed);
+      stepper->setSpeedInHz(model.getCalibrationSpeed());
       stepper->runForward();
       runningForward = false;
       runningBackward = true;
@@ -174,7 +165,8 @@ void MotorUnit::runModeSwitchCheck() {
       // if (!runningForward) {
       // log("Run Mode Forward");
       stepper->setSpeedInMilliHz(model.calculateFowardSpeedInMilliHz(
-          ((double)(model.getMiddlePosition() - stepper->getCurrentPosition())) /
+          ((double)(model.getMiddlePosition() -
+                    stepper->getCurrentPosition())) /
           model.getStepsPerMM()));
       // stepper->setSpeedInHz(calibrationSpeed); //for finding end fast
       stepper->moveTo(0);
@@ -189,7 +181,7 @@ void MotorUnit::runModeSwitchCheck() {
   if (isSwitchBackward()) {
     if (!runningBackward) {
       log("Run Mode Backward");
-      stepper->setSpeedInHz(runBackspeed);
+      stepper->setSpeedInHz(model.getRunBackSpeed());
       stepper->moveTo(model.getLimitPosition());
 
       runningForward = false;
@@ -203,7 +195,7 @@ void MotorUnit::runModeSwitchCheck() {
   if (runningForward || runningBackward) {
     if (moveToMode) {
       if (stepper->getCurrentPosition() != moveToLocation) {
-        stepper->setSpeedInHz(runBackspeed);
+        stepper->setSpeedInHz(model.getRunBackSpeed());
         stepper->moveTo(moveToLocation);
         return;
       } else {
@@ -228,16 +220,6 @@ void MotorUnit::onLoop() {
     runModeSwitchCheck();
   }
 }
-
-
-
-int MotorUnit::getCalibrationSpeed() { return calibrationSpeed; }
-void MotorUnit::setCalibrationSpeed(int speed) { calibrationSpeed = speed; }
-
-int MotorUnit::getRunBackSpeed() { return runBackspeed; }
-void MotorUnit::setrunbackSpeed(int speed) { runBackspeed = speed; }
-
-
 
 double MotorUnit::getVelocityInMMPerMinute() {
   double speedInHz = stepper->getCurrentSpeedInMilliHz() / 1000.0;
