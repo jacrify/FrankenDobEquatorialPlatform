@@ -10,7 +10,7 @@
 
 class PlatformModel {
 public:
-  int calculateFowardSpeedInMilliHz(double distanceFromCenterInMM);
+  int calculateFowardSpeedInMilliHz(int stepperCurrentPosition);
   double getGreatCircleRadius();
   void setGreatCircleRadius(double r);
   double getStepsPerMM();

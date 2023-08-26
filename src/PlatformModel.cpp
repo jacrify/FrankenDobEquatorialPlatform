@@ -35,13 +35,17 @@ int32_t middlePosition =
 const int stepsPerRevolution = 200;
 
 int PlatformModel::calculateFowardSpeedInMilliHz(
-    double distanceFromCenterInMM) {
+    int stepperCurrentPosition) {
 
-  // log("distanceFromCenter %f", distanceFromCenterInMM);
-  // log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
+  double distanceFromCenterInMM=
+          ((double)(getMiddlePosition() -stepperCurrentPosition)) /
+          getStepsPerMM(); // TODO tidy this up to be readable (mobe to
+                                   // model)
+      // log("distanceFromCenter %f", distanceFromCenterInMM);
+      // log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
 
-  double absoluteAngleMovedAtThisPoint =
-      atan(distanceFromCenterInMM / greatCircleRadius);
+      double absoluteAngleMovedAtThisPoint =
+          atan(distanceFromCenterInMM / greatCircleRadius);
   // log("Current angle (deg) %f", absoluteAngleMovedAtThisPoint * 180.0 / PI);
 
   // TODO handle -
