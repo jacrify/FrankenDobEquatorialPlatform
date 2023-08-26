@@ -6,41 +6,8 @@
 
 AsyncWebServer server(80);
 
-void moveTo(AsyncWebServerRequest *request, MotorUnit &motor) {
-  log("/moveTo");
-  if (request->hasArg("position")) {
-    String position = request->arg("value");
-
-    int positionValue = position.toInt();
-    if (positionValue == 0 && position != "0") {
-      log("Could not parse position");
-      return;
-    }
-
-    motor.moveTo(positionValue);
-    return;
-  }
-
-  log("No position arg found");
-}
-
-void setCalibrationSpeed(AsyncWebServerRequest *request, PlatformModel &model) {
-
-  log("/setCalibrationSpeed");
-  if (request->hasArg("value")) {
-    String speed = request->arg("value");
-
-    int speedValue = speed.toInt();
-    if (speedValue == 0 && speed != "0") {
-      log("Could not parse speed");
-      return;
-    }
-    model.setCalibrationSpeed(speedValue);
-    return;
-  }
-  log("No speed arg found");
-}
-void setRunbackSpeed(AsyncWebServerRequest *request, PlatformModel &model) {
+void setRewindFastFowardSpeed(AsyncWebServerRequest *request,
+                              PlatformModel &model) {
   log("/setrunbackSpeed");
   if (request->hasArg("value")) {
     String speed = request->arg("value");
@@ -50,13 +17,14 @@ void setRunbackSpeed(AsyncWebServerRequest *request, PlatformModel &model) {
       log("Could not parse speed");
       return;
     }
-    model.setrunbackSpeed(speedValue);
+    model.setRewindFastFowardSpeed(speedValue);
     return;
   }
   log("No speed arg found");
 }
 
-void setGreatCircleRadius(AsyncWebServerRequest *request, PlatformModel &model) {
+void setGreatCircleRadius(AsyncWebServerRequest *request,
+                          PlatformModel &model) {
 
   log("/setGreatCircleRadius");
   if (request->hasArg("value")) {
@@ -73,19 +41,19 @@ void setGreatCircleRadius(AsyncWebServerRequest *request, PlatformModel &model) 
   log("No speed arg found");
 }
 
-void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,PlatformModel &model) {
+void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
+               PlatformModel &model) {
   // log("/getStatus");
 
   char buffer[300];
   sprintf(buffer,
           R"({
         "runbackSpeed" : %d,
-        "calibrationSpeed" : %d,
         "greatCircleRadius": %f,
         "position" : %f,
         "velocity" : %d
       })",
-          model.getRunBackSpeed(), model.getCalibrationSpeed(),
+          model.getRewindFastFowardSpeed(),
           model.getGreatCircleRadius(), motor.getPositionInMM(),
           motor.getVelocityInMMPerMinute());
 
@@ -98,20 +66,15 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,PlatformModel &m
 }
 
 void setupWebServer(MotorUnit &motor, PlatformModel &model) {
-  
 
-  server.on("/getStatus", HTTP_GET, [&motor,&model](AsyncWebServerRequest *request) {
-    getStatus(request, motor,model);
-  });
-
-  server.on("/calibrationSpeed", HTTP_POST,
-            [&model](AsyncWebServerRequest *request) {
-              setCalibrationSpeed(request, model);
+  server.on("/getStatus", HTTP_GET,
+            [&motor, &model](AsyncWebServerRequest *request) {
+              getStatus(request, motor, model);
             });
 
   server.on("/runbackSpeed", HTTP_POST,
             [&model](AsyncWebServerRequest *request) {
-              setRunbackSpeed(request, model);
+              setRewindFastFowardSpeed(request, model);
             });
 
   server.on("/greatCircleRadius", HTTP_POST,
@@ -119,9 +82,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model) {
               setGreatCircleRadius(request, model);
             });
 
-  server.on("/moveTo", HTTP_POST, [&motor](AsyncWebServerRequest *request) {
-    moveTo(request, motor);
-  });
+  ;
 
   server.serveStatic("/www/", LittleFS, "/fs/");
   server.serveStatic("/", LittleFS, "/fs/index.htm");

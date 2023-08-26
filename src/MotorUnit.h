@@ -18,7 +18,7 @@ public:
   double getPositionInMM();
   double getVelocityInMMPerMinute();
 
-  void moveTo(int location);
+
 private:
   void runModeSwitchCheck();
   void calibrationModeSwitchCheck();
