@@ -4,22 +4,28 @@
 #include "Logging.h"
 #include "MotorUnit.h"
 #include "Network.h"
-#include "PlatformModel.h"
 #include "OTA.h"
+#include "PlatformModel.h"
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
-
+#include <Preferences.h>
 
 MotorUnit motorUnit;
 PlatformModel model;
+Preferences prefs;
 
 void setup() {
   Serial.begin(115200);
   Serial.println("Booting");
   LittleFS.begin();
   setupWifi();
-  motorUnit.setupMotor(model);
-  setupWebServer(motorUnit, model); // don't use log() before this point
+  prefs.begin("Platform", false);
+ 
+  
+
+  model.setupModel();
+  motorUnit.setupMotor(model, prefs);
+  setupWebServer(motorUnit, model,prefs); // don't use log() before this point
   setupOTA();
 }
 

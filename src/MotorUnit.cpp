@@ -32,7 +32,7 @@ Bounce bounceLimit= Bounce();
 
 bool positionSavedOnStop = false;
 
-void MotorUnit::setupMotor(PlatformModel m) {
+void MotorUnit::setupMotor(PlatformModel &m, Preferences &p) {
   bounceFastForward.attach(fastForwardSwitchPin, INPUT_PULLUP);
   // pinMode(fastForwardSwitchPin, INPUT_PULLUP);
   bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
@@ -58,8 +58,8 @@ void MotorUnit::setupMotor(PlatformModel m) {
     // stepper->setSpeedInHz(5000);
     stepper->setAcceleration(1000000); // 100 steps/s²
 
-    preferences.begin("Platform", false);
 
+    preferences=p;
     uint32_t savedPosition = preferences.getUInt(PREF_SAVED_POS_KEY, 0);
     log("Loaded saved position %d", savedPosition);
     stepper->setCurrentPosition(savedPosition);
