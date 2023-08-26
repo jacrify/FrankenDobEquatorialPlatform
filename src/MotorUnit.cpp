@@ -3,6 +3,7 @@
 #include "Logging.h"
 #include "PlatformModel.h"
 #include <Arduino.h>
+#include <Bounce2.h>
 #include <Preferences.h>
 
 #define dirPinStepper 19
@@ -10,7 +11,7 @@
 
 #define fastForwardSwitchPin 22
 #define rewindSwitchPin 23
-#define playSwitchPin 27 
+#define playSwitchPin 27
 
 #define limitSwitchPin 21
 
@@ -24,15 +25,27 @@ long lastCheckTime = 0;
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *stepper = NULL;
 Preferences preferences;
+Bounce bounceFastForward = Bounce();
+Bounce bounceRewind = Bounce();
+Bounce bouncePlay = Bounce();
+Bounce bounceLimit= Bounce();
 
-bool positionSavedOnStop=false;
+bool positionSavedOnStop = false;
 
 void MotorUnit::setupMotor(PlatformModel m) {
-  pinMode(fastForwardSwitchPin, INPUT_PULLUP);
-  pinMode(rewindSwitchPin, INPUT_PULLUP);
-  pinMode(playSwitchPin, INPUT_PULLUP);
+  bounceFastForward.attach(fastForwardSwitchPin, INPUT_PULLUP);
+  // pinMode(fastForwardSwitchPin, INPUT_PULLUP);
+  bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
+  bouncePlay.attach(playSwitchPin, INPUT_PULLUP);
 
-  pinMode(limitSwitchPin, INPUT_PULLUP);
+  bounceLimit.attach(limitSwitchPin, INPUT_PULLUP);
+
+  // DEBOUNCE INTERVAL IN MILLISECONDS
+  bounceFastForward.interval(100); // interval in ms
+  bounceRewind.interval(100);      // interval in ms
+  bouncePlay.interval(100);        // interval in ms
+
+  bounceLimit.interval(10); // interval in ms
 
   model = m;
 
@@ -46,20 +59,31 @@ void MotorUnit::setupMotor(PlatformModel m) {
     stepper->setAcceleration(1000000); // 100 steps/s²
 
     preferences.begin("Platform", false);
-    
+
     uint32_t savedPosition = preferences.getUInt(PREF_SAVED_POS_KEY, 0);
     log("Loaded saved position %d", savedPosition);
     stepper->setCurrentPosition(savedPosition);
   }
 }
 
-bool isFastForward() { return digitalRead(fastForwardSwitchPin) == LOW; }
-bool isRewind() { return digitalRead(rewindSwitchPin) == LOW; }
-bool isPlay() { return digitalRead(playSwitchPin) == LOW; }
+bool isFastForward() {
+    return bounceFastForward.read() == LOW;
+}
+bool isRewind() {
+    return bounceRewind.read() == LOW;
+}
+bool isPlay() { 
+  return bouncePlay.read()==LOW;
+}
 
-bool isLimitSwitchHit() { return digitalRead(limitSwitchPin) == LOW; }
+bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 
 void MotorUnit::onLoop() {
+  bounceFastForward.update();
+  bounceRewind.update();
+  bouncePlay.update();
+  bounceLimit.update();
+
   if (isLimitSwitchHit()) {
     stepper->setCurrentPosition(model.getLimitPosition());
   }
