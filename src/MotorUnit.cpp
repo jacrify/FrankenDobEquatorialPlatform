@@ -70,11 +70,9 @@ void MotorUnit::onLoop() {
     if (now - lastCheckTime > 1000) {
 
       lastCheckTime = now;
-      stepper->setSpeedInMilliHz(model.calculateFowardSpeedInMilliHz(
-          ((double)(model.getMiddlePosition() -
-                    stepper->getCurrentPosition())) /
-          model.getStepsPerMM())); // TODO tidy this up to be readable (mobe to
-                                   // model)
+      int currentPosition = stepper->getCurrentPosition();
+      stepper->setSpeedInMilliHz(
+          model.calculateFowardSpeedInMilliHz(currentPosition));
       stepper->moveTo(0);
     }
     return;

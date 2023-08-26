@@ -5,21 +5,16 @@
 
 class MotorUnit {
 public:
-  PlatformModel model;
   void setupMotor(PlatformModel model);
   void onLoop();
-
   double getGreatCircleRadius();
-  void setGreatCircleRadius(double radius);
-
-  
+  void setGreatCircleRadius(double radius); 
   int getLimitSwitchToEndDistance();
-
   double getPositionInMM();
   double getVelocityInMMPerMinute();
 
-
 private:
+  PlatformModel model;
   void runModeSwitchCheck();
   void calibrationModeSwitchCheck();
 };
