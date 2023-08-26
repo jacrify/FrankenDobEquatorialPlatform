@@ -1,6 +1,6 @@
 #ifndef PLATFORM_MODEL_H
 #define PLATFORM_MODEL_H
-#include <Preferences.h>
+
 
 //Represents the static attributes of the platform.
 //Use to perform calculations using intrinsic platform attributes
@@ -9,7 +9,7 @@
 
 class PlatformModel {
 public:
-  PlatformModel();
+  void setupModel();
   int calculateFowardSpeedInMilliHz(int stepperCurrentPosition);
   double getGreatCircleRadius();
   void setGreatCircleRadius(double r);
@@ -28,7 +28,7 @@ public:
   int getRewindFastFowardSpeed();
   void setRewindFastFowardSpeed(int speed);
 private:
-    Preferences preferences;
+    
 };
 
 #endif

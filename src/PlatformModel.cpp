@@ -1,4 +1,5 @@
 #include "PlatformModel.h"
+#include "Logging.h"
 #include <Math.h>
 
 double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
@@ -20,18 +21,10 @@ double greatCircleRadius;
 #define microsteps 16
 #define threadedRodPitch 2 // mm
 
-#define PREF_CIRCLE_KEY "FFRW_SPEED"
-#define PREF_SPEED_KEY "FFRW_SPEED"
-#define PREF_MIDDLE_KEY "LIMIT_TO_MIDDLE"
 
-#define DEFAULT_SPEED 30000
-#define DEFAULT_MIDDLE_DISTANCE 62
-// This value is the tuned value
-#define DEFAULT_CIRCLE_RADIUS 448.0
-    // 482.5; // And this is the value by design in 3d model
 
 int32_t limitSwitchToEndDistance = 135; // length of run in mm
-// how far along middle point is. IE distance from limit switch to point where
+// how far along middle point is in mm. IE distance from limit switch to point where
 // platform is flat
 int32_t limitSwitchToMiddleDistance;
 
@@ -50,13 +43,9 @@ int stepsPerMM =
 // Number of steps per output rotation
 const int stepsPerRevolution = 200;
 
-PlatformModel::PlatformModel() {
-  preferences.begin("Platform", false);
-  rewindFastFowardSpeed = preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
-  limitSwitchToMiddleDistance =
-      preferences.getUInt(PREF_MIDDLE_KEY, DEFAULT_MIDDLE_DISTANCE);
-  greatCircleRadius =
-      preferences.getUInt(PREF_CIRCLE_KEY, DEFAULT_CIRCLE_RADIUS);
+void PlatformModel::setupModel() {
+
+
 }
 
 int PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
@@ -118,7 +107,7 @@ double PlatformModel::getGreatCircleRadius() { return greatCircleRadius; }
 
 void PlatformModel::setGreatCircleRadius(double radius) {
   greatCircleRadius = radius;
-  preferences.putUInt(PREF_CIRCLE_KEY, radius);
+  
 }
 
 int PlatformModel::getStepsPerMM() { return stepsPerMM; }
@@ -129,7 +118,7 @@ int PlatformModel::getMiddlePosition() {
 
 void PlatformModel::setLimitSwitchToMiddleDistance(int pos) {
   limitSwitchToMiddleDistance = pos;
-  preferences.putUInt(PREF_MIDDLE_KEY,pos);
+  
 }
 
 int PlatformModel::getLimitSwitchToMiddleDistance() {
@@ -144,6 +133,7 @@ int PlatformModel::getLimitPosition() {
 int PlatformModel::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
 
 void PlatformModel::setRewindFastFowardSpeed(int speed) {
+    log("updating speed to %d",speed);
   rewindFastFowardSpeed = speed;
-  preferences.putUInt(PREF_SPEED_KEY,speed);
+ 
 }
