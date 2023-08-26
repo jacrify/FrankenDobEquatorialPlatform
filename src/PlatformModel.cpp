@@ -4,7 +4,7 @@
 double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 double greatCircleRadius = 448; // this is millimeters from pivot to center rod.
                                 // This value is the tuned value
-// 482.5; // And this is the value by design !!
+// 482.5; // And this is the value by design in 3d model
 
 #define teethOnStepperPulley 16
 #define teethOnRodPulley 36
@@ -15,8 +15,8 @@ double greatCircleRadius = 448; // this is millimeters from pivot to center rod.
 #define limitSwitchToMiddleDistance 62 // mm
 #define limitSwitchToEndDistance 135   // mm
 
-int calibrationSpeed = 30000; // this could be faster as platform unloaded
-int runBackspeed = 30000;
+
+int rewindFastFowardSpeed = 30000;
 
 double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
@@ -34,7 +34,8 @@ int32_t middlePosition =
 // Number of steps per output rotation
 const int stepsPerRevolution = 200;
 
-int PlatformModel::calculateFowardSpeedInMilliHz(double distanceFromCenterInMM) {
+int PlatformModel::calculateFowardSpeedInMilliHz(
+    double distanceFromCenterInMM) {
 
   // log("distanceFromCenter %f", distanceFromCenterInMM);
   // log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
@@ -91,16 +92,13 @@ void PlatformModel::setGreatCircleRadius(double radius) {
   greatCircleRadius = radius;
 }
 
-double PlatformModel::getStepsPerMM(){
-    return stepsPerMM;
-}
+double PlatformModel::getStepsPerMM() { return stepsPerMM; }
 
 int PlatformModel::getMiddlePosition() { return middlePosition; }
 
 int PlatformModel::getLimitPosition() { return limitPosition; }
 
-int PlatformModel::getCalibrationSpeed() { return calibrationSpeed; }
-void PlatformModel::setCalibrationSpeed(int speed) { calibrationSpeed = speed; }
-
-int PlatformModel::getRunBackSpeed() { return runBackspeed; }
-void PlatformModel::setrunbackSpeed(int speed) { runBackspeed = speed; }
+int PlatformModel::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
+void PlatformModel::setRewindFastFowardSpeed(int speed) {
+  rewindFastFowardSpeed = speed;
+}

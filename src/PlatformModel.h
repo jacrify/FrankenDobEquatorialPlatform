@@ -16,11 +16,9 @@ public:
   double getStepsPerMM();
   int getMiddlePosition();
   int getLimitPosition();
-  int getCalibrationSpeed();
-  void setCalibrationSpeed(int speed);
 
-  int getRunBackSpeed();
-  void setrunbackSpeed(int speed);
+  int getRewindFastFowardSpeed();
+  void setRewindFastFowardSpeed(int speed);
 };
 
 #endif
