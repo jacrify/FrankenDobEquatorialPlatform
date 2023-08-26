@@ -2,9 +2,17 @@
 #include <Math.h>
 
 double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
-double greatCircleRadius = 448; // this is millimeters from pivot to center rod.
-                                // This value is the tuned value
-// 482.5; // And this is the value by design in 3d model
+
+// this is millimeters from pivot to center rod. Think of a
+// cone lying on the ground, with the axis of the cone pointing at the
+// south pole in the sky. If you take a slice through this cone at
+// right angles to the axis, so the the slice passes through the contact
+// point between the drive unit and the top of the platform,
+// this value is the radius of that slice.
+// Effectivly it drives the speed of the platform, as it is used
+// in the speeed calculations
+
+double greatCircleRadius;
 
 #define teethOnStepperPulley 16
 #define teethOnRodPulley 36
@@ -12,40 +20,55 @@ double greatCircleRadius = 448; // this is millimeters from pivot to center rod.
 #define microsteps 16
 #define threadedRodPitch 2 // mm
 
-#define limitSwitchToMiddleDistance 62 // mm
-#define limitSwitchToEndDistance 135   // mm
+#define PREF_CIRCLE_KEY "FFRW_SPEED"
+#define PREF_SPEED_KEY "FFRW_SPEED"
+#define PREF_MIDDLE_KEY "LIMIT_TO_MIDDLE"
 
+#define DEFAULT_SPEED 30000
+#define DEFAULT_MIDDLE_DISTANCE 62
+// This value is the tuned value
+#define DEFAULT_CIRCLE_RADIUS 448.0
+    // 482.5; // And this is the value by design in 3d model
 
-int rewindFastFowardSpeed = 30000;
+int32_t limitSwitchToEndDistance = 135; // length of run in mm
+// how far along middle point is. IE distance from limit switch to point where
+// platform is flat
+int32_t limitSwitchToMiddleDistance;
+
+int rewindFastFowardSpeed;
 
 double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
 
-double stepsPerMM =
+int stepsPerMM =
     (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
     (teethOnStepperPulley * threadedRodPitch);
 
 // Limit position is highest. Then it counts down to zero at end.
 // this  is expressed in microsteps
-int32_t limitPosition = limitSwitchToEndDistance * stepsPerMM;
-int32_t middlePosition =
-    limitPosition - (limitSwitchToMiddleDistance * stepsPerMM);
 
 // Number of steps per output rotation
 const int stepsPerRevolution = 200;
 
-int PlatformModel::calculateFowardSpeedInMilliHz(
-    int stepperCurrentPosition) {
+PlatformModel::PlatformModel() {
+  preferences.begin("Platform", false);
+  rewindFastFowardSpeed = preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
+  limitSwitchToMiddleDistance =
+      preferences.getUInt(PREF_MIDDLE_KEY, DEFAULT_MIDDLE_DISTANCE);
+  greatCircleRadius =
+      preferences.getUInt(PREF_CIRCLE_KEY, DEFAULT_CIRCLE_RADIUS);
+}
 
-  double distanceFromCenterInMM=
-          ((double)(getMiddlePosition() -stepperCurrentPosition)) /
-          getStepsPerMM(); // TODO tidy this up to be readable (mobe to
-                                   // model)
-      // log("distanceFromCenter %f", distanceFromCenterInMM);
-      // log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
+int PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
 
-      double absoluteAngleMovedAtThisPoint =
-          atan(distanceFromCenterInMM / greatCircleRadius);
+  double distanceFromCenterInMM =
+      ((double)(getMiddlePosition() - stepperCurrentPosition)) /
+      (double)getStepsPerMM();
+  // log("distanceFromCenter %f", distanceFromCenterInMM);
+  // log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
+
+  double absoluteAngleMovedAtThisPoint =
+      atan(distanceFromCenterInMM / greatCircleRadius);
   // log("Current angle (deg) %f", absoluteAngleMovedAtThisPoint * 180.0 / PI);
 
   // TODO handle -
@@ -92,17 +115,35 @@ int PlatformModel::calculateFowardSpeedInMilliHz(
 }
 
 double PlatformModel::getGreatCircleRadius() { return greatCircleRadius; }
+
 void PlatformModel::setGreatCircleRadius(double radius) {
   greatCircleRadius = radius;
+  preferences.putUInt(PREF_CIRCLE_KEY, radius);
 }
 
-double PlatformModel::getStepsPerMM() { return stepsPerMM; }
+int PlatformModel::getStepsPerMM() { return stepsPerMM; }
 
-int PlatformModel::getMiddlePosition() { return middlePosition; }
+int PlatformModel::getMiddlePosition() {
+  return (limitSwitchToEndDistance - limitSwitchToMiddleDistance) * stepsPerMM;
+}
 
-int PlatformModel::getLimitPosition() { return limitPosition; }
+void PlatformModel::setLimitSwitchToMiddleDistance(int pos) {
+  limitSwitchToMiddleDistance = pos;
+  preferences.putUInt(PREF_MIDDLE_KEY,pos);
+}
+
+int PlatformModel::getLimitSwitchToMiddleDistance() {
+  return limitSwitchToMiddleDistance;
+}
+
+int PlatformModel::getLimitPosition() {
+  return limitSwitchToEndDistance * stepsPerMM;
+  ;
+}
 
 int PlatformModel::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
+
 void PlatformModel::setRewindFastFowardSpeed(int speed) {
   rewindFastFowardSpeed = speed;
+  preferences.putUInt(PREF_SPEED_KEY,speed);
 }
