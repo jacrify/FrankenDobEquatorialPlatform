@@ -11,6 +11,7 @@
 #define PREF_MIDDLE_KEY "mid"
 
 #define DEFAULT_SPEED 30000
+//this is in hz. In millihz this would be 30,000,000
 #define DEFAULT_MIDDLE_DISTANCE 62
 // This value is the tuned value
 #define DEFAULT_CIRCLE_RADIUS 448.0

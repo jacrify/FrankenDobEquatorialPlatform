@@ -1,7 +1,9 @@
 #include "PlatformModel.h"
-#include "Logging.h"
+// #include "Logging.h"
 #include <Math.h>
-
+#include <iostream>
+#include <sstream>
+using namespace std;
 double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 
 // this is millimeters from pivot to center rod. Think of a
@@ -21,11 +23,9 @@ double greatCircleRadius;
 #define microsteps 16
 #define threadedRodPitch 2 // mm
 
-
-
 int32_t limitSwitchToEndDistance = 135; // length of run in mm
-// how far along middle point is in mm. IE distance from limit switch to point where
-// platform is flat
+// how far along middle point is in mm. IE distance from limit switch to point
+// where platform is flat
 int32_t limitSwitchToMiddleDistance;
 
 int rewindFastFowardSpeed;
@@ -33,7 +33,7 @@ int rewindFastFowardSpeed;
 double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
 
-int stepsPerMM =
+double stepsPerMM =
     (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
     (teethOnStepperPulley * threadedRodPitch);
 
@@ -41,64 +41,44 @@ int stepsPerMM =
 // this  is expressed in microsteps
 
 // Number of steps per output rotation
-const int stepsPerRevolution = 200;
+// const int stepsPerRevolution = 200;
 
-void PlatformModel::setupModel() {
+void PlatformModel::setupModel() {}
 
+uint32_t
+PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
 
-}
-
-int PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
-
-  double distanceFromCenterInMM =
-      ((double)(getMiddlePosition() - stepperCurrentPosition)) /
-      (double)getStepsPerMM();
-  // log("distanceFromCenter %f", distanceFromCenterInMM);
-  // log("greatCircleRadiansPerMinute %f", greatCircleRadiansPerMinute);
+  int middle = getMiddlePosition();
+  double stepsFromMiddle = (double)(middle - stepperCurrentPosition);
+  double stepsPerMM = getStepsPerMM();
+  double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
 
   double absoluteAngleMovedAtThisPoint =
       atan(distanceFromCenterInMM / greatCircleRadius);
-  // log("Current angle (deg) %f", absoluteAngleMovedAtThisPoint * 180.0 / PI);
-
-  // TODO handle -
+  
   double absoluteAngleAfterOneMoreMinute =
       absoluteAngleMovedAtThisPoint + greatCircleRadiansPerMinute;
 
-  // log("New angle (deg) %f", absoluteAngleAfterOneMoreMinute * 180.0 / PI);
-
   double distanceAlongRodAfterOneMoreMinute =
       greatCircleRadius * tan(absoluteAngleAfterOneMoreMinute);
-
-  // log("distanceAlongRodAfterOneMoreMinute %f",
-  // distanceAlongRodAfterOneMoreMinute);
+  
 
   double threadDistancePerMinute =
       distanceAlongRodAfterOneMoreMinute - distanceFromCenterInMM;
 
-  // log("threadDistancePerMinute %f", threadDistancePerMinute);
-  // // ignore distance for now
-  // double distanceToMoveAlongRodPerMinuteAtZero =
-  //     tan(greatCircleRadiansPerMinute) * greatCircleRadius; // mm
-
-  // log("distanceToMoveAlongRodPerMinuteAtZero %f",
-  //     distanceToMoveAlongRodPerMinuteAtZero);
-
   double numberOfTurnsPerMinuteOfRod =
       threadDistancePerMinute / threadedRodPitch;
 
-  // log("numberOfTurnsPerMinuteOfRod %f", numberOfTurnsPerMinuteOfRod);
   double numberOfTurnsPerMinuteOfStepper =
       numberOfTurnsPerMinuteOfRod * rodStepperRatio;
-  // log("numberOfTurnsPerMinuteOfStepper %f", numberOfTurnsPerMinuteOfStepper);
 
   double numberOfStepsPerMinuteInMiddle =
       numberOfTurnsPerMinuteOfStepper * stepperStepsPerRevolution * microsteps;
 
-  // log("numberOfStepsPerMinute %f", numberOfStepsPerMinuteInMiddle);
-
   double stepperSpeedInHertz = numberOfStepsPerMinuteInMiddle / 60.0;
-  // log("stepperSpeedInHertz %f", stepperSpeedInHertz);
-  int stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
+  
+             // log("stepperSpeedInHertz %f", stepperSpeedInHertz);
+  uint32_t stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
   // log("stepperSpeedInMilliHertz %d", stepperSpeedInMilliHertz);
   return stepperSpeedInMilliHertz;
 }
@@ -107,25 +87,23 @@ double PlatformModel::getGreatCircleRadius() { return greatCircleRadius; }
 
 void PlatformModel::setGreatCircleRadius(double radius) {
   greatCircleRadius = radius;
-  
 }
 
-int PlatformModel::getStepsPerMM() { return stepsPerMM; }
+double PlatformModel::getStepsPerMM() { return stepsPerMM; }
 
-int PlatformModel::getMiddlePosition() {
+int32_t PlatformModel::getMiddlePosition() {
   return (limitSwitchToEndDistance - limitSwitchToMiddleDistance) * stepsPerMM;
 }
 
 void PlatformModel::setLimitSwitchToMiddleDistance(int pos) {
   limitSwitchToMiddleDistance = pos;
-  
 }
 
 int PlatformModel::getLimitSwitchToMiddleDistance() {
   return limitSwitchToMiddleDistance;
 }
 
-int PlatformModel::getLimitPosition() {
+int32_t PlatformModel::getLimitPosition() {
   return limitSwitchToEndDistance * stepsPerMM;
   ;
 }
@@ -133,7 +111,6 @@ int PlatformModel::getLimitPosition() {
 int PlatformModel::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
 
 void PlatformModel::setRewindFastFowardSpeed(int speed) {
-    log("updating speed to %d",speed);
+  // log("updating speed to %d",speed);
   rewindFastFowardSpeed = speed;
- 
 }

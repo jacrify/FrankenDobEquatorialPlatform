@@ -69,11 +69,11 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
   char buffer[300];
   sprintf(buffer,
           R"({
-        "runbackSpeed" : %d,
+        "runbackSpeed" : %ld,
         "greatCircleRadius": %f,
-        "limitToMiddleDistance":%d,
+        "limitToMiddleDistance":%ld,
         "position" : %f,
-        "velocity" : %d
+        "velocity" : %f
       })",
           model.getRewindFastFowardSpeed(), model.getGreatCircleRadius(),
           model.getLimitSwitchToMiddleDistance(), motor.getPositionInMM(),
@@ -122,8 +122,8 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
             });
   ;
 
-  server.serveStatic("/www/", LittleFS, "/fs/");
-  server.serveStatic("/", LittleFS, "/fs/index.htm");
+  // server.serveStatic("/www/", LittleFS, "/fs/");
+  server.serveStatic("/", LittleFS, "/fs/");
 
   // WebSerial is accessible at "<IP Address>/webserial" in browser
   WebSerial.begin(&server);

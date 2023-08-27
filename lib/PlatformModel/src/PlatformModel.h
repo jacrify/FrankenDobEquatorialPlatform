@@ -1,6 +1,6 @@
 #ifndef PLATFORM_MODEL_H
 #define PLATFORM_MODEL_H
-
+#include <cstdint>
 
 //Represents the static attributes of the platform.
 //Use to perform calculations using intrinsic platform attributes
@@ -10,10 +10,10 @@
 class PlatformModel {
 public:
   void setupModel();
-  int calculateFowardSpeedInMilliHz(int stepperCurrentPosition);
+  uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition);
   double getGreatCircleRadius();
   void setGreatCircleRadius(double r);
-  int getStepsPerMM();
+  double getStepsPerMM();
   
   //set distance in mm
   void setLimitSwitchToMiddleDistance(int pos);
@@ -21,9 +21,9 @@ public:
   int getLimitSwitchToMiddleDistance();
 
   //get position of limit, in steps
-  int getLimitPosition();
+  int32_t getLimitPosition();
   // get position of middle, in steps
-  int getMiddlePosition();
+  int32_t getMiddlePosition();
 
   int getRewindFastFowardSpeed();
   void setRewindFastFowardSpeed(int speed);
