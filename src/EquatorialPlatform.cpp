@@ -26,7 +26,7 @@ void setup() {
   model.setupModel();
   motorUnit.setupMotor(model, prefs);
   setupWebServer(motorUnit, model,prefs); // don't use log() before this point
-  setupOTA();
+  // setupOTA();
 }
 
 void loop() {

@@ -28,7 +28,7 @@ Preferences preferences;
 Bounce bounceFastForward = Bounce();
 Bounce bounceRewind = Bounce();
 Bounce bouncePlay = Bounce();
-Bounce bounceLimit= Bounce();
+Bounce bounceLimit = Bounce();
 
 bool positionSavedOnStop = false;
 
@@ -58,23 +58,16 @@ void MotorUnit::setupMotor(PlatformModel &m, Preferences &p) {
     // stepper->setSpeedInHz(5000);
     stepper->setAcceleration(1000000); // 100 steps/s²
 
-
-    preferences=p;
+    preferences = p;
     uint32_t savedPosition = preferences.getUInt(PREF_SAVED_POS_KEY, 0);
     log("Loaded saved position %d", savedPosition);
     stepper->setCurrentPosition(savedPosition);
   }
 }
 
-bool isFastForward() {
-    return bounceFastForward.read() == LOW;
-}
-bool isRewind() {
-    return bounceRewind.read() == LOW;
-}
-bool isPlay() { 
-  return bouncePlay.read()==LOW;
-}
+bool isFastForward() { return bounceFastForward.read() == LOW; }
+bool isRewind() { return bounceRewind.read() == LOW; }
+bool isPlay() { return bouncePlay.read() == LOW; }
 
 bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 
@@ -85,7 +78,9 @@ void MotorUnit::onLoop() {
   bounceLimit.update();
 
   if (isLimitSwitchHit()) {
-    stepper->setCurrentPosition(model.getLimitPosition());
+    int32_t pos = model.getLimitPosition();
+    stepper->setCurrentPosition(pos);
+    log("Limit hit, setting position to %ld", pos);
   }
 
   if (isRewind() && !isLimitSwitchHit()) {
@@ -101,12 +96,16 @@ void MotorUnit::onLoop() {
   }
 
   if (isPlay()) {
+
     // update speed periodically. Don't need to do every cycle
     long now = millis();
-    if (now - lastCheckTime > 1000) {
+    if ((now - lastCheckTime) > 1000) {
 
       lastCheckTime = now;
-      int currentPosition = stepper->getCurrentPosition();
+      int32_t currentPosition = stepper->getCurrentPosition();
+      log("Setting speed of stepper to %lu millnz at position %ld",
+          model.calculateFowardSpeedInMilliHz(currentPosition),
+          currentPosition);
       stepper->setSpeedInMilliHz(
           model.calculateFowardSpeedInMilliHz(currentPosition));
       stepper->moveTo(0);
@@ -118,17 +117,21 @@ void MotorUnit::onLoop() {
     stepper->stopMove();
     uint32_t pos = stepper->getCurrentPosition();
     preferences.putUInt(PREF_SAVED_POS_KEY, pos);
-    log("Stopped, saving position %d", pos);
+    log("Stopped, saving position %ld", pos);
   }
 }
 
 double MotorUnit::getVelocityInMMPerMinute() {
-  double speedInHz = stepper->getCurrentSpeedInMilliHz() / 1000.0;
+  double speedInMHz = (double)stepper->getCurrentSpeedInMilliHz();
+  double speedInHz = speedInMHz / 1000.0;
   double speedInMMPerSecond = speedInHz / model.getStepsPerMM();
   double speedInMMPerMinute = speedInMMPerSecond * 60.0;
+  // log("Speed in mhz %f", speedInMHz);
+  // log("Speed in hz %f", speedInHz);
+  // log("Speed in mm s %f", speedInMMPerSecond);
+  log("Speed in mm m %f", speedInMMPerMinute);
   return speedInMMPerMinute;
 }
 double MotorUnit::getPositionInMM() {
-  return ((double)stepper->getCurrentPosition()) /
-         (double)model.getStepsPerMM();
+  return ((double)stepper->getCurrentPosition()) / model.getStepsPerMM();
 }
