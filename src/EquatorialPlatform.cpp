@@ -32,7 +32,7 @@ void setup() {
 void loop() {
   // loopOTA();
   delay(100);
-  broadcastIP();
+  broadcastStatus(motorUnit.getTimeToCenterInSeconds(), motorUnit.getTrackingStatus());
   motorUnit.onLoop();
   logWrite();
 }

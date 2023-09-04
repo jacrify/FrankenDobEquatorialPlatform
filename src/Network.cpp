@@ -3,7 +3,7 @@
 
 #define IPBROADCASTPORT 50375
 #define IPBROADCASTPERIOD 10000
-
+#include "Logging.h"
 WiFiManager wifiManager;
 AsyncUDP udp;
 unsigned long lastIPBroadcastTime;
@@ -15,10 +15,14 @@ void setupWifi() {
   lastIPBroadcastTime = 0;
 }
 
-void broadcastIP() {
+// every x second, send whether platform is tracking,
+// and how many seconds it will take to reach center.
+//(can be negative is center passed)
+void broadcastStatus(double secondsToCenter, bool platformTracking) {
   long now = millis();
   if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
-    lastIPBroadcastTime=now;
+    log("Preparing to send packet");
+    lastIPBroadcastTime = now;
     // Check if the device is connected to the WiFi
     if (WiFi.status() != WL_CONNECTED) {
       return;
@@ -26,7 +30,16 @@ void broadcastIP() {
     if (udp.connect(
             IPAddress(255, 255, 255, 255),
             IPBROADCASTPORT)) { // Choose any available port, e.g., 12345
-      udp.print("EQIP=" + WiFi.localIP().toString());
+      char response[256];
+
+      snprintf(response, sizeof(response),
+               "EQ:{"
+               "\"timeToCenter\": %.2lf,"
+               "\"isTracking\": %s"
+               "}",
+               secondsToCenter, platformTracking ? "true" : "false");
+      udp.print(response);
+      log("Packet sent %s",response);
     }
   }
 }
