@@ -8,18 +8,31 @@
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
-//When polled via web socket, send a response.
+// When polled via web socket, send a response.
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len,
-                            AsyncWebSocketClient *client,
-                            PlatformModel &model) {
+                            AsyncWebSocketClient *client, MotorUnit &motor) {
+  log("Handling web socket request...");
   AwsFrameInfo *info = (AwsFrameInfo *)arg;
   if (info->final && info->index == 0 && info->len == len &&
       info->opcode == WS_TEXT) {
     data[len] = 0; // Null-terminate
     // Now compare the message
     if (strcmp((char *)data, "request_data") == 0) {
-      //TODO fix this
-      client->text("{\"response\": \"Your requested data from EQ\"}");
+      double timeToCenter = motor.getTimeToCenterInSeconds();
+      bool isTracking = motor.getTrackingStatus();
+      log("Responding to telescope client with time to center %lf and status "
+          "%d",
+          timeToCenter, isTracking);
+      char
+          response[256]; // Assuming 256 characters is enough. Adjust if needed.
+      snprintf(response, sizeof(response),
+               "{"
+               "\"timeToCenter\": %lf,"
+               "\"isTracking\": %s"
+               "}",
+               timeToCenter, isTracking ? "true" : "false");
+
+      client->text(response);
     }
   }
 }
@@ -106,25 +119,29 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
 
 void setupWebServer(MotorUnit &motor, PlatformModel &model,
                     Preferences &preferences) {
-                      
 
-  //DSCs regularly poll via web socket asking for position. Set up the handler here
-  ws.onEvent([&model](AsyncWebSocket *server, AsyncWebSocketClient *client,
+  // DSCs regularly poll via web socket asking for position. Set up the handler
+  // here
+  ws.onEvent([&motor](AsyncWebSocket *server, AsyncWebSocketClient *client,
                       AwsEventType type, void *arg, uint8_t *data, size_t len) {
+    log("Web socket event");
+
     switch (type) {
     case WS_EVT_CONNECT:
-      Serial.printf("WebSocket client #%u connected from %s\n", client->id(),
-                    client->remoteIP().toString().c_str());
+      log("WebSocket client #%u connected from %s\n", client->id(),
+          client->remoteIP().toString().c_str());
       break;
     case WS_EVT_DISCONNECT:
-      Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      log("WebSocket client #%u disconnected\n", client->id());
       break;
     case WS_EVT_DATA:
-      PlatformModel m = model;
-      handleWebSocketMessage(arg, data, len, client, model);
+      log("Web socket message received");
+
+      // TODO add tracking status
+      handleWebSocketMessage(arg, data, len, client, motor);
       break;
-    // case WS_EVT_PONG:
-    // case WS_EVT_ERROR:
+      // case WS_EVT_PONG:
+      // case WS_EVT_ERROR:
       break;
     }
   });

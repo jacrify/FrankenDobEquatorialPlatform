@@ -2,7 +2,7 @@
 #include <WiFiManager.h>
 
 #define IPBROADCASTPORT 50375
-#define IPBROADCASTPERIOD 1000
+#define IPBROADCASTPERIOD 10000
 
 WiFiManager wifiManager;
 AsyncUDP udp;
@@ -11,6 +11,7 @@ unsigned long lastIPBroadcastTime;
 void setupWifi() {
 
   wifiManager.setConnectTimeout(10);
+  wifiManager.autoConnect();
   lastIPBroadcastTime = 0;
 }
 

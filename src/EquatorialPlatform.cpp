@@ -19,10 +19,12 @@ void setup() {
   Serial.println("Booting");
   LittleFS.begin();
   setupWifi();
+  
   prefs.begin("Platform", false); 
 
   model.setupModel();
   motorUnit.setupMotor(model, prefs);
+  delay(500);
   setupWebServer(motorUnit, model,prefs); // don't use log() before this point
   // setupOTA();
 }
@@ -30,6 +32,7 @@ void setup() {
 void loop() {
   // loopOTA();
   delay(100);
+  broadcastIP();
   motorUnit.onLoop();
   logWrite();
 }
