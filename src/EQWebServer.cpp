@@ -1,11 +1,28 @@
+#include "EQWebServer.h"
 #include "Logging.h"
 #include "MotorUnit.h"
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <WebSerial.h>
-#include "EQWebServer.h"
 
 AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
+
+//When polled via web socket, send a response.
+void handleWebSocketMessage(void *arg, uint8_t *data, size_t len,
+                            AsyncWebSocketClient *client,
+                            PlatformModel &model) {
+  AwsFrameInfo *info = (AwsFrameInfo *)arg;
+  if (info->final && info->index == 0 && info->len == len &&
+      info->opcode == WS_TEXT) {
+    data[len] = 0; // Null-terminate
+    // Now compare the message
+    if (strcmp((char *)data, "request_data") == 0) {
+      //TODO fix this
+      client->text("{\"response\": \"Your requested data from EQ\"}");
+    }
+  }
+}
 
 void setLimitToMiddleDistance(AsyncWebServerRequest *request,
                               PlatformModel &model, Preferences &preferences) {
@@ -26,7 +43,7 @@ void setLimitToMiddleDistance(AsyncWebServerRequest *request,
 }
 
 void setRewindFastFowardSpeed(AsyncWebServerRequest *request,
-                              PlatformModel &model,Preferences &preferences) {
+                              PlatformModel &model, Preferences &preferences) {
   log("/setrunbackSpeed");
   if (request->hasArg("value")) {
     String speed = request->arg("value");
@@ -43,8 +60,8 @@ void setRewindFastFowardSpeed(AsyncWebServerRequest *request,
   log("No speed arg found");
 }
 
-void setGreatCircleRadius(AsyncWebServerRequest *request,
-                          PlatformModel &model,Preferences &preferences) {
+void setGreatCircleRadius(AsyncWebServerRequest *request, PlatformModel &model,
+                          Preferences &preferences) {
 
   log("/setGreatCircleRadius");
   if (request->hasArg("value")) {
@@ -89,8 +106,32 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
 
 void setupWebServer(MotorUnit &motor, PlatformModel &model,
                     Preferences &preferences) {
+                      
 
-  int rewindFastFowardSpeed = preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
+  //DSCs regularly poll via web socket asking for position. Set up the handler here
+  ws.onEvent([&model](AsyncWebSocket *server, AsyncWebSocketClient *client,
+                      AwsEventType type, void *arg, uint8_t *data, size_t len) {
+    switch (type) {
+    case WS_EVT_CONNECT:
+      Serial.printf("WebSocket client #%u connected from %s\n", client->id(),
+                    client->remoteIP().toString().c_str());
+      break;
+    case WS_EVT_DISCONNECT:
+      Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      break;
+    case WS_EVT_DATA:
+      PlatformModel m = model;
+      handleWebSocketMessage(arg, data, len, client, model);
+      break;
+    // case WS_EVT_PONG:
+    // case WS_EVT_ERROR:
+      break;
+    }
+  });
+  server.addHandler(&ws);
+
+  int rewindFastFowardSpeed =
+      preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
   int limitSwitchToMiddleDistance =
       preferences.getUInt(PREF_MIDDLE_KEY, DEFAULT_MIDDLE_DISTANCE);
   int greatCircleRadius =
@@ -108,8 +149,8 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
             });
 
   server.on("/runbackSpeed", HTTP_POST,
-            [&model,&preferences](AsyncWebServerRequest *request) {
-              setRewindFastFowardSpeed(request, model,preferences);
+            [&model, &preferences](AsyncWebServerRequest *request) {
+              setRewindFastFowardSpeed(request, model, preferences);
             });
 
   server.on("/greatCircleRadius", HTTP_POST,
@@ -132,3 +173,9 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   log("Server started");
   return;
 }
+
+// TODO
+//  void loop() {
+
+//   ws.cleanupClients();
+// }

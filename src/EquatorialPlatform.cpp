@@ -19,9 +19,7 @@ void setup() {
   Serial.println("Booting");
   LittleFS.begin();
   setupWifi();
-  prefs.begin("Platform", false);
- 
-  
+  prefs.begin("Platform", false); 
 
   model.setupModel();
   motorUnit.setupMotor(model, prefs);

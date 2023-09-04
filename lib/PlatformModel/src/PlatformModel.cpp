@@ -6,6 +6,7 @@
 using namespace std;
 double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 
+
 // this is millimeters from pivot to center rod. Think of a
 // cone lying on the ground, with the axis of the cone pointing at the
 // south pole in the sky. If you take a slice through this cone at
@@ -22,6 +23,10 @@ double greatCircleRadius;
 #define stepperStepsPerRevolution 200
 #define microsteps 16
 #define threadedRodPitch 2 // mm
+
+const double fullRotation =
+    2 * M_PI; // M_PI is the value for pi from the cmath library
+const double fullRotationTimeInSeconds = 24 * 60 * 60;
 
 int32_t limitSwitchToEndDistance = 135; // length of run in mm
 // how far along middle point is in mm. IE distance from limit switch to point
@@ -45,6 +50,28 @@ double stepsPerMM =
 
 void PlatformModel::setupModel() {}
 
+//work out how long it will be until we are at center. If we've passed center will be negative.
+double PlatformModel::calculateTimeToCenterInSeconds(int stepperCurrentPosition) {
+  int middle = getMiddlePosition();
+  // note this calculation is the other way around from
+  // calculateFowardSpeedInMilliHz: 
+  double stepsFromMiddle = (double)(stepperCurrentPosition-middle );
+  double stepsPerMM = getStepsPerMM();
+  double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
+
+  double absoluteAngleMovedAtThisPoint =
+      atan(distanceFromCenterInMM / greatCircleRadius);
+
+ 
+  double fractionMoved = absoluteAngleMovedAtThisPoint / fullRotation;
+
+  // 24 hours = 86400 seconds
+  double fullRotationTimeInSeconds = 24 * 60 * 60;
+
+  double secondsMoved = fractionMoved * fullRotationTimeInSeconds;
+  return secondsMoved;
+}
+
 uint32_t
 PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
 
@@ -55,13 +82,12 @@ PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
 
   double absoluteAngleMovedAtThisPoint =
       atan(distanceFromCenterInMM / greatCircleRadius);
-  
+
   double absoluteAngleAfterOneMoreMinute =
       absoluteAngleMovedAtThisPoint + greatCircleRadiansPerMinute;
 
   double distanceAlongRodAfterOneMoreMinute =
       greatCircleRadius * tan(absoluteAngleAfterOneMoreMinute);
-  
 
   double threadDistancePerMinute =
       distanceAlongRodAfterOneMoreMinute - distanceFromCenterInMM;
@@ -76,8 +102,8 @@ PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
       numberOfTurnsPerMinuteOfStepper * stepperStepsPerRevolution * microsteps;
 
   double stepperSpeedInHertz = numberOfStepsPerMinuteInMiddle / 60.0;
-  
-             // log("stepperSpeedInHertz %f", stepperSpeedInHertz);
+
+  // log("stepperSpeedInHertz %f", stepperSpeedInHertz);
   uint32_t stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
   // log("stepperSpeedInMilliHertz %d", stepperSpeedInMilliHertz);
   return stepperSpeedInMilliHertz;
