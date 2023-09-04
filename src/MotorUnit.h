@@ -13,9 +13,10 @@ public:
   int getLimitSwitchToEndDistance();
   double getPositionInMM();
   double getVelocityInMMPerMinute();
+  double getTimeToCenterInSeconds();
+  bool getTrackingStatus();
 
-private:
-  PlatformModel model;
+      private : PlatformModel model;
   void runModeSwitchCheck();
   void calibrationModeSwitchCheck();
   Preferences preferences;

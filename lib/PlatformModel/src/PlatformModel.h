@@ -26,7 +26,7 @@ public:
   // get position of middle, in steps
   int32_t getMiddlePosition();
 
-  int getRewindFastFowardSpeed();
+  int getRewindFastFowardSpeed(); //hz
   void setRewindFastFowardSpeed(int speed);
 private:
     

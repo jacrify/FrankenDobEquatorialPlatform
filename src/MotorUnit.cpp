@@ -32,6 +32,18 @@ Bounce bounceLimit = Bounce();
 
 bool positionSavedOnStop = false;
 
+double MotorUnit::getTimeToCenterInSeconds() {
+  return model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
+}
+
+bool MotorUnit::getTrackingStatus() {
+  //todo fix this so only 
+  if (!stepper->isRunning())
+  return false;
+  //if running we'll be running at forward/rewind spped. This is in hz, so convert to compare
+  //add fudge factor.
+  return (stepper->getSpeedInMilliHz() <= model.getRewindFastFowardSpeed()*500); 
+}
 void MotorUnit::setupMotor(PlatformModel &m, Preferences &p) {
   bounceFastForward.attach(fastForwardSwitchPin, INPUT_PULLUP);
   // pinMode(fastForwardSwitchPin, INPUT_PULLUP);
