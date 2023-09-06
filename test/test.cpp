@@ -27,6 +27,18 @@ void test_timetomiddle_calc(void) {
       stepPositionOfMiddle -7200); // about a minute from middle
   TEST_ASSERT_EQUAL_FLOAT_MESSAGE(-61.38793, time_to_center,
                                   "time to middle should be positive");
+
+  double time_to_end =
+      model.calculateTimeToEndOfRunInSeconds(stepPositionOfMiddle);
+  TEST_ASSERT_EQUAL_FLOAT_MESSAGE(2221.153, time_to_end,
+                                  "time to end should be 37 minutes");
+
+  time_to_end = model.calculateTimeToEndOfRunInSeconds(0);
+  TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0, time_to_end,
+                                  "time to end should be 0");
+  time_to_end = model.calculateTimeToEndOfRunInSeconds(stepPositionOfMiddle+100);
+  TEST_ASSERT_EQUAL_FLOAT_MESSAGE(2221.984, time_to_end,
+                                  "time to end should be biggers");
 }
 
   void test_speed_calc(void) {

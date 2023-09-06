@@ -6,7 +6,6 @@
 using namespace std;
 double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 
-
 // this is millimeters from pivot to center rod. Think of a
 // cone lying on the ground, with the axis of the cone pointing at the
 // south pole in the sky. If you take a slice through this cone at
@@ -50,19 +49,26 @@ double stepsPerMM =
 
 void PlatformModel::setupModel() {}
 
-//work out how long it will be until we are at center. If we've passed center will be negative.
-double PlatformModel::calculateTimeToCenterInSeconds(int stepperCurrentPosition) {
+double PlatformModel::calculateTimeToEndOfRunInSeconds(int32_t stepperCurrentPosition) {
+  int32_t endToMiddleInMM =
+      limitSwitchToEndDistance - limitSwitchToMiddleDistance;
+  int32_t endToMiddleInSteps = endToMiddleInMM * stepsPerMM;
+  return calculateTimeToCenterInSeconds(stepperCurrentPosition + endToMiddleInSteps);
+}
+// work out how long it will be until we are at center. If we've passed center
+// will be negative.
+double
+PlatformModel::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
   int middle = getMiddlePosition();
   // note this calculation is the other way around from
-  // calculateFowardSpeedInMilliHz: 
-  double stepsFromMiddle = (double)(stepperCurrentPosition-middle );
+  // calculateFowardSpeedInMilliHz:
+  double stepsFromMiddle = (double)(stepperCurrentPosition - middle);
   double stepsPerMM = getStepsPerMM();
   double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
 
   double absoluteAngleMovedAtThisPoint =
       atan(distanceFromCenterInMM / greatCircleRadius);
 
- 
   double fractionMoved = absoluteAngleMovedAtThisPoint / fullRotation;
 
   // 24 hours = 86400 seconds

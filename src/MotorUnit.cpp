@@ -36,15 +36,23 @@ double MotorUnit::getTimeToCenterInSeconds() {
   return model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
 }
 
+double MotorUnit::getTimeToEndOfRunInSeconds() {
+  return model.calculateTimeToEndOfRunInSeconds(stepper->getCurrentPosition());
+}
+
 bool MotorUnit::getTrackingStatus() {
-  //todo fix this so only 
+  // todo fix this so only
   if (!stepper->isRunning())
-  return false;
-  //if running we'll be running at forward/rewind spped. This is in hz, so convert to compare
-  //add fudge factor.
-  return (stepper->getSpeedInMilliHz() <= model.getRewindFastFowardSpeed()*500); 
+    return false;
+  // if running we'll be running at forward/rewind spped. This is in hz, so
+  // convert to compare add fudge factor.
+  return (stepper->getSpeedInMilliHz() <=
+          model.getRewindFastFowardSpeed() * 500);
 }
 void MotorUnit::setupMotor(PlatformModel &m, Preferences &p) {
+  parking=false;
+  homing=false;
+  
   bounceFastForward.attach(fastForwardSwitchPin, INPUT_PULLUP);
   // pinMode(fastForwardSwitchPin, INPUT_PULLUP);
   bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
@@ -83,6 +91,28 @@ bool isPlay() { return bouncePlay.read() == LOW; }
 
 bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 
+// move to start position
+void MotorUnit::home() {
+  if (!isLimitSwitchHit()) {
+    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
+    stepper->runForward();
+    homing = true;
+    return;
+  }
+  homing = false;
+}
+
+// move to middle
+void MotorUnit::park() {
+  if (!isLimitSwitchHit()) {
+    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
+    stepper->moveTo(model.getMiddlePosition());
+    parking = true;
+    return;
+  }
+  parking = false;
+}
+
 void MotorUnit::onLoop() {
   bounceFastForward.update();
   bounceRewind.update();
@@ -93,6 +123,28 @@ void MotorUnit::onLoop() {
     int32_t pos = model.getLimitPosition();
     stepper->setCurrentPosition(pos);
     log("Limit hit, setting position to %ld", pos);
+    homing = false;
+    parking = false;
+  }
+
+  if (homing) {
+    // ignore switches when homing or
+    return;
+  }
+  // if parking, stop when middle reached.
+  if (parking) {
+    if (stepper->getCurrentPosition() == model.getMiddlePosition()) {
+      parking = false;
+      stepper->stopMove();
+    } else {
+      return;
+    }
+  }
+
+  // cheat code to park scope
+  if (isFastForward() && (isRewind())) {
+    park();
+    return;
   }
 
   if (isRewind() && !isLimitSwitchHit()) {
