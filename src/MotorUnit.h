@@ -9,17 +9,23 @@ public:
   void setupMotor(PlatformModel &model, Preferences &p);
   void onLoop();
   double getGreatCircleRadius();
-  void setGreatCircleRadius(double radius); 
+  void setGreatCircleRadius(double radius);
   int getLimitSwitchToEndDistance();
   double getPositionInMM();
   double getVelocityInMMPerMinute();
   double getTimeToCenterInSeconds();
+  double getTimeToEndOfRunInSeconds();
   bool getTrackingStatus();
+  void park();
+  void home();
 
-      private : PlatformModel model;
+private:
+  PlatformModel model;
   void runModeSwitchCheck();
   void calibrationModeSwitchCheck();
   Preferences preferences;
+  boolean homing;
+  boolean parking;
 };
 
 #endif
