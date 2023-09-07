@@ -1,7 +1,6 @@
 #include "AsyncUDP.h"
 #include <WiFiManager.h>
 
-
 #include "Network.h"
 #define IPBROADCASTPORT 50375
 #define IPBROADCASTPERIOD 10000
@@ -13,6 +12,7 @@ unsigned long lastIPBroadcastTime;
 void loopNetwork(Preferences &prefs) {
   if (digitalRead(0) == LOW) {
     prefs.putBool("homeWifi", true);
+    prefs.end();
 
     delay(300);
     esp_restart();
@@ -23,7 +23,8 @@ void setupWifi(Preferences &prefs) {
   pinMode(0, INPUT); // boot button
   // set up as hotspot by default.
   // If boot button pressed, reboot and connect to home wifi
-  bool homeWifi = prefs.getBool("homeWifi");
+
+  bool homeWifi = prefs.getBool("homeWifi", false);
   log("Home wifi flag value: %d", homeWifi);
   if (homeWifi) {
     log("Connecting to home wifi");
@@ -34,16 +35,15 @@ void setupWifi(Preferences &prefs) {
 
   } else {
     log("Connecting to access point");
-    wifiManager.setConnectTimeout(10);
-    
-    wifiManager.autoConnect("dontlookup", "dontlookup");
+    WiFi.begin("dontlookup", "dontlookup");
   }
 }
 
 // every x second, send whether platform is tracking,
 // and how many seconds it will take to reach center.
 //(can be negative is center passed)
-void broadcastStatus(double secondsToCenter, double secondsToEnd, bool platformTracking) {
+void broadcastStatus(double secondsToCenter, double secondsToEnd,
+                     bool platformTracking) {
   long now = millis();
   if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
     log("Preparing to send packet");
@@ -63,7 +63,8 @@ void broadcastStatus(double secondsToCenter, double secondsToEnd, bool platformT
                "\"timeToEnd\": %.2lf, "
                "\"isTracking\" : %s "
                " }",
-               secondsToCenter, secondsToEnd,platformTracking ? "true" : "false");
+               secondsToCenter, secondsToEnd,
+               platformTracking ? "true" : "false");
       udp.print(response);
       log("Status Packet sent");
     }
