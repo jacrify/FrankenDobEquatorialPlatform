@@ -49,10 +49,14 @@ bool MotorUnit::getTrackingStatus() {
   return (stepper->getSpeedInMilliHz() <=
           model.getRewindFastFowardSpeed() * 500);
 }
-MotorUnit::MotorUnit(PlatformModel &m, Preferences &p) {
-  parking=false;
-  homing=false;
-  
+
+MotorUnit::MotorUnit(PlatformModel &m, Preferences &p)
+    : model(m), preferences(p) {
+  parking = false;
+  homing = false;
+}
+
+void MotorUnit::setupMotor() {
   bounceFastForward.attach(fastForwardSwitchPin, INPUT_PULLUP);
   // pinMode(fastForwardSwitchPin, INPUT_PULLUP);
   bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
@@ -67,8 +71,6 @@ MotorUnit::MotorUnit(PlatformModel &m, Preferences &p) {
 
   bounceLimit.interval(10); // interval in ms
 
-  model = m;
-
   engine.init();
   stepper = engine.stepperConnectToPin(stepPinStepper);
   if (stepper) {
@@ -78,7 +80,7 @@ MotorUnit::MotorUnit(PlatformModel &m, Preferences &p) {
     // stepper->setSpeedInHz(5000);
     stepper->setAcceleration(1000000); // 100 steps/s²
 
-    preferences = p;
+    // preferences = p;
     uint32_t savedPosition = preferences.getUInt(PREF_SAVED_POS_KEY, 0);
     log("Loaded saved position %d", savedPosition);
     stepper->setCurrentPosition(savedPosition);
