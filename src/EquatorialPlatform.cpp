@@ -10,9 +10,10 @@
 #include <LittleFS.h>
 #include <Preferences.h>
 
-MotorUnit motorUnit;
 PlatformModel model;
 Preferences prefs;
+
+MotorUnit motorUnit(model,prefs);
 
 void setup() {
   Serial.begin(115200);
@@ -23,7 +24,7 @@ void setup() {
   prefs.begin("Platform", false); 
 
   model.setupModel();
-  motorUnit.setupMotor(model, prefs);
+  motorUnit.setupMotor();
   delay(500);
   setupWebServer(motorUnit, model,prefs); // don't use log() before this point
   // setupOTA();
