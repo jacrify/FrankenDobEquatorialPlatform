@@ -6,7 +6,7 @@
 
 class MotorUnit {
 public:
-  void setupMotor(PlatformModel &model, Preferences &p);
+  MotorUnit(PlatformModel &model, Preferences &p);
   void onLoop();
   double getGreatCircleRadius();
   void setGreatCircleRadius(double radius);
@@ -20,10 +20,10 @@ public:
   void home();
 
 private:
-  PlatformModel model;
+  PlatformModel &model;
   void runModeSwitchCheck();
   void calibrationModeSwitchCheck();
-  Preferences preferences;
+  Preferences &preferences;
   boolean homing;
   boolean parking;
 };
