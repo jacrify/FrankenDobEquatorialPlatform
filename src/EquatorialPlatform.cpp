@@ -19,7 +19,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Booting");
   LittleFS.begin();
-  setupWifi();
+  setupWifi(prefs);
   
   prefs.begin("Platform", false); 
 
@@ -33,6 +33,7 @@ void setup() {
 void loop() {
   // loopOTA();
   delay(100);
+  loopNetwork(prefs);
   broadcastStatus(motorUnit.getTimeToCenterInSeconds(),
                   // motorUnit.getTimeToCenterInSeconds(),
                       motorUnit.getTimeToEndOfRunInSeconds(),
