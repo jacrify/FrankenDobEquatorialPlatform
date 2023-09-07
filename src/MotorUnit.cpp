@@ -49,7 +49,7 @@ bool MotorUnit::getTrackingStatus() {
   return (stepper->getSpeedInMilliHz() <=
           model.getRewindFastFowardSpeed() * 500);
 }
-void MotorUnit::setupMotor(PlatformModel &m, Preferences &p) {
+MotorUnit::MotorUnit(PlatformModel &m, Preferences &p) {
   parking=false;
   homing=false;
   
