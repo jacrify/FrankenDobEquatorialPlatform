@@ -27,7 +27,7 @@ const double fullRotation =
     2 * M_PI; // M_PI is the value for pi from the cmath library
 const double fullRotationTimeInSeconds = 24 * 60 * 60;
 
-int32_t limitSwitchToEndDistance = 135; // length of run in mm
+int32_t limitSwitchToEndDistance = 130; // length of run in mm
 // how far along middle point is in mm. IE distance from limit switch to point
 // where platform is flat
 int32_t limitSwitchToMiddleDistance;
