@@ -19,23 +19,28 @@ void loopNetwork(Preferences &prefs) {
   }
 }
 
+#define HOMEWIFISSID "HOMEWIFISSID"
+#define HOMEWIFIPASS "HOMEWIFIPASS"
+
 void setupWifi(Preferences &prefs) {
-  pinMode(0, INPUT); // boot button
-  // set up as hotspot by default.
-  // If boot button pressed, reboot and connect to home wifi
+  log("Scanning for networks...");
 
-  bool homeWifi = prefs.getBool("homeWifi", false);
-  log("Home wifi flag value: %d", homeWifi);
-  if (homeWifi) {
-    log("Connecting to home wifi");
-    prefs.putBool("homeWifi", false);
 
-    wifiManager.setConnectTimeout(10);
-    wifiManager.autoConnect();
+  int n = WiFi.scanNetworks();
+
+  for (int i = 0; i < n; i++) {
+    if (WiFi.SSID(i) == "dontlookup") {
+      log("Connecting to 'dontlookup'...");
+      WiFi.begin("dontlookup", "dontlookdown");
+      return;
+    }
+  }
+  if (prefs.isKey(HOMEWIFISSID) && prefs.isKey(HOMEWIFIPASS)) {
+    log("Connnecting to home wifi...");
+    WiFi.begin(prefs.getString(HOMEWIFISSID), prefs.getString(HOMEWIFIPASS));
 
   } else {
-    log("Connecting to access point");
-    WiFi.begin("dontlookup", "dontlookdown");
+    log("No wifi details in prefs");
   }
 }
 
