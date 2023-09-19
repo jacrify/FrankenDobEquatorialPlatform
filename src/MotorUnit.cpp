@@ -52,8 +52,7 @@ bool MotorUnit::getTrackingStatus() {
 
 MotorUnit::MotorUnit(PlatformModel &m, Preferences &p)
     : model(m), preferences(p) {
-  parking = false;
-  homing = false;
+  slewing = false;
 }
 
 void MotorUnit::setupMotor() {
@@ -93,28 +92,6 @@ bool isPlay() { return bouncePlay.read() == LOW; }
 
 bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 
-// move to start position
-void MotorUnit::home() {
-  if (!isLimitSwitchHit()) {
-    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
-    stepper->runForward();
-    homing = true;
-    return;
-  }
-  homing = false;
-}
-
-// move to middle
-void MotorUnit::park() {
-  if (!isLimitSwitchHit()) {
-    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
-    stepper->moveTo(model.getMiddlePosition());
-    parking = true;
-    return;
-  }
-  parking = false;
-}
-
 void MotorUnit::onLoop() {
   bounceFastForward.update();
   bounceRewind.update();
@@ -125,27 +102,23 @@ void MotorUnit::onLoop() {
     int32_t pos = model.getLimitPosition();
     stepper->setCurrentPosition(pos);
     log("Limit hit, setting position to %ld", pos);
-    homing = false;
-    parking = false;
+    slewing = false;
   }
 
-  if (homing) {
-    // ignore switches when homing or
-    return;
-  }
-  // if parking, stop when middle reached.
-  if (parking) {
-    if (stepper->getCurrentPosition() == model.getMiddlePosition()) {
-      parking = false;
+
+  // if slewing, stop when position reached.
+  if (slewing) {
+    if (stepper->getCurrentPosition() == slew_target_pos) {
+      slewing = false;
       stepper->stopMove();
     } else {
-      return;
+      return; //ignore buttons 
     }
   }
 
   // cheat code to park scope
   if (isFastForward() && (isRewind())) {
-    park();
+    slewToMiddle();
     return;
   }
 
@@ -201,3 +174,35 @@ double MotorUnit::getVelocityInMMPerMinute() {
 double MotorUnit::getPositionInMM() {
   return ((double)stepper->getCurrentPosition()) / model.getStepsPerMM();
 }
+
+void MotorUnit::slewToStart() {
+  if (!isLimitSwitchHit()) {
+    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
+    stepper->runForward();
+    slewing = true;
+    return;
+  }
+  slewing = false;
+}
+
+void MotorUnit::slewToMiddle() {
+  slewToPosition(model.getMiddlePosition());
+}
+void MotorUnit::slewToEnd() {
+  //TODO make constant
+  slewToPosition(model.getStepsPerMM()*10);
+  //10 mm from end
+  //2 mm per minute=five minutes to end?
+}
+bool MotorUnit::isSlewing() { return slewing; }
+void MotorUnit::slewToPosition(int32_t position) {
+  if (!isLimitSwitchHit()) {
+    slew_target_pos=position;
+    slewing = true;slewing = true;
+    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
+    stepper->moveTo(position);
+    return;
+  }
+  slewing = false;
+}
+// void MotorUnit::slewToPosition(long position);

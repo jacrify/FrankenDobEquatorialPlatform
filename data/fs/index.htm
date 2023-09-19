@@ -16,12 +16,17 @@
 
     <label for="limitToMiddleDistance">Limit To Middle Distance</label>
     <input type="number" id="limitToMiddleDistance"><br />
-    
+
     <label for="position">Position:</label>
-    <span  id="position" >0</span><br />
+    <span id="position">0</span><br />
 
     <label for="velocity">Velocity:</label>
-    <span  id="velocity" >0</span><br />
+    <span id="velocity">0</span><br />
+
+    <button id="home">Home</button>
+    <button id="center">Center</button>
+    <button id="park">Park (end-5m)</button>
+    
 
     <button id="resetButton">Reset Graph</button><br />
     <canvas id="chart"></canvas>
@@ -63,7 +68,7 @@
             //         console.log("Request Failed: " + textStatus + ", " + error);
             //     });
 
-            $.getJSON("/getStatus").done( function (data) {
+            $.getJSON("/getStatus").done(function (data) {
                 console.log("Runback val: ", data.runbackSpeed);
                 if (!$("#runbackSpeed").is(":focus")) {
                     console.log("Update runback");
@@ -87,15 +92,29 @@
                 }
                 chart.update();
             }).fail(function (jqxhr, textStatus, error) {
-                    console.log("Request Failed: " + textStatus + ", " + error);
-                });;
+                console.log("Request Failed: " + textStatus + ", " + error);
+            });;
         }
 
+
+        $("#home").click(function () {
+            $.post("/home");
+        });
+
+        $("#center").click(function () {
+            $.post("/center");
+        });
+
+        $("#park").click(function () {
+            $.post("/park");
+        });
         $("#resetButton").click(function () {
             chartData.labels = [];
             chartData.datasets[0].data = [];
             chart.update();
         });
+
+
 
         $("#runbackSpeed, #limitToMiddleDistance, #greatCircleRadius").change(function () {
             $.post("/" + $(this).attr('id'), { value: $(this).val() });

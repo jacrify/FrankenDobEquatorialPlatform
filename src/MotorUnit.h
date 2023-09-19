@@ -18,17 +18,20 @@ public:
   double getTimeToCenterInSeconds();
   double getTimeToEndOfRunInSeconds();
   bool getTrackingStatus();
-  void park();
-  void home();
+
+  void slewToStart();
+  void slewToMiddle();
+  void slewToEnd();
+  bool isSlewing();
 
 private:
   PlatformModel &model;
   Preferences &preferences;
   void runModeSwitchCheck();
   void calibrationModeSwitchCheck();
-
-  boolean homing;
-  boolean parking;
+  void slewToPosition(int32_t position);
+  int32_t slew_target_pos;
+  boolean slewing;
 };
 
 #endif

@@ -7,8 +7,6 @@
 
 AsyncWebServer server(80);
 
-
-
 void setLimitToMiddleDistance(AsyncWebServerRequest *request,
                               PlatformModel &model, Preferences &preferences) {
   log("/setLimitToMiddle");
@@ -92,7 +90,6 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
 void setupWebServer(MotorUnit &motor, PlatformModel &model,
                     Preferences &preferences) {
 
-
   int rewindFastFowardSpeed =
       preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
   int limitSwitchToMiddleDistance =
@@ -124,6 +121,16 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
             [&model, &preferences](AsyncWebServerRequest *request) {
               setLimitToMiddleDistance(request, model, preferences);
             });
+  ;
+
+  server.on("/home", HTTP_POST,
+            [&motor](AsyncWebServerRequest *request) { motor.slewToStart(); });
+  ;
+  server.on("/park", HTTP_POST,
+            [&motor](AsyncWebServerRequest *request) { motor.slewToEnd(); });
+  ;
+  server.on("/center", HTTP_POST,
+            [&motor](AsyncWebServerRequest *request) { motor.slewToMiddle(); });
   ;
 
   // server.serveStatic("/www/", LittleFS, "/fs/");
