@@ -1,11 +1,15 @@
 #include "EQWebServer.h"
+#include "AsyncUDP.h"
 #include "Logging.h"
 #include "MotorUnit.h"
+#include <ArduinoJson.h> 
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <WebSerial.h>
 
 AsyncWebServer server(80);
+AsyncUDP dscUDP;
+#define IPBROADCASTPORT 50375
 
 void setLimitToMiddleDistance(AsyncWebServerRequest *request,
                               PlatformModel &model, Preferences &preferences) {
@@ -102,6 +106,55 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   model.setRewindFastFowardSpeed(rewindFastFowardSpeed);
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
   model.setGreatCircleRadius(greatCircleRadius);
+
+  if (dscUDP.listen(IPBROADCASTPORT)) {
+    log("Listening for dsc platform broadcasts");
+    dscUDP.onPacket([&motor](AsyncUDPPacket packet) {
+      unsigned long now = millis();
+      String msg = packet.readString();
+      log("UDP Broadcast received: %s", msg.c_str());
+
+      // Check if the broadcast is from EQ Platform
+      if (msg.startsWith("DSC:")) {
+        msg = msg.substring(4);
+        log("Got payload from dsc");
+
+        // Create a JSON document to hold the payload
+        const size_t capacity = JSON_OBJECT_SIZE(5) +
+                                40; // Reserve some memory for the JSON document
+        StaticJsonDocument<capacity> doc;
+
+        // Deserialize the JSON payload
+        DeserializationError error = deserializeJson(doc, msg);
+        if (error) {
+          log("Failed to parse payload %s with error %s", msg.c_str(),
+              error.c_str());
+          return;
+        }
+
+        if (doc.containsKey("command") && doc.containsKey("parameter")) {
+          String command =  doc["command"];
+          long parameter = doc["parameter"];
+          
+          if (command == "home") {
+              motor.slewToStart(); 
+          } else if (command="park") {
+            motor.slewToEnd();
+          }
+          // IPAddress remoteIp = packet.remoteIP();
+
+          // // Convert the IP address to a string
+          // eqPlatformIP = remoteIp.toString();
+         
+        } else {
+          log("Payload missing required fields.");
+          return;
+        }
+      } else {
+        log("Message has bad starting chars");
+      }
+    });
+  }
 
   server.on("/getStatus", HTTP_GET,
             [&motor, &model](AsyncWebServerRequest *request) {
