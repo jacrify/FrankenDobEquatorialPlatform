@@ -5,5 +5,5 @@
 void setupWifi(Preferences &prefs);
 void loopNetwork(Preferences &prefs);
 void broadcastStatus(double secondsToCenter, double secondsToEnd,
-                     bool platformTracking);
+                     bool platformTracking, double axisMoveRate);
 #endif
