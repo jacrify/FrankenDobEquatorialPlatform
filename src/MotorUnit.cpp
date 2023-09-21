@@ -40,7 +40,10 @@ double MotorUnit::getTimeToEndOfRunInSeconds() {
   return model.calculateTimeToEndOfRunInSeconds(stepper->getCurrentPosition());
 }
 
-bool MotorUnit::getTrackingStatus() {
+
+
+    bool
+    MotorUnit::getTrackingStatus() {
   // todo fix this so only
   if (!stepper->isRunning())
     return false;
@@ -53,6 +56,7 @@ bool MotorUnit::getTrackingStatus() {
 MotorUnit::MotorUnit(PlatformModel &m, Preferences &p)
     : model(m), preferences(p) {
   slewing = false;
+  tracking = false;
 }
 
 void MotorUnit::setupMotor() {
@@ -105,14 +109,13 @@ void MotorUnit::onLoop() {
     slewing = false;
   }
 
-
   // if slewing, stop when position reached.
   if (slewing) {
     if (stepper->getCurrentPosition() == slew_target_pos) {
       slewing = false;
       stepper->stopMove();
     } else {
-      return; //ignore buttons 
+      return; // ignore buttons
     }
   }
 
@@ -134,7 +137,17 @@ void MotorUnit::onLoop() {
     return;
   }
 
-  if (isPlay()) {
+  // if clients tell us to track, we can't stop locally.
+  // so whenever the tracking flag is set externally,
+  // we clear it when play is pressed.
+  // So if we want to run from external, start with play not pushed.
+  // Then if we want to stop but cannot stop externally,
+  // press play then stop.
+  if (isPlay() && tracking) {
+    tracking = false;
+  }
+  
+  if (isPlay() || tracking) {
 
     // update speed periodically. Don't need to do every cycle
     long now = millis();
@@ -185,20 +198,19 @@ void MotorUnit::slewToStart() {
   slewing = false;
 }
 
-void MotorUnit::slewToMiddle() {
-  slewToPosition(model.getMiddlePosition());
-}
+void MotorUnit::slewToMiddle() { slewToPosition(model.getMiddlePosition()); }
 void MotorUnit::slewToEnd() {
-  //TODO make constant
-  slewToPosition(model.getStepsPerMM()*10);
-  //10 mm from end
-  //2 mm per minute=five minutes to end?
+  // TODO make constant
+  slewToPosition(model.getStepsPerMM() * 10);
+  // 10 mm from end
+  // 2 mm per minute=five minutes to end?
 }
 bool MotorUnit::isSlewing() { return slewing; }
 void MotorUnit::slewToPosition(int32_t position) {
   if (!isLimitSwitchHit()) {
-    slew_target_pos=position;
-    slewing = true;slewing = true;
+    slew_target_pos = position;
+    slewing = true;
+    slewing = true;
     stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
     stepper->moveTo(position);
     return;
@@ -206,3 +218,5 @@ void MotorUnit::slewToPosition(int32_t position) {
   slewing = false;
 }
 // void MotorUnit::slewToPosition(long position);
+
+void MotorUnit::setTracking(bool b) { tracking = b; }

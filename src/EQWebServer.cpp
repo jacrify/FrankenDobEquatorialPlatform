@@ -2,7 +2,7 @@
 #include "AsyncUDP.h"
 #include "Logging.h"
 #include "MotorUnit.h"
-#include <ArduinoJson.h> 
+#include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <WebSerial.h>
@@ -29,8 +29,9 @@ void setLimitToMiddleDistance(AsyncWebServerRequest *request,
   log("No distance arg found");
 }
 
-void setRewindFastFowardSpeed(AsyncWebServerRequest *request,
-                              PlatformModel &model, Preferences &preferences) {
+void setRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
+                                  PlatformModel &model,
+                                  Preferences &preferences) {
   log("/setrunbackSpeed");
   if (request->hasArg("value")) {
     String speed = request->arg("value");
@@ -40,7 +41,7 @@ void setRewindFastFowardSpeed(AsyncWebServerRequest *request,
       log("Could not parse speed");
       return;
     }
-    model.setRewindFastFowardSpeed(speedValue);
+    model.setRewindFastFowardSpeedInHz(speedValue);
     preferences.putUInt(PREF_SPEED_KEY, speedValue);
     return;
   }
@@ -103,7 +104,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   log("Preferences loaded for model rewindspeed: %d limitToMiddle %d radius "
       "%d ",
       rewindFastFowardSpeed, limitSwitchToMiddleDistance, greatCircleRadius);
-  model.setRewindFastFowardSpeed(rewindFastFowardSpeed);
+  model.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
   model.setGreatCircleRadius(greatCircleRadius);
 
@@ -133,19 +134,21 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
         }
 
         if (doc.containsKey("command") && doc.containsKey("parameter")) {
-          String command =  doc["command"];
+          String command = doc["command"];
           long parameter = doc["parameter"];
-          
+
           if (command == "home") {
-              motor.slewToStart(); 
-          } else if (command="park") {
+            motor.slewToStart();
+          } else if (command = "park") {
             motor.slewToEnd();
+          } else if (command == "track") {
+            motor.setTracking(parameter > 0 ? true : false);
           }
           // IPAddress remoteIp = packet.remoteIP();
 
           // // Convert the IP address to a string
           // eqPlatformIP = remoteIp.toString();
-         
+
         } else {
           log("Payload missing required fields.");
           return;
@@ -163,7 +166,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
 
   server.on("/runbackSpeed", HTTP_POST,
             [&model, &preferences](AsyncWebServerRequest *request) {
-              setRewindFastFowardSpeed(request, model, preferences);
+              setRewindFastFowardSpeedInHz(request, model, preferences);
             });
 
   server.on("/greatCircleRadius", HTTP_POST,

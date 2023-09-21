@@ -39,7 +39,8 @@ void loop() {
                   // motorUnit.getTimeToCenterInSeconds(),
                       motorUnit.getTimeToEndOfRunInSeconds(),
                   // 0,
-                  motorUnit.getTrackingStatus());
+                  motorUnit.getTrackingStatus()
+                  , model.getAxisMoveRate());
   motorUnit.onLoop();
   logWrite();
 }

@@ -47,8 +47,9 @@ void setupWifi(Preferences &prefs) {
 // every x second, send whether platform is tracking,
 // and how many seconds it will take to reach center.
 //(can be negative is center passed)
+//AxixMoveRate is max speed in degrees per second
 void broadcastStatus(double secondsToCenter, double secondsToEnd,
-                     bool platformTracking) {
+                     bool platformTracking,double axisMoveRate) {
   long now = millis();
   if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
     log("Preparing to send packet");
@@ -67,9 +68,11 @@ void broadcastStatus(double secondsToCenter, double secondsToEnd,
                "\"timeToCenter\": %.2lf, "
                "\"timeToEnd\": %.2lf, "
                "\"isTracking\" : %s "
+               "\"axisMoveRate\": %.2lf, "
                " }",
                secondsToCenter, secondsToEnd,
-               platformTracking ? "true" : "false");
+               platformTracking ? "true" : "false",
+               axisMoveRate);
       udp.print(response);
       log("Status Packet sent");
     }
