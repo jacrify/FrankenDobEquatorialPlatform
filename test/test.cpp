@@ -4,7 +4,7 @@
 #include <unity.h> // Include the Unity test framework.
 
 void test_timetomiddle_calc(void) {
-  int runTotal = 135;                         // mm
+  int runTotal = 130;                         // mm
   int limitToMiddle = 62;                     // mm
   int middleToEnd = runTotal - limitToMiddle; // mm
 
@@ -31,19 +31,19 @@ void test_timetomiddle_calc(void) {
 
   double time_to_end =
       model.calculateTimeToEndOfRunInSeconds(stepPositionOfMiddle);
-  TEST_ASSERT_EQUAL_FLOAT_MESSAGE(2221.153, time_to_end,
-                                  "time to end should be 37 minutes");
+  TEST_ASSERT_EQUAL_FLOAT_MESSAGE(2071.392, time_to_end,
+                                  "time to end should be 34 minutes");
 
   time_to_end = model.calculateTimeToEndOfRunInSeconds(0);
   TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0, time_to_end, "time to end should be 0");
   time_to_end =
       model.calculateTimeToEndOfRunInSeconds(stepPositionOfMiddle + 100);
-  TEST_ASSERT_EQUAL_FLOAT_MESSAGE(2221.984, time_to_end,
+  TEST_ASSERT_EQUAL_FLOAT_MESSAGE(2072.226, time_to_end,
                                   "time to end should be biggers");
 }
 
 void test_speed_calc(void) {
-  int runTotal = 135;                         // mm
+  int runTotal = 130;                         // mm
   int limitToMiddle = 62;                     // mm
   int middleToEnd = runTotal - limitToMiddle; // mm
 
