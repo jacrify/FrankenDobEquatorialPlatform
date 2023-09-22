@@ -108,7 +108,6 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
   model.setGreatCircleRadius(greatCircleRadius);
 
-
   server.on("/getStatus", HTTP_GET,
             [&motor, &model](AsyncWebServerRequest *request) {
               getStatus(request, motor, model);
@@ -127,17 +126,15 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
             [&model, &preferences](AsyncWebServerRequest *request) {
               setLimitToMiddleDistance(request, model, preferences);
             });
-  ;
 
   server.on("/home", HTTP_POST,
             [&motor](AsyncWebServerRequest *request) { motor.slewToStart(); });
-  ;
+
   server.on("/park", HTTP_POST,
             [&motor](AsyncWebServerRequest *request) { motor.slewToEnd(); });
-  ;
+
   server.on("/center", HTTP_POST,
             [&motor](AsyncWebServerRequest *request) { motor.slewToMiddle(); });
-  ;
 
   // server.serveStatic("/www/", LittleFS, "/fs/");
   server.serveStatic("/", LittleFS, "/fs/");
@@ -149,4 +146,3 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   log("Server started");
   return;
 }
-
