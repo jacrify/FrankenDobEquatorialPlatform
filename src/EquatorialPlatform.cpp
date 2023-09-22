@@ -6,6 +6,8 @@
 #include "Network.h"
 #include "OTA.h"
 #include "PlatformModel.h"
+#include "UDPSender.h"
+#include "UDPListener.h"
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <Preferences.h>
@@ -27,7 +29,9 @@ void setup() {
   model.setupModel();
   motorUnit.setupMotor();
   delay(500);
-  setupWebServer(motorUnit, model,prefs); // don't use log() before this point
+  setupWebServer(motorUnit, model,prefs); 
+  setUpUDPListener(motorUnit);
+  // don't use log() before this point
   // setupOTA();
 }
 
@@ -35,12 +39,6 @@ void loop() {
   // loopOTA();
   delay(100);
   loopNetwork(prefs);
-  broadcastStatus(motorUnit.getTimeToCenterInSeconds(),
-                  // motorUnit.getTimeToCenterInSeconds(),
-                      motorUnit.getTimeToEndOfRunInSeconds(),
-                  // 0,
-                  motorUnit.getTrackingStatus()
-                  , model.getAxisMoveRate());
+  broadcastStatus(motorUnit,model);
   motorUnit.onLoop();
-  logWrite();
 }
