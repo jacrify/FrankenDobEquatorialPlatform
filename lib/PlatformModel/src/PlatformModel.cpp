@@ -1,5 +1,6 @@
 #include "PlatformModel.h"
 // #include "Logging.h"
+#include "Logging.h"
 #include <Math.h>
 #include <iostream>
 #include <sstream>
@@ -16,6 +17,9 @@ double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 // in the speeed calculations
 
 double greatCircleRadius;
+
+
+#define sideRealDegreesSec 15.041
 
 #define teethOnStepperPulley 16
 #define teethOnRodPulley 36
@@ -91,8 +95,8 @@ double PlatformModel::getAxisMoveRate() {
 
 uint32_t
 PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
-  return calculateFowardSpeedInMilliHz(stepperCurrentPosition, 15.0 );
-
+  return calculateFowardSpeedInMilliHz(stepperCurrentPosition,
+                                       sideRealDegreesSec);
 }
 
 uint32_t PlatformModel::calculateFowardSpeedInMilliHz(
@@ -108,6 +112,7 @@ uint32_t PlatformModel::calculateFowardSpeedInMilliHz(
 
   double radiansPerSecond =
       desiredArcSecondsPerSecond * (M_PI / 180.0 / 3600.0);
+
   double absoluteAngleAfterOneMoreSecond =
       absoluteAngleMovedAtThisPoint + radiansPerSecond;
 

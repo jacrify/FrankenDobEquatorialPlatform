@@ -1,7 +1,9 @@
 
 #include "PlatformModel.h"
 #include <cstdint>
-#include <unity.h> // Include the Unity test framework.
+#include <unity.h> 
+
+#include "Logging.h" 
 
 void test_timetomiddle_calc(void) {
   int runTotal = 130;                         // mm
@@ -53,55 +55,58 @@ void test_speed_calc(void) {
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  uint32_t speedInMilliHz =
+  log("====test_speed_calc====");
+   uint32_t speedInMilliHz =
       model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
 
-  // we expect to go abut 1 turn per minute
-  // one turn is 2mm
-  // so 2mm*steps per mm pulses
-  // or 7200 pulses per minute
-  // 7200/60=120
-  // 120 pulses sec?
-  // 120 hz
-  // 120000 mhz?
+ 
 
-  TEST_ASSERT_EQUAL_INT_MESSAGE(117286, speedInMilliHz,
-                                "Speed in middle wrong");
+   // we expect to go abut 1 turn per minute
+   // one turn is 2mm
+   // so 2mm*steps per mm pulses
+   // or 7200 pulses per minute
+   // 7200/60=120
+   // 120 pulses sec?
+   // 120 hz
+   // 120000 mhz?
 
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
+   TEST_ASSERT_EQUAL_INT_MESSAGE(117606, speedInMilliHz,
+                                 "Speed in middle wrong");
 
-  TEST_ASSERT_EQUAL_INT_MESSAGE(119531, speedInMilliHz,
-                                "Should be faster at limit: approx 1.8%");
+   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
 
-  model.setGreatCircleRadius(447);
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
+   TEST_ASSERT_EQUAL_INT_MESSAGE(119857, speedInMilliHz,
+                                 "Should be faster at limit: approx 1.8%");
 
-  TEST_ASSERT_EQUAL_INT_MESSAGE(117024, speedInMilliHz,
-                                "Smaller great circle should be slower speed");
+   model.setGreatCircleRadius(447);
+   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
 
-  model.setGreatCircleRadius(449);
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
+   TEST_ASSERT_EQUAL_INT_MESSAGE(117344, speedInMilliHz,
+                                 "Smaller great circle should be slower speed");
 
-  TEST_ASSERT_EQUAL_INT_MESSAGE(117547, speedInMilliHz,
-                                "Larger great circle should be faster speed");
+   model.setGreatCircleRadius(449);
+   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
 
-  model.setGreatCircleRadius(448);
-  model.setLimitSwitchToMiddleDistance(61); // smaller so closer to middle
+   TEST_ASSERT_EQUAL_INT_MESSAGE(117869, speedInMilliHz,
+                                 "Larger great circle should be faster speed");
 
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
+   model.setGreatCircleRadius(448);
+   model.setLimitSwitchToMiddleDistance(61); // smaller so closer to middle
 
-  TEST_ASSERT_EQUAL_INT_MESSAGE(
-      119459, speedInMilliHz,
-      "If limit switch is closer to middle, speed should be slower at limit "
-      "than 62mm value of 119461");
+   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
 
-  model.setLimitSwitchToMiddleDistance(63);
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
+   TEST_ASSERT_EQUAL_INT_MESSAGE(
+       119785, speedInMilliHz,
+       "If limit switch is closer to middle, speed should be slower at limit "
+       "than 62mm value of 119461");
 
-  TEST_ASSERT_EQUAL_INT_MESSAGE(
-      119604, speedInMilliHz,
-      "If limit switch is closer to middle, speed should be faster at limit "
-      "than  62mm value of 119461");
+   model.setLimitSwitchToMiddleDistance(63);
+   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
+
+   TEST_ASSERT_EQUAL_INT_MESSAGE(
+       119931, speedInMilliHz,
+       "If limit switch is closer to middle, speed should be faster at limit "
+       "than  62mm value of 119461");
 }
 void test_rewind_fast_forward_speed_calc() {
   PlatformModel model;
