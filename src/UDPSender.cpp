@@ -21,7 +21,6 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
 
   long now = millis();
   if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
-    log("Preparing to send packet");
     lastIPBroadcastTime = now;
     // Check if the device is connected to the WiFi
     if (WiFi.status() != WL_CONNECTED) {
@@ -36,13 +35,13 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
                "EQ:{ "
                "\"timeToCenter\": %.2lf, "
                "\"timeToEnd\": %.2lf, "
-               "\"isTracking\" : %s "
-               "\"axisMoveRate\": %.2lf, "
+               "\"isTracking\" : %s ",
+               "\"axisMoveRate\": %.2lf "
                " }",
                secondsToCenter, secondsToEnd,
                platformTracking ? "true" : "false", axisMoveRate);
       udp.print(response);
-      log("Status Packet sent");
+      log("Status Packet sent\r\n %s",response);
     }
   }
 }

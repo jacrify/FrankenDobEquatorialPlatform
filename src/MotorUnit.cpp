@@ -94,8 +94,8 @@ bool isPlay() { return bouncePlay.read() == LOW; }
 bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 
 void MotorUnit::moveAxis(double degreesPerSecond) {
-  //TODO ignores slew speed. does it matter>
-  //TODO slew is not really the same as move axis
+  // TODO ignores slew speed. does it matter>
+  // TODO slew is not really the same as move axis
   if (degreesPerSecond == 0) {
     slewing = false; // loop should perform stop or track
     return;
@@ -201,6 +201,8 @@ double MotorUnit::getPositionInMM() {
 
 void MotorUnit::slewToStart() {
   if (!isLimitSwitchHit()) {
+    slew_target_pos = model.getLimitPosition();
+
     stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
     stepper->runForward();
     slewing = true;
@@ -220,7 +222,6 @@ bool MotorUnit::isSlewing() { return slewing; }
 void MotorUnit::slewToPosition(int32_t position) {
   if (!isLimitSwitchHit()) {
     slew_target_pos = position;
-    slewing = true;
     slewing = true;
     stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
     stepper->moveTo(position);
