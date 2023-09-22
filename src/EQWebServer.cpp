@@ -150,8 +150,3 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   return;
 }
 
-// TODO
-//  void loop() {
-
-//   ws.cleanupClients();
-// }
