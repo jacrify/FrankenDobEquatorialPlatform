@@ -91,38 +91,43 @@ double PlatformModel::getAxisMoveRate() {
 
 uint32_t
 PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
+  return calculateFowardSpeedInMilliHz(stepperCurrentPosition, 15.0 );
+
+}
+
+uint32_t PlatformModel::calculateFowardSpeedInMilliHz(
+    int stepperCurrentPosition, double desiredArcSecondsPerSecond) {
 
   int middle = getMiddlePosition();
   double stepsFromMiddle = (double)(middle - stepperCurrentPosition);
-  double stepsPerMM = getStepsPerMM();
+
   double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
 
   double absoluteAngleMovedAtThisPoint =
       atan(distanceFromCenterInMM / greatCircleRadius);
 
-  double absoluteAngleAfterOneMoreMinute =
-      absoluteAngleMovedAtThisPoint + greatCircleRadiansPerMinute;
+  double radiansPerSecond =
+      desiredArcSecondsPerSecond * (M_PI / 180.0 / 3600.0);
+  double absoluteAngleAfterOneMoreSecond =
+      absoluteAngleMovedAtThisPoint + radiansPerSecond;
 
-  double distanceAlongRodAfterOneMoreMinute =
-      greatCircleRadius * tan(absoluteAngleAfterOneMoreMinute);
+  double distanceAlongRodAfterOneMoreSecond =
+      greatCircleRadius * tan(absoluteAngleAfterOneMoreSecond);
 
-  double threadDistancePerMinute =
-      distanceAlongRodAfterOneMoreMinute - distanceFromCenterInMM;
+  double threadDistancePerSecond =
+      distanceAlongRodAfterOneMoreSecond - distanceFromCenterInMM;
 
-  double numberOfTurnsPerMinuteOfRod =
-      threadDistancePerMinute / threadedRodPitch;
+  double numberOfTurnsPerSecondOfRod =
+      threadDistancePerSecond / threadedRodPitch;
 
-  double numberOfTurnsPerMinuteOfStepper =
-      numberOfTurnsPerMinuteOfRod * rodStepperRatio;
+  double numberOfTurnsPerSecondOfStepper =
+      numberOfTurnsPerSecondOfRod * rodStepperRatio;
 
-  double numberOfStepsPerMinuteInMiddle =
-      numberOfTurnsPerMinuteOfStepper * stepperStepsPerRevolution * microsteps;
+  double numberOfStepsPerSecondInMiddle =
+      numberOfTurnsPerSecondOfStepper * stepperStepsPerRevolution * microsteps;
 
-  double stepperSpeedInHertz = numberOfStepsPerMinuteInMiddle / 60.0;
-
-  // log("stepperSpeedInHertz %f", stepperSpeedInHertz);
+  double stepperSpeedInHertz = numberOfStepsPerSecondInMiddle;
   uint32_t stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
-  // log("stepperSpeedInMilliHertz %d", stepperSpeedInMilliHertz);
   return stepperSpeedInMilliHertz;
 }
 
@@ -157,10 +162,9 @@ void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
   // log("updating speed to %d",speed);
   rewindFastFowardSpeed = speedInHz;
 
+  // Calculate speed in degrees/sec for alpaca based on the passed speed
+  // Calculate speed in degrees/sec for alpaca based on the passed speed
 
-  // Calculate speed in degrees/sec for alpaca based on the passed speed
-  // Calculate speed in degrees/sec for alpaca based on the passed speed
-  
   double rodTurnsPerSec =
       speedInHz / (rodStepperRatio * stepperStepsPerRevolution * microsteps);
   double distancePerSec = rodTurnsPerSec * threadedRodPitch;

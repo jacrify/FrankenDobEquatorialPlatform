@@ -70,19 +70,19 @@ void test_speed_calc(void) {
 
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
 
-  TEST_ASSERT_EQUAL_INT_MESSAGE(119461, speedInMilliHz,
+  TEST_ASSERT_EQUAL_INT_MESSAGE(119531, speedInMilliHz,
                                 "Should be faster at limit: approx 1.8%");
 
   model.setGreatCircleRadius(447);
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
 
-  TEST_ASSERT_EQUAL_INT_MESSAGE(117025, speedInMilliHz,
+  TEST_ASSERT_EQUAL_INT_MESSAGE(117024, speedInMilliHz,
                                 "Smaller great circle should be slower speed");
 
   model.setGreatCircleRadius(449);
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
 
-  TEST_ASSERT_EQUAL_INT_MESSAGE(117548, speedInMilliHz,
+  TEST_ASSERT_EQUAL_INT_MESSAGE(117547, speedInMilliHz,
                                 "Larger great circle should be faster speed");
 
   model.setGreatCircleRadius(448);
@@ -91,7 +91,7 @@ void test_speed_calc(void) {
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(
-      119390, speedInMilliHz,
+      119459, speedInMilliHz,
       "If limit switch is closer to middle, speed should be slower at limit "
       "than 62mm value of 119461");
 
@@ -99,7 +99,7 @@ void test_speed_calc(void) {
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(
-      119532, speedInMilliHz,
+      119604, speedInMilliHz,
       "If limit switch is closer to middle, speed should be faster at limit "
       "than  62mm value of 119461");
 }
