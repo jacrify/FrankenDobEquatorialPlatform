@@ -1,7 +1,7 @@
 #include "UDPSender.h"
 #include "AsyncUDP.h"
-#include "WiFi.h"
 #include "Logging.h"
+#include "WiFi.h"
 
 #define IPBROADCASTPERIOD 10000
 #define IPBROADCASTPORT 50375
@@ -13,11 +13,6 @@ unsigned long lastIPBroadcastTime;
 //(can be negative is center passed)
 // AxixMoveRate is max speed in degrees per second
 void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
-  double secondsToCenter = motorUnit.getTimeToCenterInSeconds();
-  double secondsToEnd = motorUnit.getTimeToEndOfRunInSeconds();
-
-  bool platformTracking = motorUnit.getTrackingStatus();
-  double axisMoveRate = model.getAxisMoveRate();
 
   long now = millis();
   if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
@@ -30,18 +25,26 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
             IPAddress(255, 255, 255, 255),
             IPBROADCASTPORT)) { // Choose any available port, e.g., 12345
       char response[400];
+      double secondsToCenter = motorUnit.getTimeToCenterInSeconds();
+      double secondsToEnd = motorUnit.getTimeToEndOfRunInSeconds();
+      double platformResetOffsetSeconds =
+          motorUnit.getPlatformResetOffsetSeconds();
+
+      bool platformTracking = motorUnit.getTrackingStatus();
+      double axisMoveRate = model.getAxisMoveRate();
 
       snprintf(response, sizeof(response),
                "EQ:{ "
                "\"timeToCenter\": %.2lf, "
                "\"timeToEnd\": %.2lf, "
+               "\"platformResetOffset\": %.2lf, "
                "\"isTracking\" : %s ",
                "\"axisMoveRate\": %.2lf "
                " }",
-               secondsToCenter, secondsToEnd,
+               secondsToCenter, secondsToEnd, platformResetOffsetSeconds,
                platformTracking ? "true" : "false", axisMoveRate);
       udp.print(response);
-      log("Status Packet sent\r\n %s",response);
+      log("Status Packet sent\r\n %s", response);
     }
   }
 }

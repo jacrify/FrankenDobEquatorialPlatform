@@ -36,9 +36,10 @@ double MotorUnit::getTimeToCenterInSeconds() {
   return model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
 }
 
-double MotorUnit::getTimeToEndOfRunInSeconds() {
-  return model.calculateTimeToEndOfRunInSeconds(stepper->getCurrentPosition());
-}
+/**
+ * Accumulates ff/rewinds moves as an offset
+ */
+double MotorUnit::getPlatformResetOffsetSeconds() {}
 
 bool MotorUnit::getTrackingStatus() {
   // todo fix this so only
@@ -70,6 +71,9 @@ void MotorUnit::setupMotor() {
   bouncePlay.interval(100);        // interval in ms
 
   bounceLimit.interval(10); // interval in ms
+
+  platformResetOffsetSeconds = 0;
+  firstMoveCycleForCalc=false;
 
   engine.init();
   stepper = engine.stepperConnectToPin(stepPinStepper);
@@ -107,16 +111,57 @@ void MotorUnit::moveAxis(double degreesPerSecond) {
   }
   slewToStart();
 }
+
+double lastTimeToCenterSeconds;
+bool firstMoveCycleForCalc;
+
 void MotorUnit::onLoop() {
   bounceFastForward.update();
   bounceRewind.update();
   bouncePlay.update();
   bounceLimit.update();
 
+  /**
+   * Each loop, check for current fast move (rewind/ff)
+   * by looking at motor.
+   * If we are in ff/rewind:
+   * If this is the first loops where we've detected that, just stored the
+   * current time to center
+   * Otherwise, take the difference between where we were last cycle
+   * and this cycle, and accumation in platformResetOffsetSeconds.
+   * This is used to offset the model on dsc by howver far we've rewound/ffed.
+   *
+   * Eg say we are rewinding.
+   * Cycle 1 currentTimeToCenter=30s
+   * Cycle 2 currentTimeToCenter=25s
+   * Delta is 5s
+   * platformResetOffsetSeconds -=5s
+   * This is added to model calc time, so stars ra are 5s less.
+   *
+   */
+  if (stepper->isRunning()) {
+    int speed = stepper->getCurrentSpeedInMilliHz();
+    // check for tracking
+    if (speed > model.getRewindFastFowardSpeed() / 4) {
+
+      double currentTimeToCenter =
+          model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
+      if (firstMoveCycleForCalc) {
+        firstMoveCycleForCalc = false;
+      } else {
+        platformResetOffsetSeconds -=
+            lastTimeToCenterSeconds - currentTimeToCenter;
+      }
+      lastTimeToCenterSeconds = currentTimeToCenter;
+    }
+  } else {
+    firstMoveCycleForCalc = true;
+  }
+
   if (isLimitSwitchHit()) {
     int32_t pos = model.getLimitPosition();
     stepper->setCurrentPosition(pos);
-    
+
     if (slewingToStart) {
       log("Limit hit, setting position to %ld", pos);
       slewing = false;
@@ -218,6 +263,7 @@ void MotorUnit::slewToStart() {
 }
 
 void MotorUnit::slewToMiddle() { slewToPosition(model.getMiddlePosition()); }
+
 void MotorUnit::slewToEnd() {
   // TODO make constant
   slewToPosition(model.getStepsPerMM() * 10);
@@ -225,13 +271,14 @@ void MotorUnit::slewToEnd() {
   // 2 mm per minute=five minutes to end?
 }
 bool MotorUnit::isSlewing() { return slewing; }
+
 void MotorUnit::slewToPosition(int32_t position) {
-  
-    slew_target_pos = position;
-    slewing = true;
-    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
-    stepper->moveTo(position);
-    return;
+
+  slew_target_pos = position;
+  slewing = true;
+  stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
+  stepper->moveTo(position);
+  return;
 }
 // void MotorUnit::slewToPosition(long position);
 

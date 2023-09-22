@@ -23,6 +23,7 @@ double greatCircleRadius;
 
 #define teethOnStepperPulley 16
 #define teethOnRodPulley 36
+// Number of steps per output rotation
 #define stepperStepsPerRevolution 200
 #define microsteps 16
 #define threadedRodPitch 2 // mm
@@ -49,10 +50,9 @@ double stepsPerMM =
     (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
     (teethOnStepperPulley * threadedRodPitch);
 
-// Limit position is highest. Then it counts down to zero at end.
-// this  is expressed in microsteps
 
-// Number of steps per output rotation
+
+
 // const int stepsPerRevolution = 200;
 
 void PlatformModel::setupModel() {}
@@ -156,6 +156,8 @@ int PlatformModel::getLimitSwitchToMiddleDistance() {
   return limitSwitchToMiddleDistance;
 }
 
+// Limit position is highest. Then it counts down to zero at end.
+// this  is expressed in microsteps
 int32_t PlatformModel::getLimitPosition() {
   return limitSwitchToEndDistance * stepsPerMM;
   ;

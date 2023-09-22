@@ -18,8 +18,10 @@ public:
   double getTimeToCenterInSeconds();
   double getTimeToEndOfRunInSeconds();
   bool getTrackingStatus();
+  double getPlatformResetOffsetSeconds();
 
-  void moveAxis(double degreesPerSecond);
+      void
+      moveAxis(double degreesPerSecond);
   void slewToStart();
   void slewToMiddle();
   void slewToEnd();
@@ -36,6 +38,8 @@ private:
   boolean slewing;
   boolean slewingToStart;
   boolean tracking;
+  //accumlates ff/rw offsets
+  double platformResetOffsetSeconds;
 };
 
 #endif
