@@ -5,6 +5,6 @@
 #include "MotorUnit.h"
 
 void setupWifi(Preferences &prefs);
-void loopNetwork(Preferences &prefs);
+
 
 #endif

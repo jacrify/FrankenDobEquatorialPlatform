@@ -37,7 +37,6 @@ void setup() {
 void loop() {
   // loopOTA();
   delay(100);
-  loopNetwork(prefs);
   broadcastStatus(motorUnit, model);
   motorUnit.onLoop();
 }

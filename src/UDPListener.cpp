@@ -48,7 +48,7 @@ void setupUDPListener(MotorUnit &motor) {
           } else if (command = "moveaxis") {
             motor.moveAxis(parameter);
           } else {
-            log("Unknown command %s",command.c_str);
+            log("Unknown command %s",command.c_str());
           }
           // IPAddress remoteIp = packet.remoteIP();
 
