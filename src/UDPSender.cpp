@@ -19,10 +19,6 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
   bool platformTracking = motorUnit.getTrackingStatus();
   double axisMoveRate = model.getAxisMoveRate();
 
-  // motorUnit.getTimeToCenterInSeconds(),
-
-  // 0,
-
   long now = millis();
   if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
     log("Preparing to send packet");
