@@ -135,7 +135,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
 
         if (doc.containsKey("command") && doc.containsKey("parameter")) {
           String command = doc["command"];
-          long parameter = doc["parameter"];
+          double parameter = doc["parameter"];
 
           if (command == "home") {
             motor.slewToStart();
@@ -143,6 +143,8 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
             motor.slewToEnd();
           } else if (command == "track") {
             motor.setTracking(parameter > 0 ? true : false);
+          } else if (command="moveaxis") {
+            motor.moveAxis(parameter);
           }
           // IPAddress remoteIp = packet.remoteIP();
 

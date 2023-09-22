@@ -40,10 +40,7 @@ double MotorUnit::getTimeToEndOfRunInSeconds() {
   return model.calculateTimeToEndOfRunInSeconds(stepper->getCurrentPosition());
 }
 
-
-
-    bool
-    MotorUnit::getTrackingStatus() {
+bool MotorUnit::getTrackingStatus() {
   // todo fix this so only
   if (!stepper->isRunning())
     return false;
@@ -96,6 +93,20 @@ bool isPlay() { return bouncePlay.read() == LOW; }
 
 bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 
+void MotorUnit::moveAxis(double degreesPerSecond) {
+  //TODO ignores slew speed. does it matter>
+  //TODO slew is not really the same as move axis
+  if (degreesPerSecond == 0) {
+    slewing = false; // loop should perform stop or track
+    return;
+  }
+  if (degreesPerSecond > 0) // forward?
+  {
+    slewToEnd();
+    return;
+  }
+  slewToStart();
+}
 void MotorUnit::onLoop() {
   bounceFastForward.update();
   bounceRewind.update();
@@ -146,7 +157,7 @@ void MotorUnit::onLoop() {
   if (isPlay() && tracking) {
     tracking = false;
   }
-  
+
   if (isPlay() || tracking) {
 
     // update speed periodically. Don't need to do every cycle
