@@ -34,6 +34,7 @@ private:
   void slewToPosition(int32_t position);
   int32_t slew_target_pos;
   boolean slewing;
+  boolean slewingToStart;
   boolean tracking;
 };
 
