@@ -18,24 +18,23 @@ public:
   double getTimeToCenterInSeconds();
   double getTimeToEndOfRunInSeconds();
   bool getTrackingStatus();
-  
 
-      void
-      slewToStart();
+  void moveAxis(double degreesPerSecond);
+  void slewToStart();
   void slewToMiddle();
   void slewToEnd();
   bool isSlewing();
-  void setTracking(bool b) ;
+  void setTracking(bool b);
 
-  private:
-    PlatformModel &model;
-    Preferences &preferences;
-    void runModeSwitchCheck();
-    void calibrationModeSwitchCheck();
-    void slewToPosition(int32_t position);
-    int32_t slew_target_pos;
-    boolean slewing;
-    boolean tracking;
-  };
+private:
+  PlatformModel &model;
+  Preferences &preferences;
+  void runModeSwitchCheck();
+  void calibrationModeSwitchCheck();
+  void slewToPosition(int32_t position);
+  int32_t slew_target_pos;
+  boolean slewing;
+  boolean tracking;
+};
 
 #endif
