@@ -12,6 +12,8 @@ class PlatformModel {
 public:
   void setupModel();
   uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition);
+  uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition,
+                                         double desiredArcSecondsPerSecond);
   double calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition);
   double calculateTimeToEndOfRunInSeconds(int32_t stepperCurrentPosition);
   double getGreatCircleRadius();
