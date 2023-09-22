@@ -116,8 +116,12 @@ void MotorUnit::onLoop() {
   if (isLimitSwitchHit()) {
     int32_t pos = model.getLimitPosition();
     stepper->setCurrentPosition(pos);
-    log("Limit hit, setting position to %ld", pos);
-    slewing = false;
+    
+    if (slewingToStart) {
+      log("Limit hit, setting position to %ld", pos);
+      slewing = false;
+      slewingToStart = false;
+    }
   }
 
   // if slewing, stop when position reached.
@@ -200,12 +204,14 @@ double MotorUnit::getPositionInMM() {
 }
 
 void MotorUnit::slewToStart() {
+  log("Slewing to start");
   if (!isLimitSwitchHit()) {
     slew_target_pos = model.getLimitPosition();
 
     stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
     stepper->runForward();
     slewing = true;
+    slewingToStart = true;
     return;
   }
   slewing = false;
@@ -220,14 +226,12 @@ void MotorUnit::slewToEnd() {
 }
 bool MotorUnit::isSlewing() { return slewing; }
 void MotorUnit::slewToPosition(int32_t position) {
-  if (!isLimitSwitchHit()) {
+  
     slew_target_pos = position;
     slewing = true;
     stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
     stepper->moveTo(position);
     return;
-  }
-  slewing = false;
 }
 // void MotorUnit::slewToPosition(long position);
 
