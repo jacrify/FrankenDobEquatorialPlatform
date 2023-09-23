@@ -3,7 +3,7 @@
 #include "Logging.h"
 #include "WiFi.h"
 
-#define IPBROADCASTPERIOD 10000
+#define IPBROADCASTPERIOD 1000
 #define IPBROADCASTPORT 50375
 AsyncUDP udp;
 unsigned long lastIPBroadcastTime;

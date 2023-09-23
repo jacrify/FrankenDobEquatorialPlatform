@@ -36,10 +36,15 @@ double MotorUnit::getTimeToCenterInSeconds() {
   return model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
 }
 
+double MotorUnit::getTimeToEndOfRunInSeconds() {
+  return model.calculateTimeToEndOfRunInSeconds(stepper->getCurrentPosition());
+}
 /**
  * Accumulates ff/rewinds moves as an offset
  */
-double MotorUnit::getPlatformResetOffsetSeconds() {}
+double MotorUnit::getPlatformResetOffsetSeconds() {
+  return platformResetOffsetSeconds;
+}
 
 bool MotorUnit::getTrackingStatus() {
   // todo fix this so only
@@ -73,7 +78,7 @@ void MotorUnit::setupMotor() {
   bounceLimit.interval(10); // interval in ms
 
   platformResetOffsetSeconds = 0;
-  firstMoveCycleForCalc=false;
+  firstMoveCycleForCalc = true;
 
   engine.init();
   stepper = engine.stepperConnectToPin(stepPinStepper);
@@ -112,9 +117,6 @@ void MotorUnit::moveAxis(double degreesPerSecond) {
   slewToStart();
 }
 
-double lastTimeToCenterSeconds;
-bool firstMoveCycleForCalc;
-
 void MotorUnit::onLoop() {
   bounceFastForward.update();
   bounceRewind.update();
@@ -140,9 +142,11 @@ void MotorUnit::onLoop() {
    *
    */
   if (stepper->isRunning()) {
-    int speed = stepper->getCurrentSpeedInMilliHz();
-    // check for tracking
-    if (speed > model.getRewindFastFowardSpeed() / 4) {
+
+    int speedInMilliHz =  abs(stepper->getCurrentSpeedInMilliHz());
+    
+    // check for tracking, only offset when not tracking but moving
+    if (speedInMilliHz > (model.getRewindFastFowardSpeed() * 1000 / 4)) {
 
       double currentTimeToCenter =
           model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
@@ -241,7 +245,7 @@ double MotorUnit::getVelocityInMMPerMinute() {
   // log("Speed in mhz %f", speedInMHz);
   // log("Speed in hz %f", speedInHz);
   // log("Speed in mm s %f", speedInMMPerSecond);
-  log("Speed in mm m %f", speedInMMPerMinute);
+  // log("Speed in mm m %f", speedInMMPerMinute);
   return speedInMMPerMinute;
 }
 double MotorUnit::getPositionInMM() {

@@ -40,6 +40,9 @@ private:
   boolean tracking;
   //accumlates ff/rw offsets
   double platformResetOffsetSeconds;
+
+  double lastTimeToCenterSeconds;
+  bool firstMoveCycleForCalc;
 };
 
 #endif
