@@ -31,25 +31,23 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
           motorUnit.getPlatformResetOffsetSeconds();
 
       bool platformTracking = motorUnit.getTrackingStatus();
-      double axisMoveRate = model.getAxisMoveRate();
+      double axisMoveRate = model.getAxisMoveRateDegreesSec();
       double guideMoveRate = model.getRAGuideRateDegreesSec();
       double trackingRate = model.getTrackingRateArcsSecondsSec();
-         
 
-              snprintf(response, sizeof(response),
-                       "EQ:{ "
-                       "\"timeToCenter\": %.2lf, "
-                       "\"timeToEnd\": %.2lf, "
-                       "\"platformResetOffset\": %.2lf, "
-                       "\"isTracking\" : %s, "
-                       "\"guideMoveRate\": %.2lf, "
-                       "\"trackingRate\": %.2lf, "
-                       "\"axisMoveRate\": %.2lf "
-                       " }\n",
-                       secondsToCenter, secondsToEnd,
-                       platformResetOffsetSeconds,
-                       platformTracking ? "true" : "false", guideMoveRate,
-                       trackingRate,axisMoveRate);
+      snprintf(response, sizeof(response),
+               "EQ:{ "
+               "\"timeToCenter\": %.2lf, "
+               "\"timeToEnd\": %.2lf, "
+               "\"platformResetOffset\": %.2lf, "
+               "\"isTracking\" : %s, "
+               "\"guideMoveRate\": %.5lf, "
+               "\"trackingRate\": %.5lf, "
+               "\"axisMoveRate\": %.5lf "
+               " }\n",
+               secondsToCenter, secondsToEnd, platformResetOffsetSeconds,
+               platformTracking ? "true" : "false", guideMoveRate, trackingRate,
+               axisMoveRate);
       udp.print(response);
       log("Status Packet sent\r\n %s", response);
     }
