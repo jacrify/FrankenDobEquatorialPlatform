@@ -40,7 +40,7 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
                "\"platformResetOffset\": %.2lf, "
                "\"isTracking\" : %s, "
                "\"axisMoveRate\": %.2lf "
-               " }",
+               " }\n",
                secondsToCenter, secondsToEnd, platformResetOffsetSeconds,
                platformTracking ? "true" : "false", axisMoveRate);
       udp.print(response);
