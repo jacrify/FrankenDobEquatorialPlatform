@@ -31,8 +31,10 @@ Bounce bouncePlay = Bounce();
 Bounce bounceLimit = Bounce();
 
 bool positionSavedOnStop = false;
+double raGuideRateDegreesSec;
 
-double MotorUnit::getTimeToCenterInSeconds() {
+    double
+    MotorUnit::getTimeToCenterInSeconds() {
   return model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
 }
 
@@ -143,8 +145,8 @@ void MotorUnit::onLoop() {
    */
   if (stepper->isRunning()) {
 
-    int speedInMilliHz =  abs(stepper->getCurrentSpeedInMilliHz());
-    
+    int speedInMilliHz = abs(stepper->getCurrentSpeedInMilliHz());
+
     // check for tracking, only offset when not tracking but moving
     if (speedInMilliHz > (model.getRewindFastFowardSpeed() * 1000 / 4)) {
 
@@ -287,3 +289,17 @@ void MotorUnit::slewToPosition(int32_t position) {
 // void MotorUnit::slewToPosition(long position);
 
 void MotorUnit::setTracking(bool b) { tracking = b; }
+
+void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds) {
+  // Direction is either  2 = guideEast, 3 = guideWest.
+  // If 2 then returned value will be higher than stepperCurrentPosition
+  // If 3 then return value will be lower.
+  int32_t targetPosition = model.calculatePulseGuideTargetPosition(
+      direction, pulseDurationInMilliseconds, stepper->getCurrentPosition());
+  log("Pulse guiding %d for %ld to position %ld at speed (hz) %ld", direction,
+      pulseDurationInMilliseconds, targetPosition, model.getRAGuideRateHz());
+  slew_target_pos=targetPosition;
+  slewing = true;
+  stepper->setSpeedInHz(model.getRAGuideRateHz());
+  stepper->moveTo(targetPosition);
+}
