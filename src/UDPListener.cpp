@@ -14,7 +14,7 @@ void setupUDPListener(MotorUnit &motor) {
     log("Listening for dsc platform broadcasts");
     dscUDP.onPacket([&motor](AsyncUDPPacket packet) {
       unsigned long now = millis();
-      String msg = packet.readString();
+      String msg = packet.readStringUntil('\n');
       log("UDP Broadcast received: %s", msg.c_str());
 
       // Check if the broadcast is from EQ Platform
