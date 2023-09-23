@@ -141,6 +141,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
 
   // WebSerial is accessible at "<IP Address>/webserial" in browser
   WebSerial.begin(&server);
+  setWebSerialReady();
 
   server.begin();
   log("Server started");

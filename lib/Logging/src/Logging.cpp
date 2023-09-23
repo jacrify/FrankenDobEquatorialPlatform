@@ -4,10 +4,11 @@
 #include <iostream>
 
 #ifdef ARDUINO
-#include <Arduino.h>
 #include "WebSerial.h"
+#include <Arduino.h>
 #endif
-
+bool webSerialReady;
+void setWebSerialReady() { webSerialReady = true; }
 void log(const char *fmt, ...) {
   const int BUFFER_SIZE = 1024;
   char buffer[BUFFER_SIZE];
@@ -22,7 +23,8 @@ void log(const char *fmt, ...) {
 #ifdef ARDUINO
   // If we're on an Arduino (or compatible) platform
   Serial.println(buffer);
-  WebSerial.println(buffer);
+  if (webSerialReady)
+    WebSerial.println(buffer);
 #else
   // For native environment
   std::cout << buffer << std::endl; // Print to console
