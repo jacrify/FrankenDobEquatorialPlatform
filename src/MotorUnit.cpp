@@ -52,7 +52,7 @@ bool MotorUnit::getTrackingStatus() {
     return false;
   // if running we'll be running at forward/rewind spped. This is in hz, so
   // convert to compare add fudge factor.
-  return (stepper->getSpeedInMilliHz() <=
+  return (abs(stepper->getCurrentSpeedInMilliHz()) <=
           model.getRewindFastFowardSpeed() * 500);
 }
 
