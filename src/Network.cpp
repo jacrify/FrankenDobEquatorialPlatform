@@ -1,77 +1,43 @@
-#include "AsyncUDP.h"
+#include "Network.h"
+#include "Logging.h"
 #include <WiFiManager.h>
 
-#include "Network.h"
-#define IPBROADCASTPORT 50375
-#define IPBROADCASTPERIOD 10000
-#include "Logging.h"
 WiFiManager wifiManager;
-AsyncUDP udp;
-unsigned long lastIPBroadcastTime;
-
-void loopNetwork(Preferences &prefs) {
-  if (digitalRead(0) == LOW) {
-    prefs.putBool("homeWifi", true);
-    prefs.end();
-
-    delay(300);
-    esp_restart();
-  }
-}
 
 #define HOMEWIFISSID "HOMEWIFISSID"
 #define HOMEWIFIPASS "HOMEWIFIPASS"
 
+void logIP() {
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    log("Waiting for connection...");
+  }
+
+  // Once connected, log the IP address
+  IPAddress ip = WiFi.localIP();
+  log("Connected! IP address: %d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+}
 void setupWifi(Preferences &prefs) {
   log("Scanning for networks...");
 
-
   int n = WiFi.scanNetworks();
+  // prefs.putString(HOMEWIFISSID, "");
+  // prefs.putString(HOMEWIFIPASS, "");
 
   for (int i = 0; i < n; i++) {
     if (WiFi.SSID(i) == "dontlookup") {
       log("Connecting to 'dontlookup'...");
       WiFi.begin("dontlookup", "dontlookdown");
+      logIP();
       return;
     }
   }
   if (prefs.isKey(HOMEWIFISSID) && prefs.isKey(HOMEWIFIPASS)) {
     log("Connnecting to home wifi...");
     WiFi.begin(prefs.getString(HOMEWIFISSID), prefs.getString(HOMEWIFIPASS));
-
+    logIP();
+    return;
   } else {
     log("No wifi details in prefs");
-  }
-}
-
-// every x second, send whether platform is tracking,
-// and how many seconds it will take to reach center.
-//(can be negative is center passed)
-void broadcastStatus(double secondsToCenter, double secondsToEnd,
-                     bool platformTracking) {
-  long now = millis();
-  if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
-    log("Preparing to send packet");
-    lastIPBroadcastTime = now;
-    // Check if the device is connected to the WiFi
-    if (WiFi.status() != WL_CONNECTED) {
-      return;
-    }
-    if (udp.connect(
-            IPAddress(255, 255, 255, 255),
-            IPBROADCASTPORT)) { // Choose any available port, e.g., 12345
-      char response[400];
-
-      snprintf(response, sizeof(response),
-               "EQ:{ "
-               "\"timeToCenter\": %.2lf, "
-               "\"timeToEnd\": %.2lf, "
-               "\"isTracking\" : %s "
-               " }",
-               secondsToCenter, secondsToEnd,
-               platformTracking ? "true" : "false");
-      udp.print(response);
-      log("Status Packet sent");
-    }
   }
 }
