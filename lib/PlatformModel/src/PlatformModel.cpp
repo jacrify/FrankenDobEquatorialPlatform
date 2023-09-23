@@ -39,8 +39,8 @@ int32_t limitSwitchToMiddleDistance;
 int raGuideRateInMilliHz;
 double raGuideRateDegreesSec;
 
-    // speed in hz
-    int rewindFastFowardSpeed;
+// speed in hz
+int rewindFastFowardSpeed;
 
 // used by alpaca.
 double rewindFastForwardSpeedDegreesSec;
@@ -54,7 +54,9 @@ double stepsPerMM =
 
 // const int stepsPerRevolution = 200;
 
-void PlatformModel::setupModel() { setRAGuideRate(sideRealArcDegreesSec*3); }
+void PlatformModel::setupModel() {
+  setRAGuideRateDegreesSec(sideRealArcDegreesSec * 3);
+}
 
 double PlatformModel::calculateTimeToEndOfRunInSeconds(
     int32_t stepperCurrentPosition) {
@@ -178,16 +180,23 @@ void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
   rewindFastForwardSpeedDegreesSec = anglePerSec * (180.0 / M_PI);
 }
 
-void PlatformModel::setRAGuideRate(double degreesPerSecond) {
+void PlatformModel::setRAGuideRateDegreesSec(double degreesPerSecond) {
   raGuideRateDegreesSec = degreesPerSecond;
-   double radiansPerSecond =
-      degreesPerSecond * (M_PI / 180.0);
+  double radiansPerSecond = degreesPerSecond * (M_PI / 180.0);
   double rodTurnsPerSec =
       atan(radiansPerSecond * greatCircleRadius) / threadedRodPitch;
-  raGuideRateInMilliHz =
-      1000*rodTurnsPerSec * rodStepperRatio * stepperStepsPerRevolution * microsteps;
+  raGuideRateInMilliHz = 1000 * rodTurnsPerSec * rodStepperRatio *
+                         stepperStepsPerRevolution * microsteps;
 }
-double getRAGuideRateMilliHz() { return raGuideRateInMilliHz; }
+double PlatformModel::getRAGuideRateMilliHz() { return raGuideRateInMilliHz; }
+
+double PlatformModel::getTrackingRateArcsSecondsSec() {
+  return sideRealArcDegreesSec;
+}
+
+double PlatformModel::getRAGuideRateDegreesSec() {
+  return raGuideRateDegreesSec;
+}
 /**
  * Give current stepper location, a direction, and a duration,
  * this method uses the raGuideRateInHz to calculate what step position
@@ -201,7 +210,7 @@ int32_t PlatformModel::calculatePulseGuideTargetPosition(
   // If 2 then returned value will be higher than stepperCurrentPosition
   // If 3 then return value will be lower.
 
-  int32_t stepsToMove = (raGuideRateInMilliHz * pulseDurationInMilliseconds) ;
+  int32_t stepsToMove = (raGuideRateInMilliHz * pulseDurationInMilliseconds);
   if (direction == 2) // east.Positive step change ie towards limit switch
     return stepperCurrentPosition + stepsToMove;
 
