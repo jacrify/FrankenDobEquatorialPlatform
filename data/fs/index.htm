@@ -8,23 +8,32 @@
 </head>
 
 <body>
-    <label for="runbackSpeed">RunBack Speed</label>
+    <label for="runbackSpeed">RunBack Speed (hz)</label>
     <input type="number" id="runbackSpeed"><br />
 
-    <label for="greatCircleRadius">Great Circle Radius</label>
+    <label for="greatCircleRadius">Great Circle Radius (mm)</label>
     <input type="number" id="greatCircleRadius"><br />
 
-    <label for="limitToMiddleDistance">Limit To Middle Distance</label>
+    <label for="limitToMiddleDistance">Limit To Middle Distance (mm)</label>
     <input type="number" id="limitToMiddleDistance"><br />
-    
-    <label for="position">Position:</label>
-    <span  id="position" >0</span><br />
 
-    <label for="velocity">Velocity:</label>
-    <span  id="velocity" >0</span><br />
+    <label for="position">Position (mm):</label>
+    <span id="position">0</span><br />
+
+    <label for="velocity">Velocity (mm/minute):</label>
+    <span id="velocity">0</span><br />
+
+    
+    <button id="home">Home</button>
+    <button id="center">Center</button>
+    <button id="park">Park (end-5m)</button>
+    
 
     <button id="resetButton">Reset Graph</button><br />
     <canvas id="chart"></canvas>
+    <br>
+    <a href="/webserial">Web Serial</a>
+    <br>
 
     <script>
         var previousPosition = -1;
@@ -63,7 +72,7 @@
             //         console.log("Request Failed: " + textStatus + ", " + error);
             //     });
 
-            $.getJSON("/getStatus").done( function (data) {
+            $.getJSON("/getStatus").done(function (data) {
                 console.log("Runback val: ", data.runbackSpeed);
                 if (!$("#runbackSpeed").is(":focus")) {
                     console.log("Update runback");
@@ -87,15 +96,29 @@
                 }
                 chart.update();
             }).fail(function (jqxhr, textStatus, error) {
-                    console.log("Request Failed: " + textStatus + ", " + error);
-                });;
+                console.log("Request Failed: " + textStatus + ", " + error);
+            });;
         }
 
+
+        $("#home").click(function () {
+            $.post("/home");
+        });
+
+        $("#center").click(function () {
+            $.post("/center");
+        });
+
+        $("#park").click(function () {
+            $.post("/park");
+        });
         $("#resetButton").click(function () {
             chartData.labels = [];
             chartData.datasets[0].data = [];
             chart.update();
         });
+
+
 
         $("#runbackSpeed, #limitToMiddleDistance, #greatCircleRadius").change(function () {
             $.post("/" + $(this).attr('id'), { value: $(this).val() });

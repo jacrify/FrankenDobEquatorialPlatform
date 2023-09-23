@@ -1,13 +1,15 @@
 #include "EQWebServer.h"
+
 #include "Logging.h"
 #include "MotorUnit.h"
+#include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <WebSerial.h>
 
 AsyncWebServer server(80);
 
-
+#define IPBROADCASTPORT 50375
 
 void setLimitToMiddleDistance(AsyncWebServerRequest *request,
                               PlatformModel &model, Preferences &preferences) {
@@ -27,8 +29,9 @@ void setLimitToMiddleDistance(AsyncWebServerRequest *request,
   log("No distance arg found");
 }
 
-void setRewindFastFowardSpeed(AsyncWebServerRequest *request,
-                              PlatformModel &model, Preferences &preferences) {
+void setRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
+                                  PlatformModel &model,
+                                  Preferences &preferences) {
   log("/setrunbackSpeed");
   if (request->hasArg("value")) {
     String speed = request->arg("value");
@@ -38,7 +41,7 @@ void setRewindFastFowardSpeed(AsyncWebServerRequest *request,
       log("Could not parse speed");
       return;
     }
-    model.setRewindFastFowardSpeed(speedValue);
+    model.setRewindFastFowardSpeedInHz(speedValue);
     preferences.putUInt(PREF_SPEED_KEY, speedValue);
     return;
   }
@@ -92,7 +95,6 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
 void setupWebServer(MotorUnit &motor, PlatformModel &model,
                     Preferences &preferences) {
 
-
   int rewindFastFowardSpeed =
       preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
   int limitSwitchToMiddleDistance =
@@ -102,7 +104,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   log("Preferences loaded for model rewindspeed: %d limitToMiddle %d radius "
       "%d ",
       rewindFastFowardSpeed, limitSwitchToMiddleDistance, greatCircleRadius);
-  model.setRewindFastFowardSpeed(rewindFastFowardSpeed);
+  model.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
   model.setGreatCircleRadius(greatCircleRadius);
 
@@ -113,7 +115,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
 
   server.on("/runbackSpeed", HTTP_POST,
             [&model, &preferences](AsyncWebServerRequest *request) {
-              setRewindFastFowardSpeed(request, model, preferences);
+              setRewindFastFowardSpeedInHz(request, model, preferences);
             });
 
   server.on("/greatCircleRadius", HTTP_POST,
@@ -124,7 +126,15 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
             [&model, &preferences](AsyncWebServerRequest *request) {
               setLimitToMiddleDistance(request, model, preferences);
             });
-  ;
+
+  server.on("/home", HTTP_POST,
+            [&motor](AsyncWebServerRequest *request) { motor.slewToStart(); });
+
+  server.on("/park", HTTP_POST,
+            [&motor](AsyncWebServerRequest *request) { motor.slewToEnd(); });
+
+  server.on("/center", HTTP_POST,
+            [&motor](AsyncWebServerRequest *request) { motor.slewToMiddle(); });
 
   // server.serveStatic("/www/", LittleFS, "/fs/");
   server.serveStatic("/", LittleFS, "/fs/");
@@ -136,9 +146,3 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   log("Server started");
   return;
 }
-
-// TODO
-//  void loop() {
-
-//   ws.cleanupClients();
-// }

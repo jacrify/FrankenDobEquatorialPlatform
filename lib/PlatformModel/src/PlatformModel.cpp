@@ -1,5 +1,6 @@
 #include "PlatformModel.h"
 // #include "Logging.h"
+#include "Logging.h"
 #include <Math.h>
 #include <iostream>
 #include <sstream>
@@ -17,8 +18,12 @@ double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 
 double greatCircleRadius;
 
+
+#define sideRealDegreesSec 15.041
+
 #define teethOnStepperPulley 16
 #define teethOnRodPulley 36
+// Number of steps per output rotation
 #define stepperStepsPerRevolution 200
 #define microsteps 16
 #define threadedRodPitch 2 // mm
@@ -32,7 +37,11 @@ int32_t limitSwitchToEndDistance = 130; // length of run in mm
 // where platform is flat
 int32_t limitSwitchToMiddleDistance;
 
+// speed in hz
 int rewindFastFowardSpeed;
+
+// used by alpaca.
+double rewindFastForwardSpeedDegreesSec;
 
 double rodStepperRatio =
     (double)teethOnRodPulley / (double)teethOnStepperPulley;
@@ -41,19 +50,20 @@ double stepsPerMM =
     (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
     (teethOnStepperPulley * threadedRodPitch);
 
-// Limit position is highest. Then it counts down to zero at end.
-// this  is expressed in microsteps
 
-// Number of steps per output rotation
+
+
 // const int stepsPerRevolution = 200;
 
 void PlatformModel::setupModel() {}
 
-double PlatformModel::calculateTimeToEndOfRunInSeconds(int32_t stepperCurrentPosition) {
+double PlatformModel::calculateTimeToEndOfRunInSeconds(
+    int32_t stepperCurrentPosition) {
   int32_t endToMiddleInMM =
       limitSwitchToEndDistance - limitSwitchToMiddleDistance;
   int32_t endToMiddleInSteps = endToMiddleInMM * stepsPerMM;
-  return calculateTimeToCenterInSeconds(stepperCurrentPosition + endToMiddleInSteps);
+  return calculateTimeToCenterInSeconds(stepperCurrentPosition +
+                                        endToMiddleInSteps);
 }
 // work out how long it will be until we are at center. If we've passed center
 // will be negative.
@@ -78,40 +88,51 @@ PlatformModel::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
   return secondsMoved;
 }
 
+// returns max drive speed in degrees per second
+double PlatformModel::getAxisMoveRate() {
+  return rewindFastForwardSpeedDegreesSec;
+}
+
 uint32_t
 PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
+  return calculateFowardSpeedInMilliHz(stepperCurrentPosition,
+                                       sideRealDegreesSec);
+}
+
+uint32_t PlatformModel::calculateFowardSpeedInMilliHz(
+    int stepperCurrentPosition, double desiredArcSecondsPerSecond) {
 
   int middle = getMiddlePosition();
   double stepsFromMiddle = (double)(middle - stepperCurrentPosition);
-  double stepsPerMM = getStepsPerMM();
+
   double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
 
   double absoluteAngleMovedAtThisPoint =
       atan(distanceFromCenterInMM / greatCircleRadius);
 
-  double absoluteAngleAfterOneMoreMinute =
-      absoluteAngleMovedAtThisPoint + greatCircleRadiansPerMinute;
+  double radiansPerSecond =
+      desiredArcSecondsPerSecond * (M_PI / 180.0 / 3600.0);
 
-  double distanceAlongRodAfterOneMoreMinute =
-      greatCircleRadius * tan(absoluteAngleAfterOneMoreMinute);
+  double absoluteAngleAfterOneMoreSecond =
+      absoluteAngleMovedAtThisPoint + radiansPerSecond;
 
-  double threadDistancePerMinute =
-      distanceAlongRodAfterOneMoreMinute - distanceFromCenterInMM;
+  double distanceAlongRodAfterOneMoreSecond =
+      greatCircleRadius * tan(absoluteAngleAfterOneMoreSecond);
 
-  double numberOfTurnsPerMinuteOfRod =
-      threadDistancePerMinute / threadedRodPitch;
+  double threadDistancePerSecond =
+      distanceAlongRodAfterOneMoreSecond - distanceFromCenterInMM;
 
-  double numberOfTurnsPerMinuteOfStepper =
-      numberOfTurnsPerMinuteOfRod * rodStepperRatio;
+  double numberOfTurnsPerSecondOfRod =
+      threadDistancePerSecond / threadedRodPitch;
 
-  double numberOfStepsPerMinuteInMiddle =
-      numberOfTurnsPerMinuteOfStepper * stepperStepsPerRevolution * microsteps;
+  double numberOfTurnsPerSecondOfStepper =
+      numberOfTurnsPerSecondOfRod * rodStepperRatio;
 
-  double stepperSpeedInHertz = numberOfStepsPerMinuteInMiddle / 60.0;
+  double numberOfStepsPerSecondInMiddle =
+      numberOfTurnsPerSecondOfStepper * stepperStepsPerRevolution * microsteps;
 
-  // log("stepperSpeedInHertz %f", stepperSpeedInHertz);
+  double stepperSpeedInHertz = numberOfStepsPerSecondInMiddle;
   uint32_t stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
-  // log("stepperSpeedInMilliHertz %d", stepperSpeedInMilliHertz);
   return stepperSpeedInMilliHertz;
 }
 
@@ -135,6 +156,8 @@ int PlatformModel::getLimitSwitchToMiddleDistance() {
   return limitSwitchToMiddleDistance;
 }
 
+// Limit position is highest. Then it counts down to zero at end.
+// this  is expressed in microsteps
 int32_t PlatformModel::getLimitPosition() {
   return limitSwitchToEndDistance * stepsPerMM;
   ;
@@ -142,7 +165,16 @@ int32_t PlatformModel::getLimitPosition() {
 
 int PlatformModel::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
 
-void PlatformModel::setRewindFastFowardSpeed(int speed) {
+void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
   // log("updating speed to %d",speed);
-  rewindFastFowardSpeed = speed;
+  rewindFastFowardSpeed = speedInHz;
+
+  // Calculate speed in degrees/sec for alpaca based on the passed speed
+  // Calculate speed in degrees/sec for alpaca based on the passed speed
+
+  double rodTurnsPerSec =
+      speedInHz / (rodStepperRatio * stepperStepsPerRevolution * microsteps);
+  double distancePerSec = rodTurnsPerSec * threadedRodPitch;
+  double anglePerSec = atan(distancePerSec / greatCircleRadius);
+  rewindFastForwardSpeedDegreesSec = anglePerSec * (180.0 / M_PI);
 }
