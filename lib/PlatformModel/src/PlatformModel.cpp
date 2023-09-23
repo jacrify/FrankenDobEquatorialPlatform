@@ -90,7 +90,7 @@ PlatformModel::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
 }
 
 // returns max drive speed in degrees per second
-double PlatformModel::getAxisMoveRate() {
+double PlatformModel::getAxisMoveRateDegreesSec() {
   return rewindFastForwardSpeedDegreesSec;
 }
 

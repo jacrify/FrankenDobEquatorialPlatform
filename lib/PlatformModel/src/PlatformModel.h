@@ -19,7 +19,7 @@ public:
   double getGreatCircleRadius();
   void setGreatCircleRadius(double r);
   double getStepsPerMM();
-  double getAxisMoveRate();
+  double getAxisMoveRateDegreesSec();
 
   int32_t PlatformModel::calculatePulseGuideTargetPosition(
       int direction, long pulseDurationInMilliseconds,
@@ -31,9 +31,8 @@ public:
 
   double getTrackingRateArcsSecondsSec();
 
-      // set distance in mm
-      void
-      setLimitSwitchToMiddleDistance(int pos);
+  // set distance in mm
+  void setLimitSwitchToMiddleDistance(int pos);
   // get distance in mm
   int getLimitSwitchToMiddleDistance();
 
