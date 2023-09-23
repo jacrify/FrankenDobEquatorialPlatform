@@ -1,5 +1,3 @@
-
-
 #include "Logging.h"
 #include <cstdarg>
 #include <cstdio>
@@ -7,6 +5,7 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
+#include "WebSerial.h"
 #endif
 
 void log(const char *fmt, ...) {
@@ -23,6 +22,7 @@ void log(const char *fmt, ...) {
 #ifdef ARDUINO
   // If we're on an Arduino (or compatible) platform
   Serial.println(buffer);
+  WebSerial.println(buffer);
 #else
   // For native environment
   std::cout << buffer << std::endl; // Print to console
