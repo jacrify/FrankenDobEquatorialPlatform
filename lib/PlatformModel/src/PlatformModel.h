@@ -25,11 +25,15 @@ public:
       int direction, long pulseDurationInMilliseconds,
       int32_t stepperCurrentPosition);
 
-  void setRAGuideRate(double degreesPerSecond);
-  double getRAGuideRateHz();
+  void setRAGuideRateDegreesSec(double degreesPerSecond);
+  double getRAGuideRateDegreesSec();
+  double getRAGuideRateMilliHz();
 
-  // set distance in mm
-  void setLimitSwitchToMiddleDistance(int pos);
+  double getTrackingRateArcsSecondsSec();
+
+      // set distance in mm
+      void
+      setLimitSwitchToMiddleDistance(int pos);
   // get distance in mm
   int getLimitSwitchToMiddleDistance();
 

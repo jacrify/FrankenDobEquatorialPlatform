@@ -296,10 +296,11 @@ void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds) {
   // If 3 then return value will be lower.
   int32_t targetPosition = model.calculatePulseGuideTargetPosition(
       direction, pulseDurationInMilliseconds, stepper->getCurrentPosition());
-  log("Pulse guiding %d for %ld to position %ld at speed (hz) %ld", direction,
-      pulseDurationInMilliseconds, targetPosition, model.getRAGuideRateHz());
+  log("Pulse guiding %d for %ld to position %ld at speed (millihz) %ld", direction,
+      pulseDurationInMilliseconds, targetPosition,
+      model.getRAGuideRateMilliHz());
   slew_target_pos=targetPosition;
   slewing = true;
-  stepper->setSpeedInHz(model.getRAGuideRateHz());
+  stepper->setSpeedInMilliHz(model.getRAGuideRateMilliHz());
   stepper->moveTo(targetPosition);
 }
