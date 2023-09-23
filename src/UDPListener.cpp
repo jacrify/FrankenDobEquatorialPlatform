@@ -8,7 +8,7 @@ AsyncUDP dscUDP;
 /**
  * Listen for UDP broadcasts from Digital Setting Circles.
  * This is used for alpaca commands passed from DSC.
-*/
+ */
 void setupUDPListener(MotorUnit &motor) {
   if (dscUDP.listen(IPBROADCASTPORT)) {
     log("Listening for dsc platform broadcasts");
@@ -35,21 +35,37 @@ void setupUDPListener(MotorUnit &motor) {
           return;
         }
 
-        if (doc.containsKey("command") && doc.containsKey("parameter")) {
+        if (doc.containsKey("command") && doc.containsKey("parameter1") &&
+            doc.containsKey("parameter2")) {
           String command = doc["command"];
-          double parameter = doc["parameter"];
+          double parameter1 = doc["parameter1"];
+          double parameter2 = doc["parameter2"];
 
           if (command == "home") {
             motor.slewToStart();
-          } else if (command == "park") {
-            motor.slewToEnd();
-          } else if (command == "track") {
-            motor.setTracking(parameter > 0 ? true : false);
-          } else if (command = "moveaxis") {
-            motor.moveAxis(parameter);
-          } else {
-            log("Unknown command %s",command.c_str());
+            return;
           }
+          if (command == "park") {
+            motor.slewToEnd();
+            return;
+          }
+          if (command == "track") {
+            motor.setTracking(parameter1 > 0 ? true : false);
+            return;
+          }
+          if (command = "moveaxis") {
+            motor.moveAxis(parameter1);
+            return;
+          }
+          if (command = "pulseguide") {
+            //direction, pulsetime
+            motor.pulseGuide(parameter1,parameter2);
+            return;
+          }
+
+          log("Unknown command %s", command.c_str());
+          return;
+
           // IPAddress remoteIp = packet.remoteIP();
 
           // // Convert the IP address to a string

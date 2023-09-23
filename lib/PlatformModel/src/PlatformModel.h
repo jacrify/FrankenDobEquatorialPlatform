@@ -21,6 +21,13 @@ public:
   double getStepsPerMM();
   double getAxisMoveRate();
 
+  int32_t PlatformModel::calculatePulseGuideTargetPosition(
+      int direction, long pulseDurationInMilliseconds,
+      int32_t stepperCurrentPosition);
+
+  void setRAGuideRate(double degreesPerSecond);
+  double getRAGuideRateHz();
+
   // set distance in mm
   void setLimitSwitchToMiddleDistance(int pos);
   // get distance in mm

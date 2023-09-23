@@ -135,6 +135,12 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
 
   server.on("/center", HTTP_POST,
             [&motor](AsyncWebServerRequest *request) { motor.slewToMiddle(); });
+//TODO #2 implement tracking on off
+  // server.on("/trackingOn", HTTP_POST,
+  //           [&motor](AsyncWebServerRequest *request) { motor.setTracking(true); });
+
+  // server.on("/trackingOff", HTTP_POST,
+  //           [&motor](AsyncWebServerRequest *request) { motor.setTracking(false); });
 
   // server.serveStatic("/www/", LittleFS, "/fs/");
   server.serveStatic("/", LittleFS, "/fs/");

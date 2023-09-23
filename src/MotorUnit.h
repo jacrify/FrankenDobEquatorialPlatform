@@ -19,9 +19,9 @@ public:
   double getTimeToEndOfRunInSeconds();
   bool getTrackingStatus();
   double getPlatformResetOffsetSeconds();
+  void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds);
 
-      void
-      moveAxis(double degreesPerSecond);
+      void moveAxis(double degreesPerSecond);
   void slewToStart();
   void slewToMiddle();
   void slewToEnd();
