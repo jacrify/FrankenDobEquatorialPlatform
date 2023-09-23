@@ -38,7 +38,7 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
                "\"timeToCenter\": %.2lf, "
                "\"timeToEnd\": %.2lf, "
                "\"platformResetOffset\": %.2lf, "
-               "\"isTracking\" : %s ",
+               "\"isTracking\" : %s, "
                "\"axisMoveRate\": %.2lf "
                " }",
                secondsToCenter, secondsToEnd, platformResetOffsetSeconds,
