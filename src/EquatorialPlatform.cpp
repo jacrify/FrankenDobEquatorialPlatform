@@ -26,8 +26,10 @@ void setup() {
   prefs.begin("Platform", false);
   setupWifi(prefs);
 
-  model.setupModel();
+  
   motorUnit.setupMotor();
+  //TODO #3 Fix: needs to happen after motor setup as guide rate gets set here
+  model.setupModel();
   delay(500);
   setupWebServer(motorUnit, model, prefs);
   setupUDPListener(motorUnit);

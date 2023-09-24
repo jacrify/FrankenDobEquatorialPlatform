@@ -31,10 +31,8 @@ Bounce bouncePlay = Bounce();
 Bounce bounceLimit = Bounce();
 
 bool positionSavedOnStop = false;
-double raGuideRateDegreesSec;
 
-    double
-    MotorUnit::getTimeToCenterInSeconds() {
+double MotorUnit::getTimeToCenterInSeconds() {
   return model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
 }
 
@@ -294,13 +292,32 @@ void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds) {
   // Direction is either  2 = guideEast, 3 = guideWest.
   // If 2 then returned value will be higher than stepperCurrentPosition
   // If 3 then return value will be lower.
-  int32_t targetPosition = model.calculatePulseGuideTargetPosition(
-      direction, pulseDurationInMilliseconds, stepper->getCurrentPosition());
-  log("Pulse guiding %d for %ld to position %ld at speed (millihz) %ld", direction,
-      pulseDurationInMilliseconds, targetPosition,
-      model.getRAGuideRateMilliHz());
-  slew_target_pos=targetPosition;
+
+  int32_t stepperCurrentPosition = stepper->getCurrentPosition();
+  int32_t targetPosition = stepperCurrentPosition;
+  
+  //speed is steps per second * 1000
+   uint32_t speedInMilliHz =
+      model.calculateFowardSpeedInMilliHz(
+          stepperCurrentPosition, model.getRAGuideRateArcSecondsSecond());
+
+   // divide by 1000 to get hz, then 1000 to get seconds.
+   // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
+   // and we move for 1000 millis (is one second)
+   // then we move 1,000,000 / 1,000,000 = 1 step
+   int32_t stepsToMove =
+       (speedInMilliHz * pulseDurationInMilliseconds) / 1000000;
+
+   if (direction == 2) // east.Positive step change ie towards limit switch
+    targetPosition+= stepsToMove;
+
+  if (direction == 3) // west. negative step change
+    targetPosition-= stepsToMove;
+
+  log("Pulse guiding %d for %ld ms to position %ld at speed (millihz) %lf",
+      direction, pulseDurationInMilliseconds, targetPosition, speedInMilliHz);
+  slew_target_pos = targetPosition;
   slewing = true;
-  stepper->setSpeedInMilliHz(model.getRAGuideRateMilliHz());
+  stepper->setSpeedInMilliHz(speedInMilliHz);
   stepper->moveTo(targetPosition);
 }

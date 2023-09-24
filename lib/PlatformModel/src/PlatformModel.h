@@ -21,15 +21,17 @@ public:
   double getStepsPerMM();
   double getAxisMoveRateDegreesSec();
 
-  int32_t PlatformModel::calculatePulseGuideTargetPosition(
-      int direction, long pulseDurationInMilliseconds,
-      int32_t stepperCurrentPosition);
+  int32_t calculatePulseGuideTargetPosition(int direction,
+                                            long pulseDurationInMilliseconds,
+                                            int32_t stepperCurrentPosition);
 
-  void setRAGuideRateDegreesSec(double degreesPerSecond);
+  void setRAGuideRateArcSecondsPerSecond(double arcSecsPerSecond);
   double getRAGuideRateDegreesSec();
-  double getRAGuideRateMilliHz();
+  // double getRAGuideRateMilliHz();
+  double getRAGuideRateArcSecondsSecond();
 
-  double getTrackingRateArcsSecondsSec();
+      double
+      getTrackingRateArcsSecondsSec();
 
   // set distance in mm
   void setLimitSwitchToMiddleDistance(int pos);
