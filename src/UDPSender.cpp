@@ -49,7 +49,7 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
                platformTracking ? "true" : "false", guideMoveRate, trackingRate,
                axisMoveRate);
       udp.print(response);
-      log("Status Packet sent\r\n %s", response);
+      // log("Status Packet sent\r\n %s", response);
     }
   }
 }

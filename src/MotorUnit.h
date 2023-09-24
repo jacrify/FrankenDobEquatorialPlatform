@@ -19,9 +19,9 @@ public:
   double getTimeToEndOfRunInSeconds();
   bool getTrackingStatus();
   double getPlatformResetOffsetSeconds();
-  void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds);
+  void pulseGuide(int direction, long pulseDurationInMilliseconds);
 
-      void moveAxis(double degreesPerSecond);
+  void moveAxis(double degreesPerSecond);
   void slewToStart();
   void slewToMiddle();
   void slewToEnd();
@@ -38,7 +38,7 @@ private:
   boolean slewing;
   boolean slewingToStart;
   boolean tracking;
-  //accumlates ff/rw offsets
+  // accumlates ff/rw offsets
   double platformResetOffsetSeconds;
 
   double lastTimeToCenterSeconds;

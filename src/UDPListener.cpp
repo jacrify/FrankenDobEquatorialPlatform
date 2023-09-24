@@ -37,6 +37,7 @@ void setupUDPListener(MotorUnit &motor) {
 
         if (doc.containsKey("command") && doc.containsKey("parameter1") &&
             doc.containsKey("parameter2")) {
+          
           String command = doc["command"];
           double parameter1 = doc["parameter1"];
           double parameter2 = doc["parameter2"];
@@ -53,13 +54,14 @@ void setupUDPListener(MotorUnit &motor) {
             motor.setTracking(parameter1 > 0 ? true : false);
             return;
           }
-          if (command = "moveaxis") {
+          if (command == "moveaxis") {
             motor.moveAxis(parameter1);
             return;
           }
-          if (command = "pulseguide") {
-            //direction, pulsetime
-            motor.pulseGuide(parameter1,parameter2);
+          if (command == "pulseguide") {
+            
+            // direction, pulsetime
+            motor.pulseGuide(parameter1, parameter2);
             return;
           }
 
