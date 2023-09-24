@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Your Web Page</title>
+    <script src="/jquery3.6.0.min.js"></script>
+    <script src="/chart2.9.3.min.js"></script>
+</head>
+
+<body>
+    <button id="resetButton">Reset Graph</button><br />   
+    <canvas id="chart"></canvas>
+    <script>
+        var previousPosition = -1;
+        var chartData = {
+            labels: [],
+            datasets: [{
+                label: 'Position vs Velocity',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        var chartOptions = {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        };
+
+        var chart = new Chart(document.getElementById('chart').getContext('2d'), {
+            type: 'line',
+            data: chartData,
+            options: chartOptions
+        });
+
+        function updateChart() {
+            console.log("Update chart");
+            $.getJSON("/getStatus").done(function (data) {
+                if (data.position !== -1 && data.position !== previousPosition) {
+                    chartData.labels.push(data.position);
+                    chartData.datasets[0].data.push(data.velocity);
+                    previousPosition = data.position;
+                }
+                chart.update();
+            }).fail(function (jqxhr, textStatus, error) {
+                console.log("Request Failed: " + textStatus + ", " + error);
+            });;
+        }
+
+        $("#resetButton").click(function () {
+            chartData.labels = [];
+            chartData.datasets[0].data = [];
+            chart.update();
+        });
+
+        setInterval(updateChart, 1000);
+    </script>
+</body>
+
+</html>
