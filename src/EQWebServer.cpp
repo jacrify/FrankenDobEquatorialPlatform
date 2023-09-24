@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
-#include <WebSerial.h>
+
 
 AsyncWebServer server(80);
 
@@ -149,8 +149,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   server.serveStatic("/", LittleFS, "/fs/");
 
   // WebSerial is accessible at "<IP Address>/webserial" in browser
-  WebSerial.begin(&server);
-  setWebSerialReady();
+
 
   server.begin();
   log("Server started");
