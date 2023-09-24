@@ -47,7 +47,7 @@ double MotorUnit::getPlatformResetOffsetSeconds() {
 }
 
 bool MotorUnit::getTrackingStatus() {
-  // todo fix this so only
+  
   if (!stepper->isRunning())
     return false;
   // if running we'll be running at forward/rewind spped. This is in hz, so
