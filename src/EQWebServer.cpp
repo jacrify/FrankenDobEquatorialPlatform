@@ -6,7 +6,6 @@
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 
-
 AsyncWebServer server(80);
 
 #define IPBROADCASTPORT 50375
@@ -108,7 +107,8 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
   model.setGreatCircleRadius(greatCircleRadius);
 
-  model.setRAGuideRateArcSecondsPerSecond(model.getTrackingRateArcsSecondsSec() * 3.0);
+  model.setRAGuideRateArcSecondsPerSecond(
+      model.getTrackingRateArcsSecondsSec() * 3.0);
   server.on("/getStatus", HTTP_GET,
             [&motor, &model](AsyncWebServerRequest *request) {
               getStatus(request, motor, model);
@@ -149,7 +149,6 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   server.serveStatic("/", LittleFS, "/fs/");
 
   // WebSerial is accessible at "<IP Address>/webserial" in browser
-
 
   server.begin();
   log("Server started");
