@@ -14,12 +14,12 @@ void setupUDPListener(MotorUnit &motor) {
     log("Listening for dsc platform broadcasts");
     dscUDP.onPacket([&motor](AsyncUDPPacket packet) {
       unsigned long now = millis();
-      String msg = packet.readStringUntil('\n');
-      log("UDP Broadcast received: %s", msg.c_str());
+      String start = packet.readStringUntil(':');
+      // log("UDP Broadcast received: %s", msg.c_str());
 
       // Check if the broadcast is from EQ Platform
-      if (msg.startsWith("DSC:")) {
-        msg = msg.substring(4);
+      if (start=="DSC") {
+        // msg = msg.substring(4);
         log("Got payload from dsc");
 
         // Create a JSON document to hold the payload
@@ -28,9 +28,9 @@ void setupUDPListener(MotorUnit &motor) {
         StaticJsonDocument<capacity> doc;
 
         // Deserialize the JSON payload
-        DeserializationError error = deserializeJson(doc, msg);
+        DeserializationError error = deserializeJson(doc, packet);
         if (error) {
-          log("Failed to parse payload %s with error %s", msg.c_str(),
+          log("Failed to parse payload with error %s",
               error.c_str());
           return;
         }
