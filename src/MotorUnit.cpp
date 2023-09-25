@@ -47,7 +47,7 @@ double MotorUnit::getPlatformResetOffsetSeconds() {
 }
 
 bool MotorUnit::getTrackingStatus() {
-  
+
   if (!stepper->isRunning())
     return false;
   // if running we'll be running at forward/rewind spped. This is in hz, so
@@ -295,24 +295,26 @@ void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds) {
 
   int32_t stepperCurrentPosition = stepper->getCurrentPosition();
   int32_t targetPosition = stepperCurrentPosition;
-  
-  //speed is steps per second * 1000
-   uint32_t speedInMilliHz =
-      model.calculateFowardSpeedInMilliHz(
-          stepperCurrentPosition, model.getRAGuideRateArcSecondsSecond());
 
-   // divide by 1000 to get hz, then 1000 to get seconds.
-   // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
-   // and we move for 1000 millis (is one second)
-   // then we move 1,000,000 / 1,000,000 = 1 step
-   int32_t stepsToMove =
-       (speedInMilliHz * pulseDurationInMilliseconds) / 1000000;
+  // speed is steps per second * 1000
+  uint32_t speedInMilliHz = model.calculateFowardSpeedInMilliHz(
+      stepperCurrentPosition, model.getRAGuideRateArcSecondsSecond());
 
-   if (direction == 2) // east.Positive step change ie towards limit switch
-    targetPosition+= stepsToMove;
+  // divide by 1000 to get hz, then 1000 to get seconds.
+  // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
+  // and we move for 1000 millis (is one second)
+  // then we move 1,000,000 / 1,000,000 = 1 step
+  int32_t stepsToMove =
+      (speedInMilliHz * pulseDurationInMilliseconds) / 1000000;
+
+  if (direction == 2) // east.Positive step change ie towards limit switch
+    targetPosition += stepsToMove;
 
   if (direction == 3) // west. negative step change
-    targetPosition-= stepsToMove;
+    targetPosition -= stepsToMove;
+
+  //make sure we don't run off end
+  targetPosition = (targetPosition < 0) ? 0: targetPosition;
 
   log("Pulse guiding %d for %ld ms to position %ld at speed (millihz) %lf",
       direction, pulseDurationInMilliseconds, targetPosition, speedInMilliHz);
