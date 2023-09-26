@@ -19,7 +19,8 @@ public:
   double getGreatCircleRadius();
   void setGreatCircleRadius(double r);
   double getStepsPerMM();
-  double getAxisMoveRateDegreesSec();
+  double getMaxAxisMoveRateDegreesSec();
+  double getMinAxisMoveRateDegreesSec();
 
   int32_t calculatePulseGuideTargetPosition(int direction,
                                             long pulseDurationInMilliseconds,

@@ -102,19 +102,35 @@ bool isPlay() { return bouncePlay.read() == LOW; }
 
 bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 
+double degreesPerSecondToArcSecondsPerSecond(double degreesPerSecond) {
+  return degreesPerSecond * 3600.0;
+}
 void MotorUnit::moveAxis(double degreesPerSecond) {
-  // TODO ignores slew speed. does it matter>
-  // TODO slew is not really the same as move axis
+  // TODO slew is not really the same as move axis conceptually
   if (degreesPerSecond == 0) {
-    slewing = false; // loop should perform stop or track
+    slewing = false; // loop should perform stop / resume track
     return;
   }
-  if (degreesPerSecond > 0) // forward?
-  {
-    slewToEnd();
+  uint32_t speedMilliHz = model.calculateFowardSpeedInMilliHz(
+      stepper->getCurrentPosition(),
+      degreesPerSecondToArcSecondsPerSecond(abs(degreesPerSecond)));
+  stepper->setSpeedInMilliHz(speedMilliHz);
+
+  // forward
+  if (degreesPerSecond > 0) {
+    slew_target_pos = 0;
+    slewing = true;
+    stepper->moveTo(0);
     return;
   }
-  slewToStart();
+  // backward
+  if (!isLimitSwitchHit()) {
+    slew_target_pos = model.getLimitPosition();
+    stepper->runForward();
+    slewing = true;
+    slewingToStart = true;
+    return;
+  }
 }
 
 void MotorUnit::onLoop() {
@@ -277,7 +293,6 @@ void MotorUnit::slewToEnd() {
 bool MotorUnit::isSlewing() { return slewing; }
 
 void MotorUnit::slewToPosition(int32_t position) {
-
   slew_target_pos = position;
   slewing = true;
   stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
@@ -313,8 +328,8 @@ void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds) {
   if (direction == 3) // west. negative step change
     targetPosition -= stepsToMove;
 
-  //make sure we don't run off end
-  targetPosition = (targetPosition < 0) ? 0: targetPosition;
+  // make sure we don't run off end
+  targetPosition = (targetPosition < 0) ? 0 : targetPosition;
 
   log("Pulse guiding %d for %ld ms to position %ld at speed (millihz) %lf",
       direction, pulseDurationInMilliseconds, targetPosition, speedInMilliHz);
