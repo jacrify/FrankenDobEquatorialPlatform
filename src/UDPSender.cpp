@@ -31,7 +31,8 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
           motorUnit.getPlatformResetOffsetSeconds();
 
       bool platformTracking = motorUnit.getTrackingStatus();
-      double axisMoveRate = model.getAxisMoveRateDegreesSec();
+      double axisMoveRateMax = model.getMaxAxisMoveRateDegreesSec();
+      double axisMoveRateMin = model.getMinAxisMoveRateDegreesSec();
       double guideMoveRate = model.getRAGuideRateDegreesSec();
       double trackingRate = model.getTrackingRateArcsSecondsSec();
 
@@ -43,11 +44,12 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
                "\"isTracking\" : %s, "
                "\"guideMoveRate\": %.5lf, "
                "\"trackingRate\": %.5lf, "
-               "\"axisMoveRate\": %.5lf "
+               "\"axisMoveRateMax\": %.5lf "
+               "\"axisMoveRateMin\": %.5lf "
                " }\n",
                secondsToCenter, secondsToEnd, platformResetOffsetSeconds,
                platformTracking ? "true" : "false", guideMoveRate, trackingRate,
-               axisMoveRate);
+               axisMoveRateMax, axisMoveRateMin);
       udp.print(response);
       // log("Status Packet sent\r\n %s", response);
     }
