@@ -35,7 +35,6 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
       double axisMoveRateMin = model.getMinAxisMoveRateDegreesSec();
       double guideMoveRate = model.getRAGuideRateDegreesSec();
       double trackingRate = model.getTrackingRateArcsSecondsSec();
-
       snprintf(response, sizeof(response),
                "EQ:{ "
                "\"timeToCenter\": %.2lf, "
@@ -44,7 +43,7 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
                "\"isTracking\" : %s, "
                "\"guideMoveRate\": %.5lf, "
                "\"trackingRate\": %.5lf, "
-               "\"axisMoveRateMax\": %.5lf "
+               "\"axisMoveRateMax\": %.5lf, "
                "\"axisMoveRateMin\": %.5lf "
                " }\n",
                secondsToCenter, secondsToEnd, platformResetOffsetSeconds,
