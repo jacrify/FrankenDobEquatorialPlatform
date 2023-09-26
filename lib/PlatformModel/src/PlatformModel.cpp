@@ -93,7 +93,7 @@ double PlatformModel::getMaxAxisMoveRateDegreesSec() {
 }
 
 double PlatformModel::getMinAxisMoveRateDegreesSec() {
-  return sideRealArcSecondsPerSec*3600.0/8.0;
+  return sideRealArcSecondsPerSec/3600.0/4.0;
 }
 
     uint32_t
@@ -179,6 +179,7 @@ void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
       speedInHz / (rodStepperRatio * stepperStepsPerRevolution * microsteps);
   double distancePerSec = rodTurnsPerSec * threadedRodPitch;
   double anglePerSec = atan(distancePerSec / greatCircleRadius);
+
   rewindFastForwardSpeedDegreesSec = anglePerSec * (180.0 / M_PI);
 }
 

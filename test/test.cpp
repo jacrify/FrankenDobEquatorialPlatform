@@ -129,7 +129,7 @@ void test_rewind_fast_forward_speed_calc() {
 
   //
 
-  double rewindFastForwardSpeedDegreesSec = model.getAxisMoveRate();
+  double rewindFastForwardSpeedDegreesSec = model.getMaxAxisMoveRateDegreesSec();
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(.1,
       1.0416675, rewindFastForwardSpeedDegreesSec,
       "Rewind/fast-forward speed calculation is incorrect");

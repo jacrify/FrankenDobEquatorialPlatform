@@ -103,10 +103,10 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   log("Preferences loaded for model rewindspeed: %d limitToMiddle %d radius "
       "%d ",
       rewindFastFowardSpeed, limitSwitchToMiddleDistance, greatCircleRadius);
-  model.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
+  //order matters here: rewind fast forward speed uses previous sets for calcs
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
   model.setGreatCircleRadius(greatCircleRadius);
-
+  model.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
   model.setRAGuideRateArcSecondsPerSecond(
       model.getTrackingRateArcsSecondsSec() * 3.0);
   server.on("/getStatus", HTTP_GET,
