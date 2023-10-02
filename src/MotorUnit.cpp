@@ -106,14 +106,25 @@ double degreesPerSecondToArcSecondsPerSecond(double degreesPerSecond) {
   return degreesPerSecond * 3600.0;
 }
 void MotorUnit::moveAxis(double degreesPerSecond) {
+  log("Incoming movexis command speed %lf", degreesPerSecond);
   // TODO slew is not really the same as move axis conceptually
   if (degreesPerSecond == 0) {
     slewing = false; // loop should perform stop / resume track
+    stepper->stopMove();
+    lastCheckTime =0; // forcce check on next loop
     return;
+  }
+  // If we are currently tracking, add the tracking speed.
+  // If we don't do this, if rate from client is 1x sidereal and they move
+  // 1x sidereal forward, stars stay stationary.
+
+  if (tracking) {
+    degreesPerSecond -= model.getTrackingRateDegreesSec();
   }
   uint32_t speedMilliHz = model.calculateFowardSpeedInMilliHz(
       stepper->getCurrentPosition(),
       degreesPerSecondToArcSecondsPerSecond(abs(degreesPerSecond)));
+
   stepper->setSpeedInMilliHz(speedMilliHz);
 
   // forward
@@ -139,6 +150,12 @@ void MotorUnit::onLoop() {
   bouncePlay.update();
   bounceLimit.update();
 
+  // TODO #4 bug here. When we turn on tracking remotely, then move back, it
+  // takes 10 second to restart tracking.
+
+
+//TODO #5 Bug slewing to start does not get reset in some scenarios 
+
   /**
    * Each loop, check for current fast move (rewind/ff)
    * by looking at motor.
@@ -158,12 +175,10 @@ void MotorUnit::onLoop() {
    *
    */
   if (stepper->isRunning()) {
-
     int speedInMilliHz = abs(stepper->getCurrentSpeedInMilliHz());
-
     // check for tracking, only offset when not tracking but moving
+    //TODO #6 fix platformOffset when moveaxis at slow speed
     if (speedInMilliHz > (model.getRewindFastFowardSpeed() * 1000 / 4)) {
-
       double currentTimeToCenter =
           model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
       if (firstMoveCycleForCalc) {
@@ -179,6 +194,7 @@ void MotorUnit::onLoop() {
   }
 
   if (isLimitSwitchHit()) {
+    //TODO #7 fix bug where setCurrentPosition breaks later slew_target_pos checks
     int32_t pos = model.getLimitPosition();
     stepper->setCurrentPosition(pos);
 
@@ -232,14 +248,15 @@ void MotorUnit::onLoop() {
     // update speed periodically. Don't need to do every cycle
     long now = millis();
     if ((now - lastCheckTime) > 1000) {
-
       lastCheckTime = now;
       int32_t currentPosition = stepper->getCurrentPosition();
-      log("Setting speed of stepper to %lu millnz at position %ld",
-          model.calculateFowardSpeedInMilliHz(currentPosition),
+      uint32_t targetSpeed =
+          model.calculateFowardSpeedInMilliHz(currentPosition);
+         int32_t currentSpeed= stepper->getCurrentSpeedInMilliHz();
+      log("Setting speed of stepper to %lu millhz at position %ld", targetSpeed,
           currentPosition);
-      stepper->setSpeedInMilliHz(
-          model.calculateFowardSpeedInMilliHz(currentPosition));
+          log("Current speed %ld",currentSpeed);
+      stepper->setSpeedInMilliHz(targetSpeed);
       stepper->moveTo(0);
     }
     return;
@@ -303,6 +320,8 @@ void MotorUnit::slewToPosition(int32_t position) {
 
 void MotorUnit::setTracking(bool b) { tracking = b; }
 
+//TODO this is wrong: it should simply set up some fraction of sidereal
+//speed that is subtracted from tracking for some number of millis.
 void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds) {
   // Direction is either  2 = guideEast, 3 = guideWest.
   // If 2 then returned value will be higher than stepperCurrentPosition
