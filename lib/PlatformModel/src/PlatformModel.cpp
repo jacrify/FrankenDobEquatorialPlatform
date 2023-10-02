@@ -166,6 +166,7 @@ int32_t PlatformModel::getLimitPosition() {
   ;
 }
 
+long PlatformModel::getRewindFastFowardSpeedInMilliHz() { return rewindFastFowardSpeed*1000; }
 int PlatformModel::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
 
 void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
@@ -198,6 +199,10 @@ void PlatformModel::setRAGuideRateArcSecondsPerSecond(double arcSecondsPerSecond
 
 double PlatformModel::getTrackingRateArcsSecondsSec() {
   return sideRealArcSecondsPerSec;
+}
+
+double PlatformModel::getTrackingRateDegreesSec() {
+  return sideRealArcSecondsPerSec/3600.0;
 }
 
 double PlatformModel::getRAGuideRateDegreesSec() {

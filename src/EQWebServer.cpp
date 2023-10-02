@@ -10,6 +10,7 @@ AsyncWebServer server(80);
 
 #define IPBROADCASTPORT 50375
 
+//TODO #8 add pulseguide speed here
 void setLimitToMiddleDistance(AsyncWebServerRequest *request,
                               PlatformModel &model, Preferences &preferences) {
   log("/setLimitToMiddle");
@@ -108,7 +109,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
   model.setGreatCircleRadius(greatCircleRadius);
   model.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
   model.setRAGuideRateArcSecondsPerSecond(
-      model.getTrackingRateArcsSecondsSec() * 3.0);
+      model.getTrackingRateArcsSecondsSec() * .5);
   server.on("/getStatus", HTTP_GET,
             [&motor, &model](AsyncWebServerRequest *request) {
               getStatus(request, motor, model);
