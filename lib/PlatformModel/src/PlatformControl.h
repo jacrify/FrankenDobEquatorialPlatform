@@ -43,11 +43,13 @@ public:
   void gotoMiddle();
   void gotoEndish();
   void gotoStart();
+  int32_t getTargetPosition();
+  uint32_t getTargetSpeedInMilliHz();
 
-  // Output
+      // Output
 
-private:
-  void performTracking();
+      private : void
+                performTracking();
   bool limitSwitchState;
   bool playButtonState;
   bool rewindButtonState;
@@ -65,6 +67,7 @@ private:
   PlatformModel &model;
 
   bool isExecutingMove;
+  bool isMoveQueued;
 
   unsigned long pulseGuideEndTime;
 };
