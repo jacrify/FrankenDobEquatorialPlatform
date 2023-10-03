@@ -41,7 +41,7 @@ public:
   // Note there will be a delay in pulseguide start of
   // on average half the main loop delay
   // However pulseguide duration should be accurate.
-  long calculateOutput(unsigned long nowInMillis);
+  long calculateOutput();
 
   // Extneral commands
 
