@@ -29,6 +29,8 @@ public:
   void setFastForwardButtonState(bool state);
   void setTrackingOnOff(bool tracking);
 
+  void setSafetyMode(bool b);
+
   bool isTrackingOn();
 
   // called from loop
@@ -76,6 +78,8 @@ private:
   bool isExecutingMove;
   bool isMoveQueued;
   bool stopMove;
+
+  bool safetyMode;
 
   // unsigned long pulseGuideEndTime;
   long pulseGuideDurationMillis;

@@ -17,6 +17,8 @@ void PlatformControl::setFastForwardButtonState(bool state) {
   fastForwardButtonState = state;
 }
 
+void PlatformControl::setSafetyMode(bool s) { safetyMode = s; }
+
 void PlatformControl::setTrackingOnOff(bool t) { trackingOn = t; }
 
 bool PlatformControl::isTrackingOn() { return trackingOn; }
@@ -34,7 +36,9 @@ long PlatformControl::calculateOutput(unsigned long nowInMillis) {
   if (limitSwitchState) {
     int32_t limitPos = model.getLimitPosition();
     stepperWrapper->resetPosition(limitPos);
-    if (targetPosition > limitPos || targetPosition==model.getLimitSwitchSafetyStandoffPosition()) {
+    safetyMode=false;
+    if (targetPosition > limitPos ||
+        targetPosition == model.getLimitSwitchSafetyStandoffPosition()) {
       if (isExecutingMove) {
         // move target is past limit switch. Stop unless tracking on
         isExecutingMove = false;
@@ -88,8 +92,6 @@ long PlatformControl::calculateOutput(unsigned long nowInMillis) {
   if (trackingOn) {
     if (pos > 0) {
       targetPosition = 0;
-      // TODO calc this every time? Careful of pulseguide if we move it
-      log("Tracking");
       targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(pos);
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
     } else {
@@ -121,7 +123,12 @@ void PlatformControl::gotoEndish() {
 void PlatformControl::gotoStart() {
   // should run until limit switch hit
   targetPosition = model.getLimitSwitchSafetyStandoffPosition();
-  targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
+  int32_t limitPos = model.getLimitPosition();
+  // when limit not known, find it slowly
+  if (safetyMode)
+    targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / 10;
+  else
+    targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
 }

@@ -54,7 +54,7 @@ double stepsPerMM =
 
 // const int stepsPerRevolution = 200;
 // how far back from limt switch to slow down in mm
-#define LIMITSWITCHSAFETYSTANDOFFMM 5
+#define LIMITSWITCHSAFETYSTANDOFFMM 2
 
 
 void PlatformModel::setupModel() {}
@@ -189,7 +189,7 @@ void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
 }
 
 //how far back from limt switch to slow down
-uint32_t PlatformModel::getLimitSwitchSafetyStandoffPosition() {
+int32_t PlatformModel::getLimitSwitchSafetyStandoffPosition() {
   return getLimitPosition() - (LIMITSWITCHSAFETYSTANDOFFMM * getStepsPerMM());
 }
 

@@ -1,11 +1,11 @@
 #include "MotorUnit.h"
 #include "ConcreteStepperWrapper.h"
-#include <FastAccelStepper.h>
 #include "Logging.h"
 #include "PlatformControl.h"
 #include "PlatformModel.h"
 #include <Arduino.h>
 #include <Bounce2.h>
+#include <FastAccelStepper.h>
 #include <Preferences.h>
 
 #define dirPinStepper 19
@@ -31,8 +31,6 @@ Bounce bounceFastForward = Bounce();
 Bounce bounceRewind = Bounce();
 Bounce bouncePlay = Bounce();
 Bounce bounceLimit = Bounce();
-
-
 
 MotorUnit::MotorUnit(PlatformModel &m, PlatformControl &c, Preferences &p)
     : model(m), control(c), preferences(p) {
@@ -63,9 +61,13 @@ void MotorUnit::setupMotor() {
     // stepper->setSpeedInHz(5000);
     stepper->setAcceleration(100000); // 100 steps/s²
 
-        // preferences = p;
-        uint32_t savedPosition = preferences.getUInt(PREF_SAVED_POS_KEY, 0);
+    // preferences = p;
+    int32_t savedPosition = preferences.getInt(PREF_SAVED_POS_KEY, INT32_MAX);
     log("Loaded saved position %d", savedPosition);
+    //when current position is not know, go slowly.
+    if (savedPosition == INT32_MAX) {
+      control.setSafetyMode(true);
+    }
     stepper->setCurrentPosition(savedPosition);
     // delay(3000);
     // stepper->setSpeedInHz(5000);
@@ -74,7 +76,7 @@ void MotorUnit::setupMotor() {
     // delay(3000);
     // log("Moved");
   }
-  ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper();
+  ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper(preferences);
   wrapper->setStepper(stepper);
   control.setStepperWrapper(wrapper);
 }
@@ -93,7 +95,7 @@ bool isRewindJustPushed() {
   return bounceRewind.changed() && bounceRewind.read() == LOW;
 }
 
-//this returns false if fast forward has been pushed, as that takes precedence
+// this returns false if fast forward has been pushed, as that takes precedence
 bool isRewindJustReleased() {
   return bounceRewind.changed() && bounceRewind.read() != LOW &&
          !isFastForwardJustPushed();
@@ -155,5 +157,3 @@ double MotorUnit::getVelocityInMMPerMinute() {
 double MotorUnit::getPositionInMM() {
   return ((double)stepper->getCurrentPosition()) / model.getStepsPerMM();
 }
-
-
