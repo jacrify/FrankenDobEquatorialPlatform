@@ -22,15 +22,18 @@ void PlatformControl::setTrackingOnOff(bool t) { trackingOn = t; }
 bool PlatformControl::isTrackingOn() { return trackingOn; }
 
 void PlatformControl::calculateOutput(unsigned long nowInMillis) {
-
+  bool stopMove = false; // used to flag the end of a move
   // handle limit switch
   if (limitSwitchState) {
     int32_t limitPos = model.getLimitPosition();
     stepperWrapper.resetPosition(limitPos);
     if (targetPosition > limitPos) {
-      // move target is past limit switch. Stop unless tracking on
-      isExecutingMove = false;
-      isMoveQueued=false;
+      if (isExecutingMove) {
+        // move target is past limit switch. Stop unless tracking on
+        isExecutingMove = false;
+        isMoveQueued = false;
+        stopMove = true;
+      }
     }
   }
 
@@ -40,6 +43,8 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
     if (pos != targetPosition) {
       stepperWrapper.moveTo(targetPosition, targetSpeedInMilliHz);
       isMoveQueued = false;
+      // store how many seconds from center we are at start of move
+      startMoveTimeOffset = model.calculateTimeToCenterInSeconds(pos);
     }
   }
   // check for move end
@@ -47,12 +52,23 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
     // are we there yet?
     if (pos == targetPosition) {
       isExecutingMove = false;
+      isMoveQueued = false;
+      stopMove = true;
       // stepperWrapper.stop();
     } else {
       return;
     }
   }
 
+  if (stopMove) {
+    // we've finished a move. Work out sidereal clock offset to apply
+    double endMoveTimeOffset = model.calculateTimeToCenterInSeconds(pos);
+    // if move started at startMoveTimeOffset=10, and finishes at
+    // startMoveTimeOffset=20 then we've rewound by 10s. We should accumalate
+    // -10s in platformResetOffset
+    double moveClockDelta = startMoveTimeOffset - endMoveTimeOffset;
+    platformResetOffset += moveClockDelta;
+  }
   if (trackingOn) {
     if (pos > 0) {
       targetPosition = 0;
@@ -97,11 +113,13 @@ uint32_t PlatformControl::getTargetSpeedInMilliHz() {
   return targetSpeedInMilliHz;
 }
 
+double PlatformControl::getPlatformResetOffset() { return platformResetOffset; }
+
 PlatformControl::PlatformControl(StepperWrapper &wrapper, PlatformModel &m)
     : stepperWrapper(wrapper), model(m) {
   isMoveQueued = false;
   isExecutingMove = false;
-  trackingOn=false;
+  trackingOn = false;
 }
 
 void PlatformControl::pulseGuide(int direction,
@@ -151,7 +169,7 @@ void PlatformControl::pulseGuide(int direction,
 }
 
 void PlatformControl::moveAxis(double degreesPerSecond) {
-  
+
   log("Incoming movexis command speed %lf", degreesPerSecond);
   if (degreesPerSecond == 0) {
     isExecutingMove = false; // loop should perform stop / resume track
@@ -160,7 +178,7 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
   // If we are currently tracking, add the tracking speed.
   // If we don't do this, if rate from client is 1x sidereal and they move
   // 1x sidereal forward, stars stay stationary.
-  
+
   // positive is west (arbitary?)
   if (trackingOn) {
     degreesPerSecond -= model.getTrackingRateDegreesSec();
@@ -169,7 +187,7 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
       stepperWrapper.getPosition(), 3600.0 * fabs(degreesPerSecond));
 
   isExecutingMove = true;
-  isMoveQueued=true;
+  isMoveQueued = true;
   // forward
   if (degreesPerSecond > 0) {
     targetPosition = 0;

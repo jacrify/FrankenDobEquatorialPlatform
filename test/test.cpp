@@ -164,6 +164,7 @@ void testGotoMiddleBasic() {
 
   PlatformControl control = PlatformControl(stepper, model);
 
+  When(stepper.getPosition).Return(model.getMiddlePosition());
   // test going to middle
   control.setLimitSwitchState(false);
   control.gotoMiddle();
@@ -624,6 +625,58 @@ void testMoveAxisPositive() {
   }
 }
 
+void testOffsetAccumulation() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to middle
+  control.setLimitSwitchState(false);
+  // position is before middle
+  When(stepper.getPosition).Return(model.getMiddlePosition() + 5000);
+  control.gotoMiddle();
+  control.calculateOutput(0);
+  
+
+  try {
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getMiddlePosition(),
+                                  control.getTargetPosition(),
+                                  "Target Position should be middle");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1, 0, control.getPlatformResetOffset(),
+                                      "Reset offset should be 0");
+    //now mark position as middle, offset should be calculated
+    When(stepper.getPosition).Return(model.getMiddlePosition());
+    control.calculateOutput(0);
+    Verify(stepper.moveTo).Times(1);
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(1);//should stop
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.5, 42.5, control.getPlatformResetOffset(),
+                                      "Reset offset should be postive");
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
 void setup() {
 
   UNITY_BEGIN(); // IMPORTANT LINE!
@@ -641,6 +694,7 @@ void setup() {
   RUN_TEST(testGotoEndLimitHit);
   RUN_TEST(testGotoEndAtEndWithTracking);
   RUN_TEST(testMoveAxisPositive);
+  RUN_TEST(testOffsetAccumulation);
   UNITY_END(); // IMPORTANT LINE!
 }
 
