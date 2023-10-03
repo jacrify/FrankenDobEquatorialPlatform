@@ -1,6 +1,6 @@
 #include "MotorUnit.h"
 #include "ConcreteStepperWrapper.h"
-#include "FastAccelStepper.h"
+#include <FastAccelStepper.h>
 #include "Logging.h"
 #include "PlatformControl.h"
 #include "PlatformModel.h"
@@ -61,13 +61,18 @@ void MotorUnit::setupMotor() {
     stepper->setAutoEnable(true);
 
     // stepper->setSpeedInHz(5000);
-    stepper->setAcceleration(1000000); // 100 steps/s²
+    stepper->setAcceleration(100000); // 100 steps/s²
 
     // preferences = p;
     uint32_t savedPosition = preferences.getUInt(PREF_SAVED_POS_KEY, 0);
     log("Loaded saved position %d", savedPosition);
     stepper->setCurrentPosition(savedPosition);
-    stepper->moveTo(savedPosition+10000,model.getRewindFastFowardSpeed());
+    // delay(3000);
+    // stepper->setSpeedInHz(5000);
+    // delay(1000);
+    // stepper->moveTo(0);
+    // delay(3000);
+    // log("Moved");
   }
   ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper();
   wrapper->setStepper(stepper);
