@@ -162,18 +162,15 @@ void testGotoMiddleBasic() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
-  When(stepper.getPosition).Return(model.getMiddlePosition());
+  When(stepper.getPosition).Return(model.getMiddlePosition()-100);
   // test going to middle
   control.setLimitSwitchState(false);
   control.gotoMiddle();
   control.calculateOutput(0);
-  //  try {
-  //    Verify(stepper.moveTo).Times(1);
-  //  } catch (std::runtime_error e) {
-  //    TEST_FAIL_MESSAGE(e.what());
-  //  }
+
   try {
     Verify(stepper.moveTo).Times(1);
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getMiddlePosition(),
@@ -182,7 +179,6 @@ void testGotoMiddleBasic() {
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
                                   control.getTargetSpeedInMilliHz(),
                                   "Target speed should be ff rw");
-
 
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(0);
@@ -208,7 +204,8 @@ void testGotoMiddleLimitSwitch() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to middle
   try {
@@ -226,7 +223,6 @@ void testGotoMiddleLimitSwitch() {
                                   control.getTargetSpeedInMilliHz(),
                                   "Target speed should be ff rw");
 
-    
   } catch (std::runtime_error e) {
     TEST_FAIL_MESSAGE(e.what());
   }
@@ -248,7 +244,8 @@ void testGotoMiddleAtMiddle() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to middle, when at middle
   try {
@@ -288,7 +285,8 @@ void testGotoMiddleAtMiddleResumeTracking() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to middle, when at middle. Tracking should restart
   try {
@@ -300,11 +298,10 @@ void testGotoMiddleAtMiddleResumeTracking() {
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(0);
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0,
-                                  control.getTargetPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
                                   "Target Position should be end");
-    TEST_ASSERT_TRUE_MESSAGE(control.getTargetSpeedInMilliHz()>0,"Speed should be greater than 0");
-
+    TEST_ASSERT_TRUE_MESSAGE(control.getTargetSpeedInMilliHz() > 0,
+                             "Speed should be greater than 0");
 
   } catch (std::runtime_error e) {
     TEST_FAIL_MESSAGE(e.what());
@@ -326,7 +323,8 @@ void testGotoStartBasic() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to start
   control.setLimitSwitchState(false);
@@ -335,7 +333,9 @@ void testGotoStartBasic() {
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition()>model.getLimitPosition(),"Target position should be past limit");
+    TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
+                                 model.getLimitPosition(),
+                             "Target position should be past limit");
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
                                   control.getTargetSpeedInMilliHz(),
                                   "Target speed should be ff rw");
@@ -363,7 +363,8 @@ void testGotoStartLimit() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to start when limit hit
   control.setLimitSwitchState(true);
@@ -396,7 +397,8 @@ void testGotoStartLimitTracking() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to start when limit hit
   When(stepper.getPosition).Return(model.getLimitPosition());
@@ -436,7 +438,8 @@ void testGotoEndBasic() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to end
   control.setLimitSwitchState(false);
@@ -475,7 +478,8 @@ void testGotoEndLimitHit() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to end
   control.setLimitSwitchState(true);
@@ -514,7 +518,8 @@ void testGotoEndAtEndWithTracking() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to end
   control.setLimitSwitchState(false);
@@ -554,7 +559,8 @@ void testMoveAxisPositive() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test moveaxis
   control.setLimitSwitchState(false);
@@ -562,12 +568,11 @@ void testMoveAxisPositive() {
   When(stepper.getPosition).Return(model.getMiddlePosition());
   control.moveAxis(0.004178);
   //  sidereal
-   control.calculateOutput(0);
+  control.calculateOutput(0);
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0,
-                                  control.getTargetPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
                                   "Target Position should be end");
     TEST_ASSERT_EQUAL_INT_MESSAGE(
         117605, control.getTargetSpeedInMilliHz(),
@@ -576,7 +581,7 @@ void testMoveAxisPositive() {
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(0);
 
-  //now turn tracking on and run again
+    // now turn tracking on and run again
     control.setTrackingOnOff(true);
     control.moveAxis(0.005178);
     control.calculateOutput(0);
@@ -584,9 +589,8 @@ void testMoveAxisPositive() {
     Verify(stepper.moveTo).Times(2);
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
                                   "Target Position should be end");
-    TEST_ASSERT_EQUAL_INT_MESSAGE(
-        28147, control.getTargetSpeedInMilliHz(),
-        "Target speed should be almost 0");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(28147, control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be almost 0");
 
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(0);
@@ -597,10 +601,12 @@ void testMoveAxisPositive() {
     control.calculateOutput(0);
 
     Verify(stepper.moveTo).Times(3);
-    TEST_ASSERT_TRUE_MESSAGE( control.getTargetPosition()>model.getLimitPosition(),
-                                  "Target Position should be start");
-    TEST_ASSERT_EQUAL_INT_MESSAGE(117605, control.getTargetSpeedInMilliHz(),
-                                  "Target speed should be some fudge of sidereal");
+    TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
+                                 model.getLimitPosition(),
+                             "Target Position should be start");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        117605, control.getTargetSpeedInMilliHz(),
+        "Target speed should be some fudge of sidereal");
 
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(0);
@@ -640,7 +646,8 @@ void testOffsetAccumulation() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(stepper, model);
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
 
   // test going to middle
   control.setLimitSwitchState(false);
@@ -648,7 +655,6 @@ void testOffsetAccumulation() {
   When(stepper.getPosition).Return(model.getMiddlePosition() + 5000);
   control.gotoMiddle();
   control.calculateOutput(0);
-  
 
   try {
     Verify(stepper.moveTo).Times(1);
@@ -662,15 +668,16 @@ void testOffsetAccumulation() {
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(0);
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1, 0, control.getPlatformResetOffset(),
-                                      "Reset offset should be 0");
-    //now mark position as middle, offset should be calculated
+                                     "Reset offset should be 0");
+    // now mark position as middle, offset should be calculated
     When(stepper.getPosition).Return(model.getMiddlePosition());
     control.calculateOutput(0);
     Verify(stepper.moveTo).Times(1);
     Verify(stepper.resetPosition).Times(0);
-    Verify(stepper.stop).Times(1);//should stop
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.5, 42.5, control.getPlatformResetOffset(),
-                                      "Reset offset should be postive");
+    Verify(stepper.stop).Times(1); // should stop
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.5, 42.5,
+                                     control.getPlatformResetOffset(),
+                                     "Reset offset should be postive");
 
   } catch (std::runtime_error e) {
     TEST_FAIL_MESSAGE(e.what());
