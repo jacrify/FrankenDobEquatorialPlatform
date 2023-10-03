@@ -58,9 +58,9 @@ bool MotorUnit::getTrackingStatus() {
           model.getRewindFastFowardSpeed() * 500);
 }
 
-MotorUnit::MotorUnit(PlatformModel &m, PlatformControl &c,Preferences &p)
-    : model(m),control(c), preferences(p) {
- 
+MotorUnit::MotorUnit(PlatformModel &m, PlatformControl &c, Preferences &p)
+    : model(m), control(c), preferences(p) {
+
   // control = PlatformControl(ConcreteStepperWrapper(stepper), model);
 }
 
@@ -95,12 +95,34 @@ void MotorUnit::setupMotor() {
   ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper();
   wrapper->setStepper(stepper);
   control.setStepperWrapper(wrapper);
-
 }
 
-bool isFastForward() { return bounceFastForward.read() == LOW; }
-bool isRewind() { return bounceRewind.read() == LOW; }
-bool isPlay() { return bouncePlay.read() == LOW; }
+bool isFastForwardJustPushed() {
+  return bounceFastForward.changed() && bounceFastForward.read() == LOW;
+}
+
+// this returns false if rewind has been pushed, as that takes precedence
+bool isFastForwardJustReleased() {
+  return bounceFastForward.changed() && bounceFastForward.read() != LOW &&
+         !isFastForwardJustPushed();
+}
+
+bool isRewindJustPushed() {
+  return bounceRewind.changed() && bounceRewind.read() == LOW;
+}
+
+//this returns false if fast forward has been pushed, as that takes precedence
+bool isRewindJustReleased() {
+  return bounceRewind.changed() && bounceRewind.read() != LOW &&
+         !isFastForwardJustPushed();
+}
+bool isPlayJustPushed() {
+  return bouncePlay.changed() && bouncePlay.read() == LOW;
+}
+
+bool isPlayJustReleased() {
+  return bouncePlay.changed() && bouncePlay.read() != LOW;
+}
 
 bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 
@@ -117,6 +139,32 @@ void MotorUnit::onLoop() {
   bounceRewind.update();
   bouncePlay.update();
   bounceLimit.update();
+
+  control.setLimitSwitchState(isLimitSwitchHit());
+
+  if (isFastForwardJustPushed()) {
+    control.gotoEndish();
+  }
+  if (isFastForwardJustReleased()) {
+    control.stop();
+  }
+  if (isRewindJustPushed()) {
+    control.gotoStart();
+  }
+  if (isRewindJustReleased()) {
+    control.stop();
+  }
+  if (isPlayJustPushed()) {
+    control.setTrackingOnOff(true);
+  }
+  if (isPlayJustReleased()) {
+    control.setTrackingOnOff(false);
+  }
+
+  long delay = control.calculateOutput(millis());
+  // handle pulseguide delay
+  if (delay > 0)
+    control.calculateOutput(millis());
 }
 
 double MotorUnit::getVelocityInMMPerMinute() {
@@ -160,6 +208,5 @@ void MotorUnit::setTracking(bool b) { control.setTrackingOnOff(b); }
 // TODO this is wrong: it should simply set up some fraction of sidereal
 // speed that is subtracted from tracking for some number of millis.
 void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds) {
-  unsigned long now = millis();
-  control.pulseGuide(direction, pulseDurationInMilliseconds, now);
+  control.pulseGuide(direction, pulseDurationInMilliseconds);
 }

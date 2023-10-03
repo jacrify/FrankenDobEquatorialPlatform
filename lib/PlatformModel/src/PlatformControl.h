@@ -32,12 +32,18 @@ public:
   bool isTrackingOn();
 
   // called from loop
-  void calculateOutput(unsigned long nowInMillis);
+  // returns either 0, or a number of milliseconds.
+  // If non zero, called should pause for this
+  // number of millis then call again.
+  // This allows for exact implementation of pulseguides.
+  // Note there will be a delay in pulseguide start of
+  // on average half the main loop delay
+  // However pulseguide duration should be accurate.
+  long calculateOutput(unsigned long nowInMillis);
 
   // Extneral commands
 
-  void pulseGuide(int direction, long pulseDurationInMilliseconds,
-                  unsigned long nowInMillis);
+  void pulseGuide(int direction, long pulseDurationInMilliseconds);
   void moveAxis(double degreesPerSecond);
   void stop();
   void gotoMiddle();
@@ -47,7 +53,6 @@ public:
   uint32_t getTargetSpeedInMilliHz();
   double getPlatformResetOffset();
   void setStepperWrapper(StepperWrapper *wrapper);
-
 
   // Output
 
@@ -59,19 +64,19 @@ private:
   int32_t currentPosition;
 
   bool trackingOn;
-  bool positonResetRequired;
-  int32_t platformResetPosition;
-
+  
   int32_t targetPosition;
   uint32_t targetSpeedInMilliHz;
-  bool targetSet;
+  
   StepperWrapper *stepperWrapper;
   PlatformModel &model;
 
   bool isExecutingMove;
   bool isMoveQueued;
+  bool stopMove;
 
-  unsigned long pulseGuideEndTime;
+  // unsigned long pulseGuideEndTime;
+  long pulseGuideDurationMillis;
 
   double startMoveTimeOffset;
   double platformResetOffset;
