@@ -30,10 +30,12 @@ void setup() {
   setupWifi(prefs);
 
   model.setupModel();
-  motorUnit.setupMotor();
-
+  
   delay(500);
   setupWebServer(motorUnit, model, control,prefs);
+
+  motorUnit.setupMotor();
+
   setupUDPListener(motorUnit,control);
   // don't use log() before this point
   // setupOTA();
