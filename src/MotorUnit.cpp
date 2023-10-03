@@ -150,12 +150,6 @@ void MotorUnit::onLoop() {
   bouncePlay.update();
   bounceLimit.update();
 
-  // TODO #4 bug here. When we turn on tracking remotely, then move back, it
-  // takes 10 second to restart tracking.
-
-
-//TODO #5 Bug slewing to start does not get reset in some scenarios 
-
   /**
    * Each loop, check for current fast move (rewind/ff)
    * by looking at motor.

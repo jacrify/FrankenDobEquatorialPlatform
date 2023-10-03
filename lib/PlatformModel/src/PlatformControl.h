@@ -45,6 +45,7 @@ public:
   void gotoStart();
   int32_t getTargetPosition();
   uint32_t getTargetSpeedInMilliHz();
+  double getPlatformResetOffset();
 
       // Output
 
@@ -70,6 +71,9 @@ public:
   bool isMoveQueued;
 
   unsigned long pulseGuideEndTime;
+
+  double startMoveTimeOffset;
+  double platformResetOffset;
 };
 
 #endif // __PLATFORMCONTROL_H__
