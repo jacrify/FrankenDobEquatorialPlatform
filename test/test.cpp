@@ -333,9 +333,9 @@ void testGotoStartBasic() {
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
-                                 model.getLimitPosition(),
-                             "Target position should be past limit");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getLimitSwitchSafetyStandoffPosition(),
+                                  control.getTargetPosition(),
+                                  "Target position should be limit standoff");
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
                                   control.getTargetSpeedInMilliHz(),
                                   "Target speed should be ff rw");
