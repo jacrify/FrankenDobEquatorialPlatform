@@ -21,8 +21,16 @@ void PlatformControl::setTrackingOnOff(bool t) { trackingOn = t; }
 
 bool PlatformControl::isTrackingOn() { return trackingOn; }
 
-void PlatformControl::calculateOutput(unsigned long nowInMillis) {
-  bool stopMove = false; // used to flag the end of a move
+long PlatformControl::calculateOutput(unsigned long nowInMillis) {
+
+  if (pulseGuideDurationMillis > 0) {
+    stepperWrapper->setStepperSpeed(targetSpeedInMilliHz);
+    long delay = pulseGuideDurationMillis;
+    pulseGuideDurationMillis = 0;
+    return delay; // caller will call back right after delay.
+  }
+
+  // used to flag the end of a move
   // handle limit switch
   if (limitSwitchState) {
     int32_t limitPos = model.getLimitPosition();
@@ -56,7 +64,7 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
       stopMove = true;
       // stepperWrapper->stop();
     } else {
-      return;
+      return 0;
     }
   }
 
@@ -68,11 +76,12 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
     // -10s in platformResetOffset
     double moveClockDelta = startMoveTimeOffset - endMoveTimeOffset;
     platformResetOffset += moveClockDelta;
+    stopMove = false;
   }
   if (trackingOn) {
     if (pos > 0) {
       targetPosition = 0;
-      // TODO calc this every time?
+      // TODO calc this every time? Careful of pulseguide if we move it
       targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(pos);
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
     } else {
@@ -82,6 +91,7 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
   } else {
     stepperWrapper->stop();
   }
+  return 0;
 }
 
 void PlatformControl::gotoMiddle() {
@@ -124,11 +134,12 @@ PlatformControl::PlatformControl(PlatformModel &m) : model(m) {
   isMoveQueued = false;
   isExecutingMove = false;
   trackingOn = false;
+  stopMove = false;
+  pulseGuideDurationMillis = 0;
 }
 
 void PlatformControl::pulseGuide(int direction,
-                                 long pulseDurationInMilliseconds,
-                                 unsigned long nowInMillis) {
+                                 long pulseDurationInMilliseconds) {
   // if not tracking, do nothing
   if (trackingOn) {
     // Direction is either  2 = guideEast, 3 = guideWest.
@@ -144,9 +155,7 @@ void PlatformControl::pulseGuide(int direction,
 
     targetSpeedInMilliHz =
         model.calculateFowardSpeedInMilliHz(targetSpeedInArcSecsSec);
-
-    pulseGuideEndTime = nowInMillis + pulseDurationInMilliseconds;
-    stepperWrapper->setStepperSpeed(targetSpeedInMilliHz);
+    pulseGuideDurationMillis = pulseDurationInMilliseconds;
 
     // // divide by 1000 to get hz, then 1000 to get seconds.
     // // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
@@ -170,6 +179,11 @@ void PlatformControl::pulseGuide(int direction,
     // isExecutingMove = true;
     // stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
   }
+}
+
+void PlatformControl::stop() {
+  isExecutingMove = false;
+  stopMove = true;
 }
 
 void PlatformControl::moveAxis(double degreesPerSecond) {
