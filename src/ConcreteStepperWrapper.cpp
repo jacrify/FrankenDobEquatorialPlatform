@@ -1,7 +1,8 @@
 #include "ConcreteStepperWrapper.h"
 
-ConcreteStepperWrapper::ConcreteStepperWrapper(FastAccelStepper *actualStepper)
-    : stepper(actualStepper) {}
+ConcreteStepperWrapper::ConcreteStepperWrapper() {}
+
+void ConcreteStepperWrapper::setStepper(FastAccelStepper *s) { stepper = s; }
 
 void ConcreteStepperWrapper::resetPosition(int32_t position) {}
 

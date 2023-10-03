@@ -9,7 +9,8 @@
 class ConcreteStepperWrapper : public StepperWrapper {
 
 public:
-  ConcreteStepperWrapper(FastAccelStepper *stepper);
+  ConcreteStepperWrapper();
+  void setStepper(FastAccelStepper *stepper);
   void moveTo(int32_t position, uint32_t speedInMillihz) override;
   void resetPosition(int32_t position) override;
   void stop() override;

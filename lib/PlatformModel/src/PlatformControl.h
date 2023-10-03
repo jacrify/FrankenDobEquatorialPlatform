@@ -21,7 +21,7 @@
  */
 class PlatformControl {
 public:
-  PlatformControl(StepperWrapper &wrapper, PlatformModel &model);
+  PlatformControl(PlatformModel &m);
   // Input
   void setLimitSwitchState(bool state);
   void setPlayButtonState(bool state);
@@ -46,11 +46,12 @@ public:
   int32_t getTargetPosition();
   uint32_t getTargetSpeedInMilliHz();
   double getPlatformResetOffset();
+  void setStepperWrapper(StepperWrapper *wrapper);
 
-      // Output
 
-      private : void
-                performTracking();
+  // Output
+
+private:
   bool limitSwitchState;
   bool playButtonState;
   bool rewindButtonState;
@@ -64,7 +65,7 @@ public:
   int32_t targetPosition;
   uint32_t targetSpeedInMilliHz;
   bool targetSet;
-  StepperWrapper &stepperWrapper;
+  StepperWrapper *stepperWrapper;
   PlatformModel &model;
 
   bool isExecutingMove;
