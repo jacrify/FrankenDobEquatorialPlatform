@@ -33,8 +33,8 @@ void setup() {
   motorUnit.setupMotor();
 
   delay(500);
-  setupWebServer(motorUnit, model, prefs);
-  setupUDPListener(motorUnit);
+  setupWebServer(motorUnit, model, control,prefs);
+  setupUDPListener(motorUnit,control);
   // don't use log() before this point
   // setupOTA();
 }
@@ -42,6 +42,6 @@ void setup() {
 void loop() {
   // loopOTA();
   delay(100);
-  broadcastStatus(motorUnit, model);
+  broadcastStatus(motorUnit, model,control);
   motorUnit.onLoop();
 }

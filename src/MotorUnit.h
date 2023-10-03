@@ -11,23 +11,19 @@ public:
 
   void setupMotor();
   void onLoop();
-  double getGreatCircleRadius();
-  void setGreatCircleRadius(double radius);
+  // double getGreatCircleRadius();
+  // void setGreatCircleRadius(double radius);
   int getLimitSwitchToEndDistance();
   double getPositionInMM();
   double getVelocityInMMPerMinute();
-  double getTimeToCenterInSeconds();
-  double getTimeToEndOfRunInSeconds();
-  bool getTrackingStatus();
-  double getPlatformResetOffsetSeconds();
-  void pulseGuide(int direction, long pulseDurationInMilliseconds);
 
-  void moveAxis(double degreesPerSecond);
-  void slewToStart();
-  void slewToMiddle();
-  void slewToEnd();
+
+  // double getPlatformResetOffsetSeconds();
+
+
+  
   bool isSlewing();
-  void setTracking(bool b);
+
 
 private:
   PlatformModel &model;
@@ -35,9 +31,9 @@ private:
   Preferences &preferences;
   
 
-  void runModeSwitchCheck();
-  void calibrationModeSwitchCheck();
-  void slewToPosition(int32_t position);
+  // void runModeSwitchCheck();
+  // void calibrationModeSwitchCheck();
+  // void slewToPosition(int32_t position);
 
 
 };

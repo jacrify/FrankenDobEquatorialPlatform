@@ -12,7 +12,7 @@ unsigned long lastIPBroadcastTime;
 // and how many seconds it will take to reach center.
 //(can be negative is center passed)
 // AxixMoveRate is max speed in degrees per second
-void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
+void broadcastStatus(MotorUnit &motorUnit,PlatformModel &model,PlatformControl &control) {
 
   long now = millis();
   if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
@@ -25,12 +25,12 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model) {
             IPAddress(255, 255, 255, 255),
             IPBROADCASTPORT)) { // Choose any available port, e.g., 12345
       char response[400];
-      double secondsToCenter = motorUnit.getTimeToCenterInSeconds();
-      double secondsToEnd = motorUnit.getTimeToEndOfRunInSeconds();
+      double secondsToCenter = control.getTimeToCenterInSeconds();
+      double secondsToEnd = control.getTimeToEndOfRunInSeconds();
       double platformResetOffsetSeconds =
-          motorUnit.getPlatformResetOffsetSeconds();
+          control.getPlatformResetOffset();
 
-      bool platformTracking = motorUnit.getTrackingStatus();
+      bool platformTracking = control.isTrackingOn();
       double axisMoveRateMax = model.getMaxAxisMoveRateDegreesSec();
       double axisMoveRateMin = model.getMinAxisMoveRateDegreesSec();
       double guideMoveRate = model.getRAGuideRateDegreesSec();

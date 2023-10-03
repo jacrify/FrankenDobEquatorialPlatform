@@ -32,31 +32,7 @@ Bounce bounceRewind = Bounce();
 Bounce bouncePlay = Bounce();
 Bounce bounceLimit = Bounce();
 
-bool positionSavedOnStop = false;
 
-double MotorUnit::getTimeToCenterInSeconds() {
-  return model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
-}
-
-double MotorUnit::getTimeToEndOfRunInSeconds() {
-  return model.calculateTimeToEndOfRunInSeconds(stepper->getCurrentPosition());
-}
-/**
- * Accumulates ff/rewinds moves as an offset
- */
-double MotorUnit::getPlatformResetOffsetSeconds() {
-  return control.getPlatformResetOffset();
-}
-
-bool MotorUnit::getTrackingStatus() {
-
-  if (!stepper->isRunning())
-    return false;
-  // if running we'll be running at forward/rewind spped. This is in hz, so
-  // convert to compare add fudge factor.
-  return (abs(stepper->getCurrentSpeedInMilliHz()) <=
-          model.getRewindFastFowardSpeed() * 500);
-}
 
 MotorUnit::MotorUnit(PlatformModel &m, PlatformControl &c, Preferences &p)
     : model(m), control(c), preferences(p) {
@@ -126,13 +102,9 @@ bool isPlayJustReleased() {
 
 bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 
-double degreesPerSecondToArcSecondsPerSecond(double degreesPerSecond) {
-  return degreesPerSecond * 3600.0;
-}
-void MotorUnit::moveAxis(double degreesPerSecond) {
-  log("Incoming movexis command speed %lf", degreesPerSecond);
-  control.moveAxis(degreesPerSecond);
-}
+// double degreesPerSecondToArcSecondsPerSecond(double degreesPerSecond) {
+//   return degreesPerSecond * 3600.0;
+// }
 
 void MotorUnit::onLoop() {
   bounceFastForward.update();
@@ -178,35 +150,4 @@ double MotorUnit::getPositionInMM() {
   return ((double)stepper->getCurrentPosition()) / model.getStepsPerMM();
 }
 
-void MotorUnit::slewToStart() {
-  log("Slewing to start");
-  control.gotoStart();
-}
 
-void MotorUnit::slewToMiddle() { control.gotoMiddle(); }
-
-void MotorUnit::slewToEnd() {
-  // TODO make constant
-  control.gotoEndish();
-  // slewToPosition(model.getStepsPerMM() * 10);
-  // 10 mm from end
-  // 2 mm per minute=five minutes to end?
-}
-// bool MotorUnit::isSlewing() { return slewing; }
-
-// void MotorUnit::slewToPosition(int32_t position) {
-//   slew_target_pos = position;
-//   slewing = true;
-//   stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
-//   stepper->moveTo(position);
-//   return;
-// }
-// void MotorUnit::slewToPosition(long position);
-
-void MotorUnit::setTracking(bool b) { control.setTrackingOnOff(b); }
-
-// TODO this is wrong: it should simply set up some fraction of sidereal
-// speed that is subtracted from tracking for some number of millis.
-void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds) {
-  control.pulseGuide(direction, pulseDurationInMilliseconds);
-}

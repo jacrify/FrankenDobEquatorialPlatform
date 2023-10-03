@@ -92,7 +92,7 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
   request->send(200, "application/json", json);
 }
 
-void setupWebServer(MotorUnit &motor, PlatformModel &model,
+void setupWebServer(MotorUnit &motor, PlatformModel &model,PlatformControl &control,
                     Preferences &preferences) {
 
   int rewindFastFowardSpeed =
@@ -129,14 +129,17 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
               setLimitToMiddleDistance(request, model, preferences);
             });
 
-  server.on("/home", HTTP_POST,
-            [&motor](AsyncWebServerRequest *request) { motor.slewToStart(); });
+  server.on("/home", HTTP_POST, [&control](AsyncWebServerRequest *request) {
+    control.gotoStart();
+  });
 
-  server.on("/park", HTTP_POST,
-            [&motor](AsyncWebServerRequest *request) { motor.slewToEnd(); });
+  server.on("/park", HTTP_POST, [&control](AsyncWebServerRequest *request) {
+    control.gotoEndish();
+  });
 
-  server.on("/center", HTTP_POST,
-            [&motor](AsyncWebServerRequest *request) { motor.slewToMiddle(); });
+  server.on("/center", HTTP_POST, [&control](AsyncWebServerRequest *request) {
+    control.gotoMiddle();
+  });
   // TODO #2 implement tracking on off
   //  server.on("/trackingOn", HTTP_POST,
   //            [&motor](AsyncWebServerRequest *request) {
