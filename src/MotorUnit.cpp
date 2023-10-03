@@ -1,6 +1,8 @@
 #include "MotorUnit.h"
+#include "ConcreteStepperWrapper.h"
 #include "FastAccelStepper.h"
 #include "Logging.h"
+#include "PlatformControl.h"
 #include "PlatformModel.h"
 #include <Arduino.h>
 #include <Bounce2.h>
@@ -43,7 +45,7 @@ double MotorUnit::getTimeToEndOfRunInSeconds() {
  * Accumulates ff/rewinds moves as an offset
  */
 double MotorUnit::getPlatformResetOffsetSeconds() {
-  return platformResetOffsetSeconds;
+  return control.getPlatformResetOffset();
 }
 
 bool MotorUnit::getTrackingStatus() {
@@ -56,15 +58,14 @@ bool MotorUnit::getTrackingStatus() {
           model.getRewindFastFowardSpeed() * 500);
 }
 
-MotorUnit::MotorUnit(PlatformModel &m, Preferences &p)
-    : model(m), preferences(p) {
-  slewing = false;
-  tracking = false;
+MotorUnit::MotorUnit(PlatformModel &m, PlatformControl &c,Preferences &p)
+    : model(m),control(c), preferences(p) {
+ 
+  // control = PlatformControl(ConcreteStepperWrapper(stepper), model);
 }
 
 void MotorUnit::setupMotor() {
   bounceFastForward.attach(fastForwardSwitchPin, INPUT_PULLUP);
-  // pinMode(fastForwardSwitchPin, INPUT_PULLUP);
   bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
   bouncePlay.attach(playSwitchPin, INPUT_PULLUP);
 
@@ -76,9 +77,6 @@ void MotorUnit::setupMotor() {
   bouncePlay.interval(100);        // interval in ms
 
   bounceLimit.interval(10); // interval in ms
-
-  platformResetOffsetSeconds = 0;
-  firstMoveCycleForCalc = true;
 
   engine.init();
   stepper = engine.stepperConnectToPin(stepPinStepper);
@@ -94,6 +92,10 @@ void MotorUnit::setupMotor() {
     log("Loaded saved position %d", savedPosition);
     stepper->setCurrentPosition(savedPosition);
   }
+  ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper();
+  wrapper->setStepper(stepper);
+  control.setStepperWrapper(wrapper);
+
 }
 
 bool isFastForward() { return bounceFastForward.read() == LOW; }
@@ -107,41 +109,7 @@ double degreesPerSecondToArcSecondsPerSecond(double degreesPerSecond) {
 }
 void MotorUnit::moveAxis(double degreesPerSecond) {
   log("Incoming movexis command speed %lf", degreesPerSecond);
-  // TODO slew is not really the same as move axis conceptually
-  if (degreesPerSecond == 0) {
-    slewing = false; // loop should perform stop / resume track
-    stepper->stopMove();
-    lastCheckTime =0; // forcce check on next loop
-    return;
-  }
-  // If we are currently tracking, add the tracking speed.
-  // If we don't do this, if rate from client is 1x sidereal and they move
-  // 1x sidereal forward, stars stay stationary.
-
-  if (tracking) {
-    degreesPerSecond -= model.getTrackingRateDegreesSec();
-  }
-  uint32_t speedMilliHz = model.calculateFowardSpeedInMilliHz(
-      stepper->getCurrentPosition(),
-      degreesPerSecondToArcSecondsPerSecond(abs(degreesPerSecond)));
-
-  stepper->setSpeedInMilliHz(speedMilliHz);
-
-  // forward
-  if (degreesPerSecond > 0) {
-    slew_target_pos = 0;
-    slewing = true;
-    stepper->moveTo(0);
-    return;
-  }
-  // backward
-  if (!isLimitSwitchHit()) {
-    slew_target_pos = model.getLimitPosition();
-    stepper->runForward();
-    slewing = true;
-    slewingToStart = true;
-    return;
-  }
+  control.moveAxis(degreesPerSecond);
 }
 
 void MotorUnit::onLoop() {
@@ -149,119 +117,6 @@ void MotorUnit::onLoop() {
   bounceRewind.update();
   bouncePlay.update();
   bounceLimit.update();
-
-  /**
-   * Each loop, check for current fast move (rewind/ff)
-   * by looking at motor.
-   * If we are in ff/rewind:
-   * If this is the first loops where we've detected that, just stored the
-   * current time to center
-   * Otherwise, take the difference between where we were last cycle
-   * and this cycle, and accumation in platformResetOffsetSeconds.
-   * This is used to offset the model on dsc by howver far we've rewound/ffed.
-   *
-   * Eg say we are rewinding.
-   * Cycle 1 currentTimeToCenter=30s
-   * Cycle 2 currentTimeToCenter=25s
-   * Delta is 5s
-   * platformResetOffsetSeconds -=5s
-   * This is added to model calc time, so stars ra are 5s less.
-   *
-   */
-  if (stepper->isRunning()) {
-    int speedInMilliHz = abs(stepper->getCurrentSpeedInMilliHz());
-    // check for tracking, only offset when not tracking but moving
-    //TODO #6 fix platformOffset when moveaxis at slow speed
-    if (speedInMilliHz > (model.getRewindFastFowardSpeed() * 1000 / 4)) {
-      double currentTimeToCenter =
-          model.calculateTimeToCenterInSeconds(stepper->getCurrentPosition());
-      if (firstMoveCycleForCalc) {
-        firstMoveCycleForCalc = false;
-      } else {
-        platformResetOffsetSeconds -=
-            lastTimeToCenterSeconds - currentTimeToCenter;
-      }
-      lastTimeToCenterSeconds = currentTimeToCenter;
-    }
-  } else {
-    firstMoveCycleForCalc = true;
-  }
-
-  if (isLimitSwitchHit()) {
-    //TODO #7 fix bug where setCurrentPosition breaks later slew_target_pos checks
-    int32_t pos = model.getLimitPosition();
-    stepper->setCurrentPosition(pos);
-
-    if (slewingToStart) {
-      log("Limit hit, setting position to %ld", pos);
-      slewing = false;
-      slewingToStart = false;
-    }
-  }
-
-  // if slewing, stop when position reached.
-  if (slewing) {
-    if (stepper->getCurrentPosition() == slew_target_pos) {
-      slewing = false;
-      stepper->stopMove();
-    } else {
-      return; // ignore buttons
-    }
-  }
-
-  // cheat code to park scope
-  if (isFastForward() && (isRewind())) {
-    slewToMiddle();
-    return;
-  }
-
-  if (isRewind() && !isLimitSwitchHit()) {
-    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
-    stepper->runForward();
-    return;
-  }
-
-  if (isFastForward()) {
-    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
-    stepper->moveTo(0);
-    return;
-  }
-
-  // if clients tell us to track, we can't stop locally.
-  // so whenever the tracking flag is set externally,
-  // we clear it when play is pressed.
-  // So if we want to run from external, start with play not pushed.
-  // Then if we want to stop but cannot stop externally,
-  // press play then stop.
-  if (isPlay() && tracking) {
-    tracking = false;
-  }
-
-  if (isPlay() || tracking) {
-
-    // update speed periodically. Don't need to do every cycle
-    long now = millis();
-    if ((now - lastCheckTime) > 1000) {
-      lastCheckTime = now;
-      int32_t currentPosition = stepper->getCurrentPosition();
-      uint32_t targetSpeed =
-          model.calculateFowardSpeedInMilliHz(currentPosition);
-         int32_t currentSpeed= stepper->getCurrentSpeedInMilliHz();
-      log("Setting speed of stepper to %lu millhz at position %ld", targetSpeed,
-          currentPosition);
-          log("Current speed %ld",currentSpeed);
-      stepper->setSpeedInMilliHz(targetSpeed);
-      stepper->moveTo(0);
-    }
-    return;
-  }
-  // no button hit, stop
-  if (stepper->isRunning()) {
-    stepper->stopMove();
-    uint32_t pos = stepper->getCurrentPosition();
-    preferences.putUInt(PREF_SAVED_POS_KEY, pos);
-    log("Stopped, saving position %ld", pos);
-  }
 }
 
 double MotorUnit::getVelocityInMMPerMinute() {
@@ -269,10 +124,6 @@ double MotorUnit::getVelocityInMMPerMinute() {
   double speedInHz = speedInMHz / 1000.0;
   double speedInMMPerSecond = speedInHz / model.getStepsPerMM();
   double speedInMMPerMinute = speedInMMPerSecond * 60.0;
-  // log("Speed in mhz %f", speedInMHz);
-  // log("Speed in hz %f", speedInHz);
-  // log("Speed in mm s %f", speedInMMPerSecond);
-  // log("Speed in mm m %f", speedInMMPerMinute);
   return speedInMMPerMinute;
 }
 double MotorUnit::getPositionInMM() {
@@ -281,73 +132,34 @@ double MotorUnit::getPositionInMM() {
 
 void MotorUnit::slewToStart() {
   log("Slewing to start");
-  if (!isLimitSwitchHit()) {
-    slew_target_pos = model.getLimitPosition();
-
-    stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
-    stepper->runForward();
-    slewing = true;
-    slewingToStart = true;
-    return;
-  }
-  slewing = false;
+  control.gotoStart();
 }
 
-void MotorUnit::slewToMiddle() { slewToPosition(model.getMiddlePosition()); }
+void MotorUnit::slewToMiddle() { control.gotoMiddle(); }
 
 void MotorUnit::slewToEnd() {
   // TODO make constant
-  slewToPosition(model.getStepsPerMM() * 10);
+  control.gotoEndish();
+  // slewToPosition(model.getStepsPerMM() * 10);
   // 10 mm from end
   // 2 mm per minute=five minutes to end?
 }
-bool MotorUnit::isSlewing() { return slewing; }
+// bool MotorUnit::isSlewing() { return slewing; }
 
-void MotorUnit::slewToPosition(int32_t position) {
-  slew_target_pos = position;
-  slewing = true;
-  stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
-  stepper->moveTo(position);
-  return;
-}
+// void MotorUnit::slewToPosition(int32_t position) {
+//   slew_target_pos = position;
+//   slewing = true;
+//   stepper->setSpeedInHz(model.getRewindFastFowardSpeed());
+//   stepper->moveTo(position);
+//   return;
+// }
 // void MotorUnit::slewToPosition(long position);
 
-void MotorUnit::setTracking(bool b) { tracking = b; }
+void MotorUnit::setTracking(bool b) { control.setTrackingOnOff(b); }
 
-//TODO this is wrong: it should simply set up some fraction of sidereal
-//speed that is subtracted from tracking for some number of millis.
+// TODO this is wrong: it should simply set up some fraction of sidereal
+// speed that is subtracted from tracking for some number of millis.
 void MotorUnit::pulseGuide(int direction, long pulseDurationInMilliseconds) {
-  // Direction is either  2 = guideEast, 3 = guideWest.
-  // If 2 then returned value will be higher than stepperCurrentPosition
-  // If 3 then return value will be lower.
-
-  int32_t stepperCurrentPosition = stepper->getCurrentPosition();
-  int32_t targetPosition = stepperCurrentPosition;
-
-  // speed is steps per second * 1000
-  uint32_t speedInMilliHz = model.calculateFowardSpeedInMilliHz(
-      stepperCurrentPosition, model.getRAGuideRateArcSecondsSecond());
-
-  // divide by 1000 to get hz, then 1000 to get seconds.
-  // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
-  // and we move for 1000 millis (is one second)
-  // then we move 1,000,000 / 1,000,000 = 1 step
-  int32_t stepsToMove =
-      (speedInMilliHz * pulseDurationInMilliseconds) / 1000000;
-
-  if (direction == 2) // east.Positive step change ie towards limit switch
-    targetPosition += stepsToMove;
-
-  if (direction == 3) // west. negative step change
-    targetPosition -= stepsToMove;
-
-  // make sure we don't run off end
-  targetPosition = (targetPosition < 0) ? 0 : targetPosition;
-
-  log("Pulse guiding %d for %ld ms to position %ld at speed (millihz) %lf",
-      direction, pulseDurationInMilliseconds, targetPosition, speedInMilliHz);
-  slew_target_pos = targetPosition;
-  slewing = true;
-  stepper->setSpeedInMilliHz(speedInMilliHz);
-  stepper->moveTo(targetPosition);
+  unsigned long now = millis();
+  control.pulseGuide(direction, pulseDurationInMilliseconds, now);
 }

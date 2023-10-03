@@ -26,7 +26,7 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
   // handle limit switch
   if (limitSwitchState) {
     int32_t limitPos = model.getLimitPosition();
-    stepperWrapper.resetPosition(limitPos);
+    stepperWrapper->resetPosition(limitPos);
     if (targetPosition > limitPos) {
       if (isExecutingMove) {
         // move target is past limit switch. Stop unless tracking on
@@ -37,11 +37,11 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
     }
   }
 
-  int32_t pos = stepperWrapper.getPosition();
+  int32_t pos = stepperWrapper->getPosition();
 
   if (isMoveQueued) {
     if (pos != targetPosition) {
-      stepperWrapper.moveTo(targetPosition, targetSpeedInMilliHz);
+      stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
       isMoveQueued = false;
       // store how many seconds from center we are at start of move
       startMoveTimeOffset = model.calculateTimeToCenterInSeconds(pos);
@@ -54,7 +54,7 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
       isExecutingMove = false;
       isMoveQueued = false;
       stopMove = true;
-      // stepperWrapper.stop();
+      // stepperWrapper->stop();
     } else {
       return;
     }
@@ -74,13 +74,13 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
       targetPosition = 0;
       // TODO calc this every time?
       targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(pos);
-      stepperWrapper.moveTo(targetPosition, targetSpeedInMilliHz);
+      stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
     } else {
-      stepperWrapper.stop();
+      stepperWrapper->stop();
       trackingOn = false; // turn off at end of run.
     }
   } else {
-    stepperWrapper.stop();
+    stepperWrapper->stop();
   }
 }
 
@@ -93,6 +93,7 @@ void PlatformControl::gotoMiddle() {
 
 void PlatformControl::gotoEndish() {
   // TODO set back from end
+  // slewToPosition(model.getStepsPerMM() * 10);
   targetPosition = 0;
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
@@ -115,8 +116,11 @@ uint32_t PlatformControl::getTargetSpeedInMilliHz() {
 
 double PlatformControl::getPlatformResetOffset() { return platformResetOffset; }
 
-PlatformControl::PlatformControl(StepperWrapper &wrapper, PlatformModel &m)
-    : stepperWrapper(wrapper), model(m) {
+void PlatformControl::setStepperWrapper(StepperWrapper *wrapper) {
+  stepperWrapper = wrapper;
+}
+
+PlatformControl::PlatformControl(PlatformModel &m) : model(m) {
   isMoveQueued = false;
   isExecutingMove = false;
   trackingOn = false;
@@ -142,7 +146,7 @@ void PlatformControl::pulseGuide(int direction,
         model.calculateFowardSpeedInMilliHz(targetSpeedInArcSecsSec);
 
     pulseGuideEndTime = nowInMillis + pulseDurationInMilliseconds;
-    stepperWrapper.setStepperSpeed(targetSpeedInMilliHz);
+    stepperWrapper->setStepperSpeed(targetSpeedInMilliHz);
 
     // // divide by 1000 to get hz, then 1000 to get seconds.
     // // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
@@ -164,7 +168,7 @@ void PlatformControl::pulseGuide(int direction,
     //     direction, pulseDurationInMilliseconds, targetPosition);
 
     // isExecutingMove = true;
-    // stepperWrapper.moveTo(targetPosition, targetSpeedInMilliHz);
+    // stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
   }
 }
 
@@ -184,7 +188,7 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
     degreesPerSecond -= model.getTrackingRateDegreesSec();
   }
   targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
-      stepperWrapper.getPosition(), 3600.0 * fabs(degreesPerSecond));
+      stepperWrapper->getPosition(), 3600.0 * fabs(degreesPerSecond));
 
   isExecutingMove = true;
   isMoveQueued = true;

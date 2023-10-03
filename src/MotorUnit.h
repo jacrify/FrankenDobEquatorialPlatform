@@ -2,11 +2,12 @@
 #define MOTORUNIT_H
 
 #include "PlatformModel.h"
+#include "PlatformControl.h"
 #include <Preferences.h>
 
 class MotorUnit {
 public:
-  MotorUnit(PlatformModel &model, Preferences &p);
+  MotorUnit(PlatformModel &model, PlatformControl &c,Preferences &p);
 
   void setupMotor();
   void onLoop();
@@ -30,19 +31,15 @@ public:
 
 private:
   PlatformModel &model;
+  PlatformControl &control;
   Preferences &preferences;
+  
+
   void runModeSwitchCheck();
   void calibrationModeSwitchCheck();
   void slewToPosition(int32_t position);
-  int32_t slew_target_pos;
-  boolean slewing;
-  boolean slewingToStart;
-  boolean tracking;
-  // accumlates ff/rw offsets
-  double platformResetOffsetSeconds;
 
-  double lastTimeToCenterSeconds;
-  bool firstMoveCycleForCalc;
+
 };
 
 #endif

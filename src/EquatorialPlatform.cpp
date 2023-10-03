@@ -1,10 +1,12 @@
 // #include "DigitalCaliper.h"
+#include "ConcreteStepperWrapper.h"
 #include "EQWebServer.h"
 #include "FS.h"
 #include "Logging.h"
 #include "MotorUnit.h"
 #include "Network.h"
 #include "OTA.h"
+#include "PlatformControl.h"
 #include "PlatformModel.h"
 #include "UDPListener.h"
 #include "UDPSender.h"
@@ -12,11 +14,12 @@
 #include <LittleFS.h>
 #include <Preferences.h>
 
-
 PlatformModel model;
 Preferences prefs;
 
-MotorUnit motorUnit(model, prefs);
+PlatformControl control(model);
+
+MotorUnit motorUnit(model, control, prefs);
 
 void setup() {
   Serial.begin(115200);
@@ -28,7 +31,7 @@ void setup() {
 
   model.setupModel();
   motorUnit.setupMotor();
-  
+
   delay(500);
   setupWebServer(motorUnit, model, prefs);
   setupUDPListener(motorUnit);
