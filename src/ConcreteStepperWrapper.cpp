@@ -27,8 +27,8 @@ void ConcreteStepperWrapper::setStepperSpeed(uint32_t speedInMillihz) {
 }
 
 void ConcreteStepperWrapper::moveTo(int32_t position, uint32_t speedInMillihz) {
-  // stepper->setSpeedInMilliHz(speedInMillihz);
-  stepper->setSpeedInHz(5000);
+  stepper->setSpeedInMilliHz(speedInMillihz);
+  // stepper->setSpeedInHz(5000);
   
   stepper->moveTo(position);
   log("Concrete Move called to pos %ld at speed %lu", position,
