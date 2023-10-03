@@ -3,16 +3,17 @@
 #include "Logging.h"
 #include <ArduinoJson.h>
 
+
 AsyncUDP dscUDP;
 #define IPBROADCASTPORT 50375
 /**
  * Listen for UDP broadcasts from Digital Setting Circles.
  * This is used for alpaca commands passed from DSC.
  */
-void setupUDPListener(MotorUnit &motor) {
+void setupUDPListener(MotorUnit &motor,PlatformControl &control) {
   if (dscUDP.listen(IPBROADCASTPORT)) {
     log("Listening for dsc platform broadcasts");
-    dscUDP.onPacket([&motor](AsyncUDPPacket packet) {
+    dscUDP.onPacket([&motor,&control](AsyncUDPPacket packet) {
       unsigned long now = millis();
       String start = packet.readStringUntil(':');
       // log("UDP Broadcast received: %s", msg.c_str());
@@ -43,25 +44,24 @@ void setupUDPListener(MotorUnit &motor) {
           double parameter2 = doc["parameter2"];
 
           if (command == "home") {
-            motor.slewToStart();
+            control.gotoStart();
             return;
           }
           if (command == "park") {
-            motor.slewToEnd();
+            control.gotoEndish();
             return;
           }
           if (command == "track") {
-            motor.setTracking(parameter1 > 0 ? true : false);
+            control.setTrackingOnOff(parameter1 > 0 ? true : false);
             return;
           }
           if (command == "moveaxis") {
-            motor.moveAxis(parameter1);
+            control.moveAxis(parameter1);
             return;
           }
           if (command == "pulseguide") {
-            
-            // direction, pulsetime
-            motor.pulseGuide(parameter1, parameter2);
+            control
+                .pulseGuide(parameter1, parameter2);
             return;
           }
 

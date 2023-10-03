@@ -52,6 +52,8 @@ public:
   int32_t getTargetPosition();
   uint32_t getTargetSpeedInMilliHz();
   double getPlatformResetOffset();
+  double getTimeToCenterInSeconds();
+  double getTimeToEndOfRunInSeconds();
   void setStepperWrapper(StepperWrapper *wrapper);
 
   // Output

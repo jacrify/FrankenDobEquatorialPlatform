@@ -213,3 +213,12 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
     targetPosition = INT32_MAX;
   }
 }
+
+double PlatformControl::getTimeToCenterInSeconds() {
+  return model.calculateTimeToCenterInSeconds(stepperWrapper->getPosition());
+}
+
+double PlatformControl::getTimeToEndOfRunInSeconds() {
+  return model.calculateTimeToEndOfRunInSeconds(
+      stepperWrapper->getPosition());
+}

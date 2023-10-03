@@ -4,6 +4,7 @@
 // #include "DigitalCaliper.h"
 #include "MotorUnit.h"
 #include "PlatformModel.h"
+#include "PlatformControl.h"
 #include <Preferences.h>
 
 #define PREF_CIRCLE_KEY "cr"
@@ -18,5 +19,5 @@
 // 482.5; // And this is the value by design in 3d model
 
 
-void setupWebServer(MotorUnit &motor,PlatformModel &model,Preferences &prefs);
+void setupWebServer(MotorUnit &motor,PlatformModel &model,PlatformControl &control,Preferences &prefs);
 #endif

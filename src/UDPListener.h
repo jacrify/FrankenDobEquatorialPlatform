@@ -1,5 +1,7 @@
 #ifndef UDPLISTENER
 #define UDPLISTENER
 #include "MotorUnit.h"
-void setupUDPListener(MotorUnit &motor);
+#include "PlatformControl.h"
+
+void setupUDPListener(MotorUnit &motor,PlatformControl &control);
 #endif
