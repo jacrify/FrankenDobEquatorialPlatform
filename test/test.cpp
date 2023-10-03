@@ -684,6 +684,46 @@ void testOffsetAccumulation() {
   }
 }
 
+void testGotoStartSafety() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(model);
+  control.setStepperWrapper(&stepper);
+
+  // test going to start
+  control.setLimitSwitchState(false);
+  control.gotoStart();
+  control.calculateOutput(0);
+
+  try {
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getLimitSwitchSafetyStandoffPosition(),
+                                  control.getTargetPosition(),
+                                  "Target position should be limit standoff");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
 void setup() {
 
   UNITY_BEGIN(); // IMPORTANT LINE!

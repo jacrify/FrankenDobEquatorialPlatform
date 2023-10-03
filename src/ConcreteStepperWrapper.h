@@ -1,15 +1,13 @@
 #ifndef __CONCRETESTEPPERWRAPPER_H__
 #define __CONCRETESTEPPERWRAPPER_H__
 
-
-
-#include "StepperWrapper.h"
 #include "FastAccelStepper.h"
-
+#include "StepperWrapper.h"
+#include <Preferences.h>
 class ConcreteStepperWrapper : public StepperWrapper {
 
 public:
-  ConcreteStepperWrapper();
+  ConcreteStepperWrapper(Preferences &prefs);
   void setStepper(FastAccelStepper *stepper);
   void moveTo(int32_t position, uint32_t speedInMillihz) override;
   void resetPosition(int32_t position) override;
@@ -19,6 +17,8 @@ public:
 
 private:
   FastAccelStepper* stepper;
+  Preferences &prefs;
+  int32_t lastSavedPos;
 };
 
 #endif // __CONCRETESTEPPERWRAPPER_H__
