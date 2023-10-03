@@ -63,8 +63,8 @@ void MotorUnit::setupMotor() {
     // stepper->setSpeedInHz(5000);
     stepper->setAcceleration(100000); // 100 steps/s²
 
-    // preferences = p;
-    uint32_t savedPosition = preferences.getUInt(PREF_SAVED_POS_KEY, 0);
+        // preferences = p;
+        uint32_t savedPosition = preferences.getUInt(PREF_SAVED_POS_KEY, 0);
     log("Loaded saved position %d", savedPosition);
     stepper->setCurrentPosition(savedPosition);
     // delay(3000);

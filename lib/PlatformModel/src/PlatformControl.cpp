@@ -30,12 +30,11 @@ long PlatformControl::calculateOutput(unsigned long nowInMillis) {
     return delay; // caller will call back right after delay.
   }
 
-  // used to flag the end of a move
   // handle limit switch
   if (limitSwitchState) {
     int32_t limitPos = model.getLimitPosition();
     stepperWrapper->resetPosition(limitPos);
-    if (targetPosition > limitPos) {
+    if (targetPosition > limitPos || targetPosition==model.getLimitSwitchSafetyStandoffPosition()) {
       if (isExecutingMove) {
         // move target is past limit switch. Stop unless tracking on
         isExecutingMove = false;
@@ -58,15 +57,22 @@ long PlatformControl::calculateOutput(unsigned long nowInMillis) {
   }
   // check for move end
   if (isExecutingMove) {
-    // are we there yet?
-    if (pos == targetPosition) {
-      isExecutingMove = false;
-      isMoveQueued = false;
-      stopMove = true;
-      // stepperWrapper->stop();
-    } else {
+    // are we there yet? If not just return
+    if (pos != targetPosition)
+      return 0;
+    // if we have arrived at the limit switch safety standoff position,
+    // assume the move is a move towards the safety.
+    // Set new position and much lower speed
+    if (pos == model.getLimitSwitchSafetyStandoffPosition()) {
+      targetPosition = INT32_MAX;
+      targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / 5;
+      stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
       return 0;
     }
+    // we've arrived. Move gets stopped below.
+    isExecutingMove = false;
+    isMoveQueued = false;
+    stopMove = true;
   }
 
   if (stopMove) {
@@ -114,7 +120,7 @@ void PlatformControl::gotoEndish() {
 
 void PlatformControl::gotoStart() {
   // should run until limit switch hit
-  targetPosition = INT32_MAX;
+  targetPosition = model.getLimitSwitchSafetyStandoffPosition();
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
