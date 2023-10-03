@@ -23,8 +23,12 @@ void PlatformControl::setTrackingOnOff(bool t) { trackingOn = t; }
 
 bool PlatformControl::isTrackingOn() { return trackingOn; }
 
-long PlatformControl::calculateOutput(unsigned long nowInMillis) {
 
+long PlatformControl::calculateOutput() {
+
+    //Pulseguide command has been queued. Apply new motor
+    //speed, and ask client to call back after pulseguide milliseconds.
+    //Second call should fall through and resume tracking speed.
   if (pulseGuideDurationMillis > 0) {
     stepperWrapper->setStepperSpeed(targetSpeedInMilliHz);
     long delay = pulseGuideDurationMillis;

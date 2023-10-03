@@ -169,7 +169,7 @@ void testGotoMiddleBasic() {
   // test going to middle
   control.setLimitSwitchState(false);
   control.gotoMiddle();
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(1);
@@ -212,7 +212,7 @@ void testGotoMiddleLimitSwitch() {
     control.setTrackingOnOff(false);
     control.setLimitSwitchState(true);
     control.gotoMiddle();
-    control.calculateOutput(0);
+    control.calculateOutput();
     Verify(stepper.resetPosition).Times(1);
     Verify(stepper.stop).Times(0);
     Verify(stepper.moveTo).Times(1);
@@ -253,7 +253,7 @@ void testGotoMiddleAtMiddle() {
     control.setLimitSwitchState(false);
     control.gotoMiddle();
     When(stepper.getPosition).Return(model.getMiddlePosition());
-    control.calculateOutput(0);
+    control.calculateOutput();
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(1);
     Verify(stepper.moveTo).Times(0);
@@ -294,7 +294,7 @@ void testGotoMiddleAtMiddleResumeTracking() {
     control.setLimitSwitchState(false);
     control.gotoMiddle();
     When(stepper.getPosition).Return(model.getMiddlePosition());
-    control.calculateOutput(0);
+    control.calculateOutput();
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(0);
     Verify(stepper.moveTo).Times(1);
@@ -329,7 +329,7 @@ void testGotoStartBasic() {
   // test going to start
   control.setLimitSwitchState(false);
   control.gotoStart();
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(1);
@@ -370,7 +370,7 @@ void testGotoStartLimit() {
   control.setLimitSwitchState(true);
   When(stepper.getPosition).Return(model.getLimitPosition());
   control.gotoStart();
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(0);
@@ -406,7 +406,7 @@ void testGotoStartLimitTracking() {
   control.setTrackingOnOff(true);
 
   control.gotoStart();
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(1);
@@ -445,7 +445,7 @@ void testGotoEndBasic() {
   control.setLimitSwitchState(false);
   When(stepper.getPosition).Return(model.getLimitPosition());
   control.gotoEndish();
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(1);
@@ -485,7 +485,7 @@ void testGotoEndLimitHit() {
   control.setLimitSwitchState(true);
   When(stepper.getPosition).Return(model.getLimitPosition());
   control.gotoEndish();
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(1);
@@ -526,7 +526,7 @@ void testGotoEndAtEndWithTracking() {
   When(stepper.getPosition).Return(0);
   control.setTrackingOnOff(true);
   control.gotoEndish();
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(0);
@@ -568,7 +568,7 @@ void testMoveAxisPositive() {
   When(stepper.getPosition).Return(model.getMiddlePosition());
   control.moveAxis(0.004178);
   //  sidereal
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(1);
@@ -584,7 +584,7 @@ void testMoveAxisPositive() {
     // now turn tracking on and run again
     control.setTrackingOnOff(true);
     control.moveAxis(0.005178);
-    control.calculateOutput(0);
+    control.calculateOutput();
 
     Verify(stepper.moveTo).Times(2);
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
@@ -598,7 +598,7 @@ void testMoveAxisPositive() {
     // now turn tracking off and run backward
     control.setTrackingOnOff(false);
     control.moveAxis(-0.004178);
-    control.calculateOutput(0);
+    control.calculateOutput();
 
     Verify(stepper.moveTo).Times(3);
     TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
@@ -614,7 +614,7 @@ void testMoveAxisPositive() {
     // now turn tracking on and run backward
     control.setTrackingOnOff(true);
     control.moveAxis(-0.004178);
-    control.calculateOutput(0);
+    control.calculateOutput();
 
     Verify(stepper.moveTo).Times(4);
     TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
@@ -654,7 +654,7 @@ void testOffsetAccumulation() {
   // position is before middle
   When(stepper.getPosition).Return(model.getMiddlePosition() + 5000);
   control.gotoMiddle();
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(1);
@@ -671,7 +671,7 @@ void testOffsetAccumulation() {
                                      "Reset offset should be 0");
     // now mark position as middle, offset should be calculated
     When(stepper.getPosition).Return(model.getMiddlePosition());
-    control.calculateOutput(0);
+    control.calculateOutput();
     Verify(stepper.moveTo).Times(1);
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(1); // should stop
@@ -705,7 +705,7 @@ void testGotoStartSafety() {
   // test going to start
   control.setLimitSwitchState(false);
   control.gotoStart();
-  control.calculateOutput(0);
+  control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(1);

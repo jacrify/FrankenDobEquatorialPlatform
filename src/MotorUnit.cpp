@@ -141,10 +141,12 @@ void MotorUnit::onLoop() {
     control.setTrackingOnOff(false);
   }
 
-  long delay = control.calculateOutput(millis());
+  long d = control.calculateOutput();
   // handle pulseguide delay
-  if (delay > 0)
-    control.calculateOutput(millis());
+  if (d > 0) {
+    delay(d);
+    control.calculateOutput();
+  }
 }
 
 double MotorUnit::getVelocityInMMPerMinute() {
