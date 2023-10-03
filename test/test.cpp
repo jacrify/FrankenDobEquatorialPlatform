@@ -143,67 +143,504 @@ public:
   MockMethod(void, resetPosition, (int32_t));
   MockMethod(void, moveTo, (int32_t, uint32_t));
   MockMethod(void, stop, ());
-  MockMethod(int32_t,getPosition,());
+  MockMethod(int32_t, getPosition, ());
   MockMethod(void, setStepperSpeed, (uint32_t));
-
-
-  
 };
 
-void mockTest() {
-   MockStepper stepper;
+void testGotoMiddleBasic() {
+  // setup
+  MockStepper stepper;
 
-   int runTotal = 130;                         // mm
-   int limitToMiddle = 62;                     // mm
-   int middleToEnd = runTotal - limitToMiddle; // mm
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
 
-   int stepPositionOfMiddle = middleToEnd * 3600;
-   int stepPositionOfLimit = runTotal * 3600;
-   PlatformModel model;
-   model.setGreatCircleRadius(448);
-   model.setLimitSwitchToMiddleDistance(limitToMiddle);
-   model.setRewindFastFowardSpeedInHz(30000);
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
 
+  PlatformControl control = PlatformControl(stepper, model);
 
-   //  When(stepper.resetPosition).Return();
-   PlatformControl control = PlatformControl(stepper,model);
-
-   control.gotoMiddle();
+  // test going to middle
+  control.setLimitSwitchState(false);
+  control.gotoMiddle();
+  control.calculateOutput(0);
   //  try {
   //    Verify(stepper.moveTo).Times(1);
   //  } catch (std::runtime_error e) {
   //    TEST_FAIL_MESSAGE(e.what());
   //  }
-   try{
-     Verify(stepper.moveTo).With(1, 30000000);
+  try {
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getMiddlePosition(),
+                                  control.getTargetPosition(),
+                                  "Target Position should be middle");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
 
-   } catch (std::runtime_error e) {
-     TEST_FAIL_MESSAGE(e.what());
-   }
-  control.setLimitSwitchState(true);
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
+void testGotoMiddleLimitSwitch() {
+
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to middle
+  try {
+    control.setTrackingOnOff(false);
+    control.setLimitSwitchState(true);
+    control.gotoMiddle();
+    control.calculateOutput(0);
+    Verify(stepper.resetPosition).Times(1);
+    Verify(stepper.stop).Times(0);
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getMiddlePosition(),
+                                  control.getTargetPosition(),
+                                  "Target Position should be middle");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
+
+    
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
+void testGotoMiddleAtMiddle() {
+
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to middle, when at middle
+  try {
+    control.setTrackingOnOff(false);
+    control.setLimitSwitchState(false);
+    control.gotoMiddle();
+    When(stepper.getPosition).Return(model.getMiddlePosition());
+    control.calculateOutput(0);
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(1);
+    Verify(stepper.moveTo).Times(0);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getMiddlePosition(),
+                                  control.getTargetPosition(),
+                                  "Target Position should be middle");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
+void testGotoMiddleAtMiddleResumeTracking() {
+
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to middle, when at middle. Tracking should restart
+  try {
+    control.setTrackingOnOff(true);
+    control.setLimitSwitchState(false);
+    control.gotoMiddle();
+    When(stepper.getPosition).Return(model.getMiddlePosition());
+    control.calculateOutput(0);
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0,
+                                  control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_TRUE_MESSAGE(control.getTargetSpeedInMilliHz()>0,"Speed should be greater than 0");
+
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
+void testGotoStartBasic() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to start
+  control.setLimitSwitchState(false);
+  control.gotoStart();
   control.calculateOutput(0);
 
   try {
-    Verify(stepper.resetPosition);
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition()>model.getLimitPosition(),"Target position should be past limit");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
   } catch (std::runtime_error e) {
     TEST_FAIL_MESSAGE(e.what());
   }
+}
+
+void testGotoStartLimit() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to start when limit hit
+  control.setLimitSwitchState(true);
+  When(stepper.getPosition).Return(model.getLimitPosition());
+  control.gotoStart();
+  control.calculateOutput(0);
 
   try {
-    Verify(stepper.stop);
+    Verify(stepper.moveTo).Times(0);
+    Verify(stepper.resetPosition).Times(1);
+    Verify(stepper.stop).Times(1);
+
   } catch (std::runtime_error e) {
     TEST_FAIL_MESSAGE(e.what());
   }
-
-  // StepperWrapper *clientMock = ArduinoFakeMock(StepperWrapper);
 }
+
+void testGotoStartLimitTracking() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to start when limit hit
+  When(stepper.getPosition).Return(model.getLimitPosition());
+  control.setLimitSwitchState(true);
+  control.setTrackingOnOff(true);
+
+  control.gotoStart();
+  control.calculateOutput(0);
+
+  try {
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_TRUE_MESSAGE(control.getTargetSpeedInMilliHz() > 0,
+                             "Speed should be greater than 0");
+
+    Verify(stepper.resetPosition).Times(1);
+    Verify(stepper.stop).Times(0);
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
+void testGotoEndBasic() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to end
+  control.setLimitSwitchState(false);
+  When(stepper.getPosition).Return(model.getLimitPosition());
+  control.gotoEndish();
+  control.calculateOutput(0);
+
+  try {
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be endish");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
+void testGotoEndLimitHit() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to end
+  control.setLimitSwitchState(true);
+  When(stepper.getPosition).Return(model.getLimitPosition());
+  control.gotoEndish();
+  control.calculateOutput(0);
+
+  try {
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be endish");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
+
+    Verify(stepper.resetPosition).Times(1);
+    Verify(stepper.stop).Times(0);
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
+void testGotoEndAtEndWithTracking() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test going to end
+  control.setLimitSwitchState(false);
+  When(stepper.getPosition).Return(0);
+  control.setTrackingOnOff(true);
+  control.gotoEndish();
+  control.calculateOutput(0);
+
+  try {
+    Verify(stepper.moveTo).Times(0);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be endish");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(1);
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
+void testMoveAxisPositive() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  PlatformModel model;
+  model.setGreatCircleRadius(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  PlatformControl control = PlatformControl(stepper, model);
+
+  // test moveaxis
+  control.setLimitSwitchState(false);
+  control.setTrackingOnOff(false);
+  When(stepper.getPosition).Return(model.getMiddlePosition());
+  control.moveAxis(0.004178);
+  //  sidereal
+   control.calculateOutput(0);
+
+  try {
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0,
+                                  control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        117605, control.getTargetSpeedInMilliHz(),
+        "Target speed should be some fudged version of sidereal");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+  //now turn tracking on and run again
+    control.setTrackingOnOff(true);
+    control.moveAxis(0.005178);
+    control.calculateOutput(0);
+
+    Verify(stepper.moveTo).Times(2);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        28147, control.getTargetSpeedInMilliHz(),
+        "Target speed should be almost 0");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+    // now turn tracking off and run backward
+    control.setTrackingOnOff(false);
+    control.moveAxis(-0.004178);
+    control.calculateOutput(0);
+
+    Verify(stepper.moveTo).Times(3);
+    TEST_ASSERT_TRUE_MESSAGE( control.getTargetPosition()>model.getLimitPosition(),
+                                  "Target Position should be start");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(117605, control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be some fudge of sidereal");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+    // now turn tracking on and run backward
+    control.setTrackingOnOff(true);
+    control.moveAxis(-0.004178);
+    control.calculateOutput(0);
+
+    Verify(stepper.moveTo).Times(4);
+    TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
+                                 model.getLimitPosition(),
+                             "Target Position should be start");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(235211, control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be double sidereal");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
 void setup() {
 
   UNITY_BEGIN(); // IMPORTANT LINE!
   RUN_TEST(test_speed_calc);
   RUN_TEST(test_rewind_fast_forward_speed_calc);
   RUN_TEST(test_timetomiddle_calc);
-  RUN_TEST(mockTest);
+  RUN_TEST(testGotoMiddleBasic);
+  RUN_TEST(testGotoMiddleLimitSwitch);
+  RUN_TEST(testGotoMiddleAtMiddle);
+  RUN_TEST(testGotoMiddleAtMiddleResumeTracking);
+  RUN_TEST(testGotoStartBasic);
+  RUN_TEST(testGotoStartLimit);
+  RUN_TEST(testGotoStartLimitTracking);
+  RUN_TEST(testGotoEndBasic);
+  RUN_TEST(testGotoEndLimitHit);
+  RUN_TEST(testGotoEndAtEndWithTracking);
+  RUN_TEST(testMoveAxisPositive);
   UNITY_END(); // IMPORTANT LINE!
 }
 

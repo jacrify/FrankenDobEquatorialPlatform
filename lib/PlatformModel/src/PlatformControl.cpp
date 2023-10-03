@@ -30,16 +30,26 @@ void PlatformControl::calculateOutput(unsigned long nowInMillis) {
     if (targetPosition > limitPos) {
       // move target is past limit switch. Stop unless tracking on
       isExecutingMove = false;
+      isMoveQueued=false;
     }
   }
 
   int32_t pos = stepperWrapper.getPosition();
 
+  if (isMoveQueued) {
+    if (pos != targetPosition) {
+      stepperWrapper.moveTo(targetPosition, targetSpeedInMilliHz);
+      isMoveQueued = false;
+    }
+  }
   // check for move end
   if (isExecutingMove) {
     // are we there yet?
     if (pos == targetPosition) {
       isExecutingMove = false;
+      // stepperWrapper.stop();
+    } else {
+      return;
     }
   }
 
@@ -62,8 +72,7 @@ void PlatformControl::gotoMiddle() {
   targetPosition = model.getMiddlePosition();
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
-  // leave move for loop?
-  //  stepperWrapper.moveTo(100, 100); }
+  isMoveQueued = true;
 }
 
 void PlatformControl::gotoEndish() {
@@ -71,6 +80,7 @@ void PlatformControl::gotoEndish() {
   targetPosition = 0;
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
+  isMoveQueued = true;
 }
 
 void PlatformControl::gotoStart() {
@@ -78,11 +88,20 @@ void PlatformControl::gotoStart() {
   targetPosition = INT32_MAX;
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
+  isMoveQueued = true;
+}
+
+int32_t PlatformControl::getTargetPosition() { return targetPosition; }
+
+uint32_t PlatformControl::getTargetSpeedInMilliHz() {
+  return targetSpeedInMilliHz;
 }
 
 PlatformControl::PlatformControl(StepperWrapper &wrapper, PlatformModel &m)
     : stepperWrapper(wrapper), model(m) {
-  // stepperWrapper = wrapper;
+  isMoveQueued = false;
+  isExecutingMove = false;
+  trackingOn=false;
 }
 
 void PlatformControl::pulseGuide(int direction,
@@ -95,10 +114,10 @@ void PlatformControl::pulseGuide(int direction,
     // If 3 then return value will be lower.
     double targetSpeedInArcSecsSec = model.getTrackingRateArcsSecondsSec();
     // NOTE: this assumes target speed will be positive
-    if (direction == 3) //west: go faster
+    if (direction == 3) // west: go faster
       targetSpeedInArcSecsSec += model.getRAGuideRateArcSecondsSecond();
 
-    if (direction == 2) //east: go slower
+    if (direction == 2) // east: go slower
       targetSpeedInArcSecsSec -= model.getRAGuideRateArcSecondsSecond();
 
     targetSpeedInMilliHz =
@@ -132,6 +151,7 @@ void PlatformControl::pulseGuide(int direction,
 }
 
 void PlatformControl::moveAxis(double degreesPerSecond) {
+  
   log("Incoming movexis command speed %lf", degreesPerSecond);
   if (degreesPerSecond == 0) {
     isExecutingMove = false; // loop should perform stop / resume track
@@ -140,7 +160,8 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
   // If we are currently tracking, add the tracking speed.
   // If we don't do this, if rate from client is 1x sidereal and they move
   // 1x sidereal forward, stars stay stationary.
-
+  
+  // positive is west (arbitary?)
   if (trackingOn) {
     degreesPerSecond -= model.getTrackingRateDegreesSec();
   }
@@ -148,6 +169,7 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
       stepperWrapper.getPosition(), 3600.0 * fabs(degreesPerSecond));
 
   isExecutingMove = true;
+  isMoveQueued=true;
   // forward
   if (degreesPerSecond > 0) {
     targetPosition = 0;

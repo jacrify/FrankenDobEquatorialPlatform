@@ -163,7 +163,6 @@ int PlatformModel::getLimitSwitchToMiddleDistance() {
 // this  is expressed in microsteps
 int32_t PlatformModel::getLimitPosition() {
   return limitSwitchToEndDistance * stepsPerMM;
-  ;
 }
 
 long PlatformModel::getRewindFastFowardSpeedInMilliHz() { return rewindFastFowardSpeed*1000; }
