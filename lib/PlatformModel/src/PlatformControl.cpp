@@ -49,6 +49,7 @@ long PlatformControl::calculateOutput(unsigned long nowInMillis) {
 
   if (isMoveQueued) {
     if (pos != targetPosition) {
+      log("Moving");
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
       isMoveQueued = false;
       // store how many seconds from center we are at start of move
@@ -82,6 +83,7 @@ long PlatformControl::calculateOutput(unsigned long nowInMillis) {
     if (pos > 0) {
       targetPosition = 0;
       // TODO calc this every time? Careful of pulseguide if we move it
+      log("Tracking");
       targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(pos);
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
     } else {
@@ -219,6 +221,5 @@ double PlatformControl::getTimeToCenterInSeconds() {
 }
 
 double PlatformControl::getTimeToEndOfRunInSeconds() {
-  return model.calculateTimeToEndOfRunInSeconds(
-      stepperWrapper->getPosition());
+  return model.calculateTimeToEndOfRunInSeconds(stepperWrapper->getPosition());
 }

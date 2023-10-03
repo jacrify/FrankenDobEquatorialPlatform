@@ -67,6 +67,7 @@ void MotorUnit::setupMotor() {
     uint32_t savedPosition = preferences.getUInt(PREF_SAVED_POS_KEY, 0);
     log("Loaded saved position %d", savedPosition);
     stepper->setCurrentPosition(savedPosition);
+    stepper->moveTo(savedPosition+10000,model.getRewindFastFowardSpeed());
   }
   ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper();
   wrapper->setStepper(stepper);
