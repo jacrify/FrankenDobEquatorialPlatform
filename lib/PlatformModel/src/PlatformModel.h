@@ -18,6 +18,8 @@ public:
   // set distance in mm
   void setLimitSwitchToMiddleDistance(int pos);
   void setRewindFastFowardSpeedInHz(int speed);
+  void setNunChukMultiplier(int m);
+  int getNunChukMultiplier();
   int32_t getLimitSwitchSafetyStandoffPosition();
 
   uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition);

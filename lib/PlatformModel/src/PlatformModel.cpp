@@ -27,6 +27,8 @@ double greatCircleRadius;
 #define microsteps 16
 #define threadedRodPitch 2 // mm
 
+int nunchukMultipler;
+
 const double fullRotation =
     2 * M_PI; // M_PI is the value for pi from the cmath library
 const double fullRotationTimeInSeconds = 24 * 60 * 60;
@@ -194,6 +196,9 @@ void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
 
   rewindFastForwardSpeedDegreesSec = anglePerSec * (180.0 / M_PI);
 }
+
+int PlatformModel::getNunChukMultiplier() { return nunchukMultipler; }
+void PlatformModel::setNunChukMultiplier(int m) { nunchukMultipler = m; }
 
 // how far back from limt switch to slow down
 int32_t PlatformModel::getLimitSwitchSafetyStandoffPosition() {
