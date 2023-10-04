@@ -1,7 +1,7 @@
 
 #include "Logging.h"
-#include "PlatformControl.h"
-#include "PlatformModel.h"
+#include "PlatformDynamic.h"
+#include "PlatformStatic.h"
 #include <cstdint>
 
 #include "StepperWrapper.h"
@@ -16,7 +16,7 @@ void test_timetomiddle_calc(void) {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
@@ -55,7 +55,7 @@ void test_speed_calc(void) {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
@@ -111,7 +111,7 @@ void test_speed_calc(void) {
       "than  62mm value of 119461");
 }
 void test_rewind_fast_forward_speed_calc() {
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(62);
   model.setRewindFastFowardSpeedInHz(30000);
@@ -157,15 +157,15 @@ void testGotoMiddleBasic() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
-  When(stepper.getPosition).Return(model.getMiddlePosition()-100);
+  When(stepper.getPosition).Return(model.getMiddlePosition() - 100);
   // test going to middle
   control.setLimitSwitchState(false);
   control.gotoMiddle();
@@ -199,12 +199,12 @@ void testGotoMiddleLimitSwitch() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to middle
@@ -239,12 +239,12 @@ void testGotoMiddleAtMiddle() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to middle, when at middle
@@ -280,12 +280,12 @@ void testGotoMiddleAtMiddleResumeTracking() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to middle, when at middle. Tracking should restart
@@ -318,12 +318,12 @@ void testGotoStartBasic() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to start
@@ -358,12 +358,12 @@ void testGotoStartLimit() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to start when limit hit
@@ -392,12 +392,12 @@ void testGotoStartLimitTracking() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to start when limit hit
@@ -433,12 +433,12 @@ void testGotoEndBasic() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to end
@@ -474,12 +474,12 @@ void testGotoEndLimitHit() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to end
@@ -515,12 +515,12 @@ void testGotoEndAtEndWithTracking() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to end
@@ -532,8 +532,8 @@ void testGotoEndAtEndWithTracking() {
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getEndStandOffPosition()
-                                     , control.getTargetPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getEndStandOffPosition(),
+                                  control.getTargetPosition(),
                                   "Target Position should be endish");
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
                                   control.getTargetSpeedInMilliHz(),
@@ -557,20 +557,20 @@ void testMoveAxisPositive() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test moveaxis
   control.setLimitSwitchState(false);
   control.setTrackingOnOff(false);
   When(stepper.getPosition).Return(model.getMiddlePosition());
-  //positive is east, away from tracking direction
-   control.moveAxis(0.004178);
+  // positive is east, away from tracking direction
+  control.moveAxis(0.004178);
   //  sidereal
   control.calculateOutput();
 
@@ -605,8 +605,7 @@ void testMoveAxisPositive() {
     control.calculateOutput();
 
     Verify(stepper.moveTo).Times(3);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0,
-                                  control.getTargetPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
                                   "Target Position should be end");
     // TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
     //                              model.getLimitPosition(),
@@ -650,12 +649,12 @@ void testOffsetAccumulation() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to middle
@@ -703,12 +702,12 @@ void testGotoStartSafety() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformModel model;
+  PlatformStatic model;
   model.setGreatCircleRadius(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformControl control = PlatformControl(model);
+  PlatformDynamic control = PlatformDynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to start

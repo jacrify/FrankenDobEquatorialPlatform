@@ -1,13 +1,13 @@
 #ifndef MOTORUNIT_H
 #define MOTORUNIT_H
 
-#include "PlatformModel.h"
-#include "PlatformControl.h"
+#include "PlatformDynamic.h"
+#include "PlatformStatic.h"
 #include <Preferences.h>
 
 class MotorUnit {
 public:
-  MotorUnit(PlatformModel &model, PlatformControl &c,Preferences &p);
+  MotorUnit(PlatformStatic &model, PlatformDynamic &c, Preferences &p);
 
   void setupMotor();
   void onLoop();
@@ -18,11 +18,10 @@ public:
   void setAcceleration(unsigned long a);
 
 private:
-  PlatformModel &model;
-  PlatformControl &control;
+  PlatformStatic &model;
+  PlatformDynamic &control;
   Preferences &preferences;
   unsigned long acceleration;
-  
 };
 
 #endif

@@ -3,8 +3,8 @@
 #include <ESPAsyncWebServer.h>
 // #include "DigitalCaliper.h"
 #include "MotorUnit.h"
-#include "PlatformModel.h"
-#include "PlatformControl.h"
+#include "PlatformDynamic.h"
+#include "PlatformStatic.h"
 #include <Preferences.h>
 
 #define PREF_CIRCLE_KEY "cr"
@@ -20,12 +20,12 @@
 #define DEFAULT_RA_GUIDE 0.5
 
 #define DEFAULT_SPEED 30000
-//this is in hz. In millihz this would be 30,000,000
+// this is in hz. In millihz this would be 30,000,000
 #define DEFAULT_MIDDLE_DISTANCE 62
 // This value is the tuned value
 #define DEFAULT_CIRCLE_RADIUS 448.0
 // 482.5; // And this is the value by design in 3d model
 
-
-void setupWebServer(MotorUnit &motor,PlatformModel &model,PlatformControl &control,Preferences &prefs);
+void setupWebServer(MotorUnit &motor, PlatformStatic &model,
+                    PlatformDynamic &control, Preferences &prefs);
 #endif

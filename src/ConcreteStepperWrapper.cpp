@@ -8,11 +8,9 @@ void ConcreteStepperWrapper::setStepper(FastAccelStepper *s) { stepper = s; }
 
 void ConcreteStepperWrapper::resetPosition(int32_t position) {
   stepper->setCurrentPosition(position);
-  // log("Resetting position to %ld",position);
 }
 
 void ConcreteStepperWrapper::stop() {
-  // log("Stopping");
   stepper->stopMove();
   // stops flash getting hammered by braking. Assumes stop called every loop.
   if (stepper->getCurrentSpeedInMilliHz() == 0) {
@@ -46,6 +44,4 @@ void ConcreteStepperWrapper::moveTo(int32_t position, uint32_t speedInMillihz) {
 
     stepper->moveTo(position);
   }
-  // log("Concrete Move called to pos %ld at speed %lu", position,
-  //     speedInMillihz);
 }

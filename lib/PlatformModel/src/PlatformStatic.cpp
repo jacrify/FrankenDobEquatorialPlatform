@@ -1,4 +1,4 @@
-#include "PlatformModel.h"
+#include "PlatformStatic.h"
 // #include "Logging.h"
 #include "Logging.h"
 #include <Math.h>
@@ -63,11 +63,9 @@ double stepsPerMM =
     (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
     (teethOnStepperPulley * threadedRodPitch);
 
+void PlatformStatic::setupModel() {}
 
-
-void PlatformModel::setupModel() {}
-
-double PlatformModel::calculateTimeToEndOfRunInSeconds(
+double PlatformStatic::calculateTimeToEndOfRunInSeconds(
     int32_t stepperCurrentPosition) {
   int32_t endToMiddleInMM =
       limitSwitchToEndDistance - limitSwitchToMiddleDistance;
@@ -78,7 +76,7 @@ double PlatformModel::calculateTimeToEndOfRunInSeconds(
 // work out how long it will be until we are at center. If we've passed center
 // will be negative.
 double
-PlatformModel::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
+PlatformStatic::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
   int middle = getMiddlePosition();
   // note this calculation is the other way around from
   // calculateFowardSpeedInMilliHz:
@@ -99,21 +97,21 @@ PlatformModel::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
 }
 
 // returns max drive speed in degrees per second
-double PlatformModel::getMaxAxisMoveRateDegreesSec() {
+double PlatformStatic::getMaxAxisMoveRateDegreesSec() {
   return rewindFastForwardSpeedDegreesSec;
 }
 
-double PlatformModel::getMinAxisMoveRateDegreesSec() {
+double PlatformStatic::getMinAxisMoveRateDegreesSec() {
   return sideRealArcSecondsPerSec / 3600.0 / 4.0;
 }
 
 uint32_t
-PlatformModel::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
+PlatformStatic::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
   return calculateFowardSpeedInMilliHz(stepperCurrentPosition,
                                        sideRealArcSecondsPerSec);
 }
 
-uint32_t PlatformModel::calculateFowardSpeedInMilliHz(
+uint32_t PlatformStatic::calculateFowardSpeedInMilliHz(
     int stepperCurrentPosition, double desiredArcSecondsPerSecond) {
 
   int middle = getMiddlePosition();
@@ -150,45 +148,45 @@ uint32_t PlatformModel::calculateFowardSpeedInMilliHz(
   return stepperSpeedInMilliHertz;
 }
 
-double PlatformModel::getGreatCircleRadius() { return greatCircleRadius; }
+double PlatformStatic::getGreatCircleRadius() { return greatCircleRadius; }
 
-void PlatformModel::setGreatCircleRadius(double radius) {
+void PlatformStatic::setGreatCircleRadius(double radius) {
   greatCircleRadius = radius;
 }
 
-void PlatformModel::setRaGuideRateMultiplier(double d) {
+void PlatformStatic::setRaGuideRateMultiplier(double d) {
   raGuideRateMultiplier = d;
   raGuideRateInArcSecondsSecond = sideRealArcSecondsPerSec * d;
   log("guide rate set: %lf arc secs per sec, or %lf x sidereal",
       raGuideRateInArcSecondsSecond, raGuideRateMultiplier);
 }
 
-double PlatformModel::getStepsPerMM() { return stepsPerMM; }
+double PlatformStatic::getStepsPerMM() { return stepsPerMM; }
 
-int32_t PlatformModel::getMiddlePosition() {
+int32_t PlatformStatic::getMiddlePosition() {
   return (limitSwitchToEndDistance - limitSwitchToMiddleDistance) * stepsPerMM;
 }
 
-void PlatformModel::setLimitSwitchToMiddleDistance(int pos) {
+void PlatformStatic::setLimitSwitchToMiddleDistance(int pos) {
   limitSwitchToMiddleDistance = pos;
 }
 
-int PlatformModel::getLimitSwitchToMiddleDistance() {
+int PlatformStatic::getLimitSwitchToMiddleDistance() {
   return limitSwitchToMiddleDistance;
 }
 
 // Limit position is highest. Then it counts down to zero at end.
 // this  is expressed in microsteps
-int32_t PlatformModel::getLimitPosition() {
+int32_t PlatformStatic::getLimitPosition() {
   return limitSwitchToEndDistance * stepsPerMM;
 }
 
-long PlatformModel::getRewindFastFowardSpeedInMilliHz() {
+long PlatformStatic::getRewindFastFowardSpeedInMilliHz() {
   return rewindFastFowardSpeed * 1000;
 }
-int PlatformModel::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
+int PlatformStatic::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
 
-void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
+void PlatformStatic::setRewindFastFowardSpeedInHz(int speedInHz) {
   // log("updating speed to %d",speed);
   rewindFastFowardSpeed = speedInHz;
 
@@ -203,35 +201,34 @@ void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
   rewindFastForwardSpeedDegreesSec = anglePerSec * (180.0 / M_PI);
 }
 
-int PlatformModel::getNunChukMultiplier() { return nunchukMultipler; }
-void PlatformModel::setNunChukMultiplier(int m) { nunchukMultipler = m; }
+int PlatformStatic::getNunChukMultiplier() { return nunchukMultipler; }
+void PlatformStatic::setNunChukMultiplier(int m) { nunchukMultipler = m; }
 
 // how far back from limt switch to slow down
-int32_t PlatformModel::getLimitSwitchSafetyStandoffPosition() {
+int32_t PlatformStatic::getLimitSwitchSafetyStandoffPosition() {
   return getLimitPosition() - (LIMITSWITCHSAFETYSTANDOFFMM * getStepsPerMM());
 }
 
-int32_t PlatformModel::getEndStandOffPosition()
-{
-  return stepsPerMM*END_STANDOFF_MM;
+int32_t PlatformStatic::getEndStandOffPosition() {
+  return stepsPerMM * END_STANDOFF_MM;
 }
 
-double PlatformModel::getTrackingRateArcsSecondsSec() {
+double PlatformStatic::getTrackingRateArcsSecondsSec() {
   return sideRealArcSecondsPerSec;
 }
 
-double PlatformModel::getTrackingRateDegreesSec() {
+double PlatformStatic::getTrackingRateDegreesSec() {
   return sideRealArcSecondsPerSec / 3600.0;
 }
 
-double PlatformModel::getRaGuideRateMultiplier() {
+double PlatformStatic::getRaGuideRateMultiplier() {
   return raGuideRateMultiplier;
 }
 
-double PlatformModel::getRAGuideRateDegreesSec() {
+double PlatformStatic::getRAGuideRateDegreesSec() {
   return raGuideRateInArcSecondsSecond / 3600.0;
 }
-double PlatformModel::getRAGuideRateArcSecondsSecond() {
+double PlatformStatic::getRAGuideRateArcSecondsSecond() {
   return raGuideRateInArcSecondsSecond;
 }
 /**
@@ -240,7 +237,7 @@ double PlatformModel::getRAGuideRateArcSecondsSecond() {
  * to move to that would take the designated number of milliseconds
  * to reach. Acceleration is assumed to be instant.
  */
-int32_t PlatformModel::calculatePulseGuideTargetPosition(
+int32_t PlatformStatic::calculatePulseGuideTargetPosition(
     int direction, long pulseDurationInMilliseconds,
     int32_t stepperCurrentPosition) {
   // Direction is either  2 = guideEast, 3 = guideWest.

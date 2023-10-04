@@ -2,8 +2,9 @@
 #define UDPSENDER
 
 #include "MotorUnit.h"
-#include "PlatformControl.h"
-#include "PlatformModel.h"
-void broadcastStatus(MotorUnit &motorUnit, PlatformModel &model,PlatformControl &control);
+#include "PlatformDynamic.h"
+#include "PlatformStatic.h"
+void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
+                     PlatformDynamic &control);
 
 #endif

@@ -1,29 +1,29 @@
-#include "PlatformControl.h"
+#include "PlatformDynamic.h"
 #include "Logging.h"
 #include <cmath>
-void PlatformControl::setLimitSwitchState(bool state) {
+void PlatformDynamic::setLimitSwitchState(bool state) {
   limitSwitchState = state;
 }
 
-void PlatformControl::setPlayButtonState(bool state) {
+void PlatformDynamic::setPlayButtonState(bool state) {
   playButtonState = state;
 }
 
-void PlatformControl::setRewindButtonState(bool state) {
+void PlatformDynamic::setRewindButtonState(bool state) {
   rewindButtonState = state;
 }
 
-void PlatformControl::setFastForwardButtonState(bool state) {
+void PlatformDynamic::setFastForwardButtonState(bool state) {
   fastForwardButtonState = state;
 }
 
-void PlatformControl::setSafetyMode(bool s) { safetyMode = s; }
+void PlatformDynamic::setSafetyMode(bool s) { safetyMode = s; }
 
-void PlatformControl::setTrackingOnOff(bool t) { trackingOn = t; }
+void PlatformDynamic::setTrackingOnOff(bool t) { trackingOn = t; }
 
-bool PlatformControl::isTrackingOn() { return trackingOn; }
+bool PlatformDynamic::isTrackingOn() { return trackingOn; }
 
-long PlatformControl::calculateOutput() {
+long PlatformDynamic::calculateOutput() {
 
   // Pulseguide command has been queued. Apply new motor
   // speed, and ask client to call back after pulseguide milliseconds.
@@ -107,21 +107,21 @@ long PlatformControl::calculateOutput() {
   return 0;
 }
 
-void PlatformControl::gotoMiddle() {
+void PlatformDynamic::gotoMiddle() {
   targetPosition = model.getMiddlePosition();
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
 }
 
-void PlatformControl::gotoEndish() {
+void PlatformDynamic::gotoEndish() {
   targetPosition = model.getEndStandOffPosition();
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
 }
 
-void PlatformControl::gotoStart() {
+void PlatformDynamic::gotoStart() {
   // should run until limit switch hit
   targetPosition = model.getLimitSwitchSafetyStandoffPosition();
   int32_t limitPos = model.getLimitPosition();
@@ -134,19 +134,19 @@ void PlatformControl::gotoStart() {
   isMoveQueued = true;
 }
 
-int32_t PlatformControl::getTargetPosition() { return targetPosition; }
+int32_t PlatformDynamic::getTargetPosition() { return targetPosition; }
 
-uint32_t PlatformControl::getTargetSpeedInMilliHz() {
+uint32_t PlatformDynamic::getTargetSpeedInMilliHz() {
   return targetSpeedInMilliHz;
 }
 
-double PlatformControl::getPlatformResetOffset() { return platformResetOffset; }
+double PlatformDynamic::getPlatformResetOffset() { return platformResetOffset; }
 
-void PlatformControl::setStepperWrapper(StepperWrapper *wrapper) {
+void PlatformDynamic::setStepperWrapper(StepperWrapper *wrapper) {
   stepperWrapper = wrapper;
 }
 
-PlatformControl::PlatformControl(PlatformModel &m) : model(m) {
+PlatformDynamic::PlatformDynamic(PlatformStatic &m) : model(m) {
   isMoveQueued = false;
   isExecutingMove = false;
   trackingOn = false;
@@ -154,7 +154,7 @@ PlatformControl::PlatformControl(PlatformModel &m) : model(m) {
   pulseGuideDurationMillis = 0;
 }
 
-void PlatformControl::pulseGuide(int direction,
+void PlatformDynamic::pulseGuide(int direction,
                                  long pulseDurationInMilliseconds) {
   // if not tracking, do nothing
   if (trackingOn) {
@@ -205,12 +205,12 @@ void PlatformControl::pulseGuide(int direction,
   }
 }
 
-void PlatformControl::stop() {
+void PlatformDynamic::stop() {
   isExecutingMove = false;
   stopMove = true;
 }
 
-void PlatformControl::moveAxis(double degreesPerSecond) {
+void PlatformDynamic::moveAxis(double degreesPerSecond) {
 
   log("Incoming movexis command speed %lf", degreesPerSecond);
   if (degreesPerSecond == 0) {
@@ -245,7 +245,7 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
  * per second value and do moveaxis. Currently considers percentage
  * as a % of tracking rate.
  */
-void PlatformControl::moveAxisPercentage(int percentage) {
+void PlatformDynamic::moveAxisPercentage(int percentage) {
   log("Received moveaxispercentage with value %d", percentage);
   if (percentage == 0) {
     moveAxis(0);
@@ -259,10 +259,10 @@ void PlatformControl::moveAxisPercentage(int percentage) {
   moveAxis(degreesPerSecond);
 };
 
-double PlatformControl::getTimeToCenterInSeconds() {
+double PlatformDynamic::getTimeToCenterInSeconds() {
   return model.calculateTimeToCenterInSeconds(stepperWrapper->getPosition());
 }
 
-double PlatformControl::getTimeToEndOfRunInSeconds() {
+double PlatformDynamic::getTimeToEndOfRunInSeconds() {
   return model.calculateTimeToEndOfRunInSeconds(stepperWrapper->getPosition());
 }

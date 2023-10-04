@@ -2,6 +2,10 @@
 #define __STEPPERWRAPPER_H__
 #include <cstdint>
 
+/**
+ * A simple wrapper of stepper based function.
+ * Used in unit tests to mock.
+*/
 class StepperWrapper {
 public:
 

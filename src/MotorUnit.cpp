@@ -1,8 +1,8 @@
 #include "MotorUnit.h"
 #include "ConcreteStepperWrapper.h"
 #include "Logging.h"
-#include "PlatformControl.h"
-#include "PlatformModel.h"
+#include "PlatformDynamic.h"
+#include "PlatformStatic.h"
 #include <Arduino.h>
 #include <Bounce2.h>
 #include <FastAccelStepper.h>
@@ -32,10 +32,10 @@ Bounce bounceRewind = Bounce();
 Bounce bouncePlay = Bounce();
 Bounce bounceLimit = Bounce();
 
-MotorUnit::MotorUnit(PlatformModel &m, PlatformControl &c, Preferences &p)
+MotorUnit::MotorUnit(PlatformStatic &m, PlatformDynamic &c, Preferences &p)
     : model(m), control(c), preferences(p) {
 
-  // control = PlatformControl(ConcreteStepperWrapper(stepper), model);
+  // control = PlatformStatic(ConcreteStepperWrapper(stepper), model);
 }
 
 void MotorUnit::setupMotor() {

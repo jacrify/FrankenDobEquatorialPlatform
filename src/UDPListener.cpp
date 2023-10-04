@@ -3,23 +3,22 @@
 #include "Logging.h"
 #include <ArduinoJson.h>
 
-
 AsyncUDP dscUDP;
 #define IPBROADCASTPORT 50375
 /**
  * Listen for UDP broadcasts from Digital Setting Circles.
  * This is used for alpaca commands passed from DSC.
  */
-void setupUDPListener(MotorUnit &motor,PlatformControl &control) {
+void setupUDPListener(MotorUnit &motor, PlatformDynamic &control) {
   if (dscUDP.listen(IPBROADCASTPORT)) {
     log("Listening for dsc platform broadcasts");
-    dscUDP.onPacket([&motor,&control](AsyncUDPPacket packet) {
+    dscUDP.onPacket([&motor, &control](AsyncUDPPacket packet) {
       unsigned long now = millis();
       String start = packet.readStringUntil(':');
       // log("UDP Broadcast received: %s", msg.c_str());
 
       // Check if the broadcast is from EQ Platform
-      if (start=="EQ") {
+      if (start == "EQ") {
         // msg = msg.substring(4);
         log("Got payload from dsc");
 
@@ -31,14 +30,13 @@ void setupUDPListener(MotorUnit &motor,PlatformControl &control) {
         // Deserialize the JSON payload
         DeserializationError error = deserializeJson(doc, packet);
         if (error) {
-          log("Failed to parse payload with error %s",
-              error.c_str());
+          log("Failed to parse payload with error %s", error.c_str());
           return;
         }
 
         if (doc.containsKey("command") && doc.containsKey("parameter1") &&
             doc.containsKey("parameter2")) {
-          
+
           String command = doc["command"];
           double parameter1 = doc["parameter1"];
           double parameter2 = doc["parameter2"];
@@ -65,8 +63,7 @@ void setupUDPListener(MotorUnit &motor,PlatformControl &control) {
             return;
           }
           if (command == "pulseguide") {
-            control
-                .pulseGuide(parameter1, parameter2);
+            control.pulseGuide(parameter1, parameter2);
             return;
           }
 

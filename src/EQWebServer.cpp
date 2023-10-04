@@ -12,7 +12,7 @@ AsyncWebServer server(80);
 
 // TODO #8 add pulseguide speed here
 void setLimitToMiddleDistance(AsyncWebServerRequest *request,
-                              PlatformModel &model, Preferences &preferences) {
+                              PlatformStatic &model, Preferences &preferences) {
   log("/setLimitToMiddle");
   if (request->hasArg("value")) {
     String distance = request->arg("value");
@@ -29,8 +29,8 @@ void setLimitToMiddleDistance(AsyncWebServerRequest *request,
   log("No distance arg found");
 }
 
-void setNunChukMultiplier(AsyncWebServerRequest *request, PlatformModel &model,
-                         Preferences &preferences) {
+void setNunChukMultiplier(AsyncWebServerRequest *request, PlatformStatic &model,
+                          Preferences &preferences) {
   log("/setNunChukMultipler");
   if (request->hasArg("value")) {
     String nunChuk = request->arg("value");
@@ -48,7 +48,7 @@ void setNunChukMultiplier(AsyncWebServerRequest *request, PlatformModel &model,
 }
 
 void setRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
-                                  PlatformModel &model,
+                                  PlatformStatic &model,
                                   Preferences &preferences) {
   log("/setrunbackSpeed");
   if (request->hasArg("value")) {
@@ -86,7 +86,7 @@ void setAcceleration(AsyncWebServerRequest *request, Preferences &preferences,
   log("No acceleration arg found");
 }
 
-void setRAGuideRate(AsyncWebServerRequest *request, PlatformModel &model,
+void setRAGuideRate(AsyncWebServerRequest *request, PlatformStatic &model,
                     Preferences &preferences) {
 
   log("/setRAGuideRate");
@@ -106,7 +106,7 @@ void setRAGuideRate(AsyncWebServerRequest *request, PlatformModel &model,
   log("No speed arg found");
 }
 
-void setGreatCircleRadius(AsyncWebServerRequest *request, PlatformModel &model,
+void setGreatCircleRadius(AsyncWebServerRequest *request, PlatformStatic &model,
                           Preferences &preferences) {
 
   log("/setGreatCircleRadius");
@@ -126,7 +126,7 @@ void setGreatCircleRadius(AsyncWebServerRequest *request, PlatformModel &model,
 }
 
 void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
-               PlatformModel &model) {
+               PlatformStatic &model) {
   // log("/getStatus");
 
   char buffer[400];
@@ -155,8 +155,8 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
   request->send(200, "application/json", json);
 }
 
-void setupWebServer(MotorUnit &motor, PlatformModel &model,
-                    PlatformControl &control, Preferences &preferences) {
+void setupWebServer(MotorUnit &motor, PlatformStatic &model,
+                    PlatformDynamic &control, Preferences &preferences) {
 
   int rewindFastFowardSpeed =
       preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);

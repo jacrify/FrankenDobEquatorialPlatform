@@ -1,4 +1,3 @@
-// #include "DigitalCaliper.h"
 #include "ConcreteStepperWrapper.h"
 #include "EQWebServer.h"
 #include "FS.h"
@@ -6,19 +5,18 @@
 #include "MotorUnit.h"
 #include "Network.h"
 #include "OTA.h"
-#include "PlatformControl.h"
-#include "PlatformModel.h"
+#include "PlatformDynamic.h"
+#include "PlatformStatic.h"
 #include "UDPListener.h"
 #include "UDPSender.h"
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <Preferences.h>
 
-PlatformModel model;
+PlatformStatic model;
 Preferences prefs;
 
-PlatformControl control(model);
-
+PlatformDynamic control(model);
 MotorUnit motorUnit(model, control, prefs);
 
 void setup() {
@@ -30,21 +28,20 @@ void setup() {
   setupWifi(prefs);
 
   model.setupModel();
-  
+
   delay(500);
-  setupWebServer(motorUnit, model, control,prefs);
+  // order of setup matters here
+  setupWebServer(motorUnit, model, control, prefs);
 
   motorUnit.setupMotor();
 
-  setupUDPListener(motorUnit,control);
-  // don't use log() before this point
-  // setupOTA();
+  setupUDPListener(motorUnit, control);
 }
 
 void loop() {
-  // loopOTA();
   delay(100);
-  broadcastStatus(motorUnit, model,control);
+  // send status to dsc via udp
+  broadcastStatus(motorUnit, model, control);
+  // motor control loop
   motorUnit.onLoop();
-
 }

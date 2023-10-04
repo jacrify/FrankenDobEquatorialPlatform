@@ -1,6 +1,6 @@
-#ifndef __PLATFORMCONTROL_H__
-#define __PLATFORMCONTROL_H__
-#include "PlatformModel.h"
+#ifndef __PlatformStatic_H__
+#define __PlatformStatic_H__
+#include "PlatformStatic.h"
 #include "StepperWrapper.h"
 #include <cstdint>
 
@@ -14,14 +14,14 @@
  * Called in two ways: directly from webui/network, or periodically from
  * loop.
  *
- * Delegates to PlatformModel for calculations.
+ * Delegates to PlatformStatic for calculations.
  *
  * Uses StepperWrapper to send commands to motor.
  *
  */
-class PlatformControl {
+class PlatformDynamic {
 public:
-  PlatformControl(PlatformModel &m);
+  PlatformDynamic(PlatformStatic &m);
   // Input
   void setLimitSwitchState(bool state);
   void setPlayButtonState(bool state);
@@ -69,12 +69,12 @@ private:
   int32_t currentPosition;
 
   bool trackingOn;
-  
+
   int32_t targetPosition;
   uint32_t targetSpeedInMilliHz;
-  
+
   StepperWrapper *stepperWrapper;
-  PlatformModel &model;
+  PlatformStatic &model;
 
   bool isExecutingMove;
   bool isMoveQueued;
@@ -89,4 +89,4 @@ private:
   double platformResetOffset;
 };
 
-#endif // __PLATFORMCONTROL_H__
+#endif // __PlatformStatic_H__

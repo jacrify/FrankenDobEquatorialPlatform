@@ -8,7 +8,7 @@
 // Does not hold dynamic state of the platform, ie position, as that comes from
 // the motor
 
-class PlatformModel {
+class PlatformStatic {
 public:
   void setupModel();
 

@@ -4,6 +4,11 @@
 #include "FastAccelStepper.h"
 #include "StepperWrapper.h"
 #include <Preferences.h>
+
+/**
+ * A contrete wrapper class around FastAccelStepper.
+ * This allows native unit testing of stepper control via StepperWrapper
+*/
 class ConcreteStepperWrapper : public StepperWrapper {
 
 public:
