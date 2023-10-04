@@ -126,7 +126,7 @@ void MotorUnit::onLoop() {
   int32_t pos = stepper->getCurrentPosition();
 
   if (isFastForwardJustPushed()) {
-    if (pos < model.getMiddlePosition())
+    if (pos <= model.getMiddlePosition())
       control.gotoEndish();
     else
       control.gotoMiddle();
@@ -135,7 +135,7 @@ void MotorUnit::onLoop() {
     control.stop();
   }
   if (isRewindJustPushed()) {
-    if (pos > model.getMiddlePosition())
+    if (pos >= model.getMiddlePosition())
       control.gotoStart();
     else
       control.gotoMiddle();
