@@ -215,7 +215,7 @@ double PlatformModel::getTrackingRateDegreesSec() {
 }
 
 double PlatformModel::getRAGuideRateDegreesSec() {
-  return raGuideRateInArcSecondsSecond * 3600;
+  return raGuideRateInArcSecondsSecond / 3600.0;
 }
 double PlatformModel::getRAGuideRateArcSecondsSecond() {
   return raGuideRateInArcSecondsSecond;
