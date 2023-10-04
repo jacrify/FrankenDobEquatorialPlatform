@@ -13,7 +13,7 @@
 #define RA_GUIDE_KEY "raguide"
 #define ACCEL_KEY "accel"
 
-#define NUNCHUK_MULIPLIER_KEY "nunchukmultiplier"
+#define NUNCHUK_MULIPLIER_KEY "ncmult"
 #define DEFAULT_NUNCHUK_MULIPLIER 2
 
 #define DEFAULT_ACCEL 100000
