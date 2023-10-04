@@ -5,6 +5,7 @@
     <title>Your Web Page</title>
     <script src="/jquery3.6.0.min.js"></script>
 </head>
+
 <body>
     <label for="runbackSpeed">RunBack Speed (hz)</label>
     <input type="number" id="runbackSpeed"><br />
@@ -15,6 +16,10 @@
     <label for="limitToMiddleDistance">Limit To Middle Distance (mm)</label>
     <input type="number" id="limitToMiddleDistance"><br />
 
+
+    <label for="raGuideRate">RA Guide Sidereal Multiplier</label>
+    <input type="number" id="raGuideRate"><br />
+
     <label for="position">Position (mm):</label>
     <span id="position">0</span><br />
     <label for="velocity">Velocity (mm/minute):</label>
@@ -24,12 +29,12 @@
     <button id="park">Park (end-5m)</button>
     <br>
     <a href="/chart.htm">Speed vs position chart</a>
-    
+
     <script>
         var previousPosition = -1;
 
         function update() {
-            console.log("Update");          
+            console.log("Update");
 
             $.getJSON("/getStatus").done(function (data) {
                 console.log("Runback val: ", data.runbackSpeed);
@@ -44,6 +49,11 @@
                 if (!$("#greatCircleRadius").is(":focus")) {
                     $("#greatCircleRadius").val(data.greatCircleRadius);
                 }
+
+                if (!$("#raGuideRate").is(":focus")) {
+                    $("#raGuideRate").val(data.raGuideRate);
+                }
+
 
                 $("#position").text(data.position);
                 $("#velocity").text(data.velocity);
@@ -67,7 +77,7 @@
             chart.update();
         });
 
-        $("#runbackSpeed, #limitToMiddleDistance, #greatCircleRadius").change(function () {
+        $("#runbackSpeed, #limitToMiddleDistance, #greatCircleRadius,#raGuideRate").change(function () {
             $.post("/" + $(this).attr('id'), { value: $(this).val() });
         });
         setInterval(update, 1000);

@@ -13,14 +13,14 @@ public:
   void setupModel();
 
   void setGreatCircleRadius(double r);
-  void setRAGuideRateArcSecondsPerSecond(double arcSecsPerSecond);
+  // void setRAGuideRateArcSecondsPerSecond(double arcSecsPerSecond);
+  void setRaGuideRateMultiplier(double d);
   // set distance in mm
   void setLimitSwitchToMiddleDistance(int pos);
   void setRewindFastFowardSpeedInHz(int speed);
   int32_t getLimitSwitchSafetyStandoffPosition();
 
-      uint32_t
-      calculateFowardSpeedInMilliHz(int stepperCurrentPosition);
+  uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition);
   uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition,
                                          double desiredArcSecondsPerSecond);
   double calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition);
@@ -29,7 +29,7 @@ public:
                                             long pulseDurationInMilliseconds,
                                             int32_t stepperCurrentPosition);
 
-  double getGreatCircleRadius();  
+  double getGreatCircleRadius();
   double getStepsPerMM();
   double getMaxAxisMoveRateDegreesSec();
   double getMinAxisMoveRateDegreesSec();
@@ -37,13 +37,14 @@ public:
   double getRAGuideRateArcSecondsSecond();
   double getTrackingRateArcsSecondsSec();
   double getTrackingRateDegreesSec();
+  double getRaGuideRateMultiplier();
   // get distance in mm
   int getLimitSwitchToMiddleDistance();
   // get position of limit, in steps
   int32_t getLimitPosition();
   // get position of middle, in steps
   int32_t getMiddlePosition();
-  //TODO make unint32
+  // TODO make unint32
   long getRewindFastFowardSpeedInMilliHz();
   int getRewindFastFowardSpeed(); // hz
 

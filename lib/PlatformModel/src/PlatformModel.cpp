@@ -37,6 +37,7 @@ int32_t limitSwitchToEndDistance = 130; // length of run in mm
 int32_t limitSwitchToMiddleDistance;
 
 double raGuideRateInArcSecondsSecond;
+double raGuideRateMultiplier;
 // double raGuideRateDegreesSec;
 
 // speed in hz
@@ -55,7 +56,6 @@ double stepsPerMM =
 // const int stepsPerRevolution = 200;
 // how far back from limt switch to slow down in mm
 #define LIMITSWITCHSAFETYSTANDOFFMM 2
-
 
 void PlatformModel::setupModel() {}
 
@@ -148,6 +148,13 @@ void PlatformModel::setGreatCircleRadius(double radius) {
   greatCircleRadius = radius;
 }
 
+void PlatformModel::setRaGuideRateMultiplier(double d) {
+  raGuideRateMultiplier = d;
+  raGuideRateInArcSecondsSecond = sideRealArcSecondsPerSec * d;
+  log("guide rate set: %lf arc secs per sec, or %lf x sidereal",
+      raGuideRateInArcSecondsSecond, raGuideRateMultiplier);
+}
+
 double PlatformModel::getStepsPerMM() { return stepsPerMM; }
 
 int32_t PlatformModel::getMiddlePosition() {
@@ -188,22 +195,9 @@ void PlatformModel::setRewindFastFowardSpeedInHz(int speedInHz) {
   rewindFastForwardSpeedDegreesSec = anglePerSec * (180.0 / M_PI);
 }
 
-//how far back from limt switch to slow down
+// how far back from limt switch to slow down
 int32_t PlatformModel::getLimitSwitchSafetyStandoffPosition() {
   return getLimitPosition() - (LIMITSWITCHSAFETYSTANDOFFMM * getStepsPerMM());
-}
-
-void PlatformModel::setRAGuideRateArcSecondsPerSecond(
-    double arcSecondsPerSecond) {
-  raGuideRateInArcSecondsSecond = arcSecondsPerSecond;
-  // raGuideRateDegreesSec =
-  //     degreesPerSecond;
-  // double radiansPerSecond = degreesPerSecond * (M_PI / 180.0);
-  // double rodTurnsPerSec =
-  //     atan(radiansPerSecond * greatCircleRadius) / threadedRodPitch;
-  // raGuideRateInMilliHz = 1000 * rodTurnsPerSec * rodStepperRatio *
-  //                        stepperStepsPerRevolution * microsteps;
-  log("guide rate set: %lf arc secs per sec", raGuideRateInArcSecondsSecond);
 }
 
 double PlatformModel::getTrackingRateArcsSecondsSec() {
@@ -212,6 +206,10 @@ double PlatformModel::getTrackingRateArcsSecondsSec() {
 
 double PlatformModel::getTrackingRateDegreesSec() {
   return sideRealArcSecondsPerSec / 3600.0;
+}
+
+double PlatformModel::getRaGuideRateMultiplier() {
+  return raGuideRateMultiplier;
 }
 
 double PlatformModel::getRAGuideRateDegreesSec() {
