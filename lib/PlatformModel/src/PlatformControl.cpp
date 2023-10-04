@@ -164,16 +164,24 @@ void PlatformControl::pulseGuide(int direction,
     // If 2 then returned value will be higher than stepperCurrentPosition
     // If 3 then return value will be lower.
     double targetSpeedInArcSecsSec = model.getTrackingRateArcsSecondsSec();
+    log("Target guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+    log("Model RA guide rate %lf ", model.getRAGuideRateArcSecondsSecond());
     // NOTE: this assumes target speed will be positive
-    if (direction == 3) // west: go faster
+    if (direction == 3) { // west: go faster {}
       targetSpeedInArcSecsSec += model.getRAGuideRateArcSecondsSecond();
-
-    if (direction == 2) // east: go slower
+      log("Adjusted W guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+    }
+    if (direction == 2) { // east: go slower
       targetSpeedInArcSecsSec -= model.getRAGuideRateArcSecondsSecond();
-
-    targetSpeedInMilliHz =
-        model.calculateFowardSpeedInMilliHz(targetSpeedInArcSecsSec);
+      log("Adjusted E guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+    }
+    targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
+        stepperWrapper->getPosition(), targetSpeedInArcSecsSec);
+        
     pulseGuideDurationMillis = pulseDurationInMilliseconds;
+    log("Pulseguiding %s for %ld ms at speed %lu",
+        direction == 3 ? "West" : "East", pulseDurationInMilliseconds,
+        targetSpeedInMilliHz);
 
     // // divide by 1000 to get hz, then 1000 to get seconds.
     // // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
