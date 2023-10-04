@@ -27,6 +27,14 @@ double greatCircleRadius;
 #define microsteps 16
 #define threadedRodPitch 2 // mm
 
+// const int stepsPerRevolution = 200;
+// how far back from limt switch to slow down in mm
+#define LIMITSWITCHSAFETYSTANDOFFMM 2
+
+// how far to stop when moving to end.
+// 10 mm=approx 5 minutes
+#define END_STANDOFF_MM 10
+
 int nunchukMultipler;
 
 const double fullRotation =
@@ -55,9 +63,7 @@ double stepsPerMM =
     (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
     (teethOnStepperPulley * threadedRodPitch);
 
-// const int stepsPerRevolution = 200;
-// how far back from limt switch to slow down in mm
-#define LIMITSWITCHSAFETYSTANDOFFMM 2
+
 
 void PlatformModel::setupModel() {}
 
@@ -203,6 +209,11 @@ void PlatformModel::setNunChukMultiplier(int m) { nunchukMultipler = m; }
 // how far back from limt switch to slow down
 int32_t PlatformModel::getLimitSwitchSafetyStandoffPosition() {
   return getLimitPosition() - (LIMITSWITCHSAFETYSTANDOFFMM * getStepsPerMM());
+}
+
+int32_t PlatformModel::getEndStandOffPosition()
+{
+  return stepsPerMM*END_STANDOFF_MM;
 }
 
 double PlatformModel::getTrackingRateArcsSecondsSec() {

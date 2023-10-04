@@ -21,6 +21,7 @@ public:
   void setNunChukMultiplier(int m);
   int getNunChukMultiplier();
   int32_t getLimitSwitchSafetyStandoffPosition();
+  int32_t getEndStandOffPosition();
 
   uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition);
   uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition,
