@@ -59,6 +59,11 @@ void setupUDPListener(MotorUnit &motor,PlatformControl &control) {
             control.moveAxis(parameter1);
             return;
           }
+
+          if (command == "moveaxispercentage") {
+            control.moveAxisPercentage(parameter1);
+            return;
+          }
           if (command == "pulseguide") {
             control
                 .pulseGuide(parameter1, parameter2);

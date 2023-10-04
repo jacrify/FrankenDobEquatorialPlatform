@@ -47,6 +47,7 @@ public:
 
   void pulseGuide(int direction, long pulseDurationInMilliseconds);
   void moveAxis(double degreesPerSecond);
+  void moveAxisPercentage(int percentage);
   void stop();
   void gotoMiddle();
   void gotoEndish();
