@@ -566,14 +566,15 @@ void testMoveAxisPositive() {
   control.setLimitSwitchState(false);
   control.setTrackingOnOff(false);
   When(stepper.getPosition).Return(model.getMiddlePosition());
-  control.moveAxis(0.004178);
+  //positive is east, away from tracking direction
+   control.moveAxis(0.004178);
   //  sidereal
   control.calculateOutput();
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
-                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getLimitSwitchSafetyStandoffPosition(), control.getTargetPosition(),
+                                  "Target Position should be start");
     TEST_ASSERT_EQUAL_INT_MESSAGE(
         117605, control.getTargetSpeedInMilliHz(),
         "Target speed should be some fudged version of sidereal");
@@ -587,8 +588,9 @@ void testMoveAxisPositive() {
     control.calculateOutput();
 
     Verify(stepper.moveTo).Times(2);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
-                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getLimitSwitchSafetyStandoffPosition(),
+                                  control.getTargetPosition(),
+                                  "Target Position should be start");
     TEST_ASSERT_EQUAL_INT_MESSAGE(28147, control.getTargetSpeedInMilliHz(),
                                   "Target speed should be almost 0");
 
@@ -601,9 +603,12 @@ void testMoveAxisPositive() {
     control.calculateOutput();
 
     Verify(stepper.moveTo).Times(3);
-    TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
-                                 model.getLimitPosition(),
-                             "Target Position should be start");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0,
+                                  control.getTargetPosition(),
+                                  "Target Position should be end");
+    // TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
+    //                              model.getLimitPosition(),
+    //                          "Target Position should be start");
     TEST_ASSERT_EQUAL_INT_MESSAGE(
         117605, control.getTargetSpeedInMilliHz(),
         "Target speed should be some fudge of sidereal");
@@ -617,9 +622,11 @@ void testMoveAxisPositive() {
     control.calculateOutput();
 
     Verify(stepper.moveTo).Times(4);
-    TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
-                                 model.getLimitPosition(),
-                             "Target Position should be start");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    // TEST_ASSERT_TRUE_MESSAGE(control.getTargetPosition() >
+    //                              model.getLimitPosition(),
+    //                          "Target Position should be start");
     TEST_ASSERT_EQUAL_INT_MESSAGE(235211, control.getTargetSpeedInMilliHz(),
                                   "Target speed should be double sidereal");
 

@@ -23,12 +23,11 @@ void PlatformControl::setTrackingOnOff(bool t) { trackingOn = t; }
 
 bool PlatformControl::isTrackingOn() { return trackingOn; }
 
-
 long PlatformControl::calculateOutput() {
 
-    //Pulseguide command has been queued. Apply new motor
-    //speed, and ask client to call back after pulseguide milliseconds.
-    //Second call should fall through and resume tracking speed.
+  // Pulseguide command has been queued. Apply new motor
+  // speed, and ask client to call back after pulseguide milliseconds.
+  // Second call should fall through and resume tracking speed.
   if (pulseGuideDurationMillis > 0) {
     stepperWrapper->setStepperSpeed(targetSpeedInMilliHz);
     long delay = pulseGuideDurationMillis;
@@ -40,7 +39,7 @@ long PlatformControl::calculateOutput() {
   if (limitSwitchState) {
     int32_t limitPos = model.getLimitPosition();
     stepperWrapper->resetPosition(limitPos);
-    safetyMode=false;
+    safetyMode = false;
     if (targetPosition > limitPos ||
         targetPosition == model.getLimitSwitchSafetyStandoffPosition()) {
       if (isExecutingMove) {
@@ -209,6 +208,7 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
 
   log("Incoming movexis command speed %lf", degreesPerSecond);
   if (degreesPerSecond == 0) {
+    log("Move axis target is 0 ");
     isExecutingMove = false; // loop should perform stop / resume track
     return;
   }
@@ -216,20 +216,21 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
   // If we don't do this, if rate from client is 1x sidereal and they move
   // 1x sidereal forward, stars stay stationary.
 
-  // positive is west (arbitary?)
+  // positive is east, away from tracking direction (arbitary?)
   if (trackingOn) {
     degreesPerSecond -= model.getTrackingRateDegreesSec();
   }
   targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
       stepperWrapper->getPosition(), 3600.0 * fabs(degreesPerSecond));
+  log("Move axis target speed millihz %lu", targetSpeedInMilliHz);
 
   isExecutingMove = true;
   isMoveQueued = true;
   // forward
-  if (degreesPerSecond > 0) {
+  if (degreesPerSecond < 0) {
     targetPosition = 0;
   } else {
-    targetPosition = INT32_MAX;
+    targetPosition = model.getLimitSwitchSafetyStandoffPosition();
   }
 }
 
