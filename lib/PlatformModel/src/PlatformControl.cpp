@@ -242,6 +242,24 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
   }
 }
 
+/**
+ * When passed a percentage (-100 to +100) turn this into a degrees
+ * per second value and do moveaxis. Currently considers percentage
+ * as a % of tracking rate.
+*/
+void PlatformControl::moveAxisPercentage(int percentage) {
+  log("Received moveaxispercentage with value %d",percentage);
+   if (percentage == 0) {
+    moveAxis(0);
+    return;
+  }
+  double degreesPerSecond=model.getTrackingRateDegreesSec() * (double)percentage/100.0;
+  log("Moving axis with %lf degrees sec", degreesPerSecond);
+
+  moveAxis(degreesPerSecond);
+};
+
+
 double PlatformControl::getTimeToCenterInSeconds() {
   return model.calculateTimeToCenterInSeconds(stepperWrapper->getPosition());
 }
