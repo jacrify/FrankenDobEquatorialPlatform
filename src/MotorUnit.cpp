@@ -123,14 +123,22 @@ void MotorUnit::onLoop() {
 
   control.setLimitSwitchState(isLimitSwitchHit());
 
+  int32_t pos = stepper->getCurrentPosition();
+
   if (isFastForwardJustPushed()) {
-    control.gotoEndish();
+    if (pos < model.getMiddlePosition())
+      control.gotoEndish();
+    else
+      control.gotoMiddle();
   }
   if (isFastForwardJustReleased()) {
     control.stop();
   }
   if (isRewindJustPushed()) {
-    control.gotoStart();
+    if (pos > model.getMiddlePosition())
+      control.gotoStart();
+    else
+      control.gotoMiddle();
   }
   if (isRewindJustReleased()) {
     control.stop();
