@@ -573,7 +573,7 @@ void testMoveAxisPositive() {
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getLimitSwitchSafetyStandoffPosition(), control.getTargetPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(INT32_MAX, control.getTargetPosition(),
                                   "Target Position should be start");
     TEST_ASSERT_EQUAL_INT_MESSAGE(
         117605, control.getTargetSpeedInMilliHz(),
@@ -588,8 +588,7 @@ void testMoveAxisPositive() {
     control.calculateOutput();
 
     Verify(stepper.moveTo).Times(2);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getLimitSwitchSafetyStandoffPosition(),
-                                  control.getTargetPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(INT32_MAX, control.getTargetPosition(),
                                   "Target Position should be start");
     TEST_ASSERT_EQUAL_INT_MESSAGE(28147, control.getTargetSpeedInMilliHz(),
                                   "Target speed should be almost 0");

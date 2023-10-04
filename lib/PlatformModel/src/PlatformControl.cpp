@@ -230,7 +230,7 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
   if (degreesPerSecond < 0) {
     targetPosition = 0;
   } else {
-    targetPosition = model.getLimitSwitchSafetyStandoffPosition();
+    targetPosition = INT32_MAX;
   }
 }
 
