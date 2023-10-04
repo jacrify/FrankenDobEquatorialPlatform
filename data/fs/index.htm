@@ -20,8 +20,11 @@
     <label for="raGuideRate">RA Guide Sidereal Multiplier</label>
     <input type="number" id="raGuideRate"><br />
 
-        <label for="acceleration">Acceleration</label>
-        <input type="number" id="acceleration"><br />
+    <label for="acceleration">Acceleration</label>
+    <input type="number" id="acceleration"><br />
+
+    <label for="nunchukmultipler">NunChuk Sidereal Multiplier</label>
+    <input type="number" id="nunchukmultipler"><br />
 
     <label for="position">Position (mm):</label>
     <span id="position">0</span><br />
@@ -57,10 +60,13 @@
                     $("#raGuideRate").val(data.raGuideRate);
                 }
 
-                 if (!$("#acceleration").is(":focus")) {
+                if (!$("#acceleration").is(":focus")) {
                     $("#acceleration").val(data.acceleration);
                 }
 
+                  if (!$("#nunchukmultipler").is(":focus")) {
+                    $("#nunchukmultipler").val(data.nunchukmultipler);
+                }
 
                 $("#position").text(data.position);
                 $("#velocity").text(data.velocity);
@@ -84,7 +90,7 @@
             chart.update();
         });
 
-        $("#runbackSpeed, #limitToMiddleDistance, #greatCircleRadius,#raGuideRate, #acceleration").change(function () {
+        $("#runbackSpeed, #limitToMiddleDistance, #greatCircleRadius,#raGuideRate, #acceleration, #nunchukmultipler").change(function () {
             $.post("/" + $(this).attr('id'), { value: $(this).val() });
         });
         setInterval(update, 1000);

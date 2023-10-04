@@ -29,6 +29,24 @@ void setLimitToMiddleDistance(AsyncWebServerRequest *request,
   log("No distance arg found");
 }
 
+void setNunChukMultipler(AsyncWebServerRequest *request, PlatformModel &model,
+                         Preferences &preferences) {
+  log("/setNunChukMultipler");
+  if (request->hasArg("value")) {
+    String nunChuk = request->arg("value");
+
+    int nunChukValue = nunChuk.toInt();
+    if (nunChukValue == 0 && nunChuk != "0") {
+      log("Could not parse nunchuk multiplier");
+      return;
+    }
+    model.setLimitSwitchToMiddleDistance(nunChukValue);
+    preferences.putUInt(NUNCHUK_MULIPLIER_KEY, nunChukValue);
+    return;
+  }
+  log("No Nunchuk multiplier");
+}
+
 void setRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
                                   PlatformModel &model,
                                   Preferences &preferences) {
@@ -56,7 +74,7 @@ void setAcceleration(AsyncWebServerRequest *request, Preferences &preferences,
     try {
       unsigned long accelValue = std::stoul(accel.c_str());
       motor.setAcceleration(accelValue);
-      preferences.putULong(ACCEL_KEY,accelValue);
+      preferences.putULong(ACCEL_KEY, accelValue);
       log("Acceleration value set and saved");
       return;
     } catch (const std::invalid_argument &ia) {
@@ -69,7 +87,7 @@ void setAcceleration(AsyncWebServerRequest *request, Preferences &preferences,
 }
 
 void setRAGuideRate(AsyncWebServerRequest *request, PlatformModel &model,
-                          Preferences &preferences) {
+                    Preferences &preferences) {
 
   log("/setRAGuideRate");
   if (request->hasArg("value")) {
@@ -142,8 +160,11 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
       preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
   int limitSwitchToMiddleDistance =
       preferences.getUInt(PREF_MIDDLE_KEY, DEFAULT_MIDDLE_DISTANCE);
-  int greatCircleRadius =
+  double greatCircleRadius =
       preferences.getDouble(PREF_CIRCLE_KEY, DEFAULT_CIRCLE_RADIUS);
+  int nunChukMultiplier =
+      preferences.getInt(NUNCHUK_MULIPLIER_KEY, DEFAULT_NUNCHUK_MULIPLIER);
+
   double raGuideSpeedMultiplier =
       preferences.getDouble(RA_GUIDE_KEY, DEFAULT_RA_GUIDE);
   unsigned long acceleration = preferences.getULong(ACCEL_KEY, DEFAULT_ACCEL);
@@ -152,6 +173,7 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
       rewindFastFowardSpeed, limitSwitchToMiddleDistance, greatCircleRadius,
       raGuideSpeedMultiplier, acceleration);
   // order matters here: rewind fast forward speed uses previous sets for calcs
+  model.setNunChukMultiplier(nunChukMultiplier);
   model.setRaGuideRateMultiplier(raGuideSpeedMultiplier);
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
   model.setGreatCircleRadius(greatCircleRadius);
@@ -177,6 +199,10 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
               setLimitToMiddleDistance(request, model, preferences);
             });
 
+  server.on("/nunchukmultipler", HTTP_POST,
+            [&model, &preferences](AsyncWebServerRequest *request) {
+              setNunChukMultipler(request, model, preferences);
+            });
   server.on("/acceleration", HTTP_POST,
             [&motor, &preferences](AsyncWebServerRequest *request) {
               setAcceleration(request, preferences, motor);

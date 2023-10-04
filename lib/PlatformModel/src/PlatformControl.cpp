@@ -253,7 +253,7 @@ void PlatformControl::moveAxisPercentage(int percentage) {
     moveAxis(0);
     return;
   }
-  double degreesPerSecond=model.getTrackingRateDegreesSec() * (double)percentage/100.0;
+  double degreesPerSecond=model.getNunChukMultiplier()* model.getTrackingRateDegreesSec() * (double)percentage/100.0;
   log("Moving axis with %lf degrees sec", degreesPerSecond);
 
   moveAxis(degreesPerSecond);
