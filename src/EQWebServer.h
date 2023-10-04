@@ -11,6 +11,8 @@
 #define PREF_SPEED_KEY "ff"
 #define PREF_MIDDLE_KEY "mid"
 #define RA_GUIDE_KEY "raguide"
+#define ACCEL_KEY "accel"
+#define DEFAULT_ACCEL 100000
 #define DEFAULT_RA_GUIDE 0.5
 
 #define DEFAULT_SPEED 30000
