@@ -36,7 +36,7 @@ void broadcastStatus(MotorUnit &motorUnit,PlatformModel &model,PlatformControl &
       double guideMoveRate = model.getRAGuideRateDegreesSec();
       double trackingRate = model.getTrackingRateArcsSecondsSec();
       snprintf(response, sizeof(response),
-               "EQ:{ "
+               "DSC:{ "
                "\"timeToCenter\": %.2lf, "
                "\"timeToEnd\": %.2lf, "
                "\"platformResetOffset\": %.2lf, "

@@ -19,7 +19,7 @@ void setupUDPListener(MotorUnit &motor,PlatformControl &control) {
       // log("UDP Broadcast received: %s", msg.c_str());
 
       // Check if the broadcast is from EQ Platform
-      if (start=="DSC") {
+      if (start=="EQ") {
         // msg = msg.substring(4);
         log("Got payload from dsc");
 
