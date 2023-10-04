@@ -77,11 +77,13 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
         "runbackSpeed" : %ld,
         "greatCircleRadius": %f,
         "limitToMiddleDistance":%ld,
+        "raGuideRate" : %f,
         "position" : %f,
         "velocity" : %f
       })",
           model.getRewindFastFowardSpeed(), model.getGreatCircleRadius(),
-          model.getLimitSwitchToMiddleDistance(), motor.getPositionInMM(),
+          model.getLimitSwitchToMiddleDistance(),
+          model.getRaGuideRateMultiplier(), motor.getPositionInMM(),
           motor.getVelocityInMMPerMinute());
 
   String json = buffer;
@@ -101,15 +103,18 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,PlatformControl &cont
       preferences.getUInt(PREF_MIDDLE_KEY, DEFAULT_MIDDLE_DISTANCE);
   int greatCircleRadius =
       preferences.getUInt(PREF_CIRCLE_KEY, DEFAULT_CIRCLE_RADIUS);
+  double raGuideSpeedMultiplier =
+      preferences.getDouble(RA_GUIDE_KEY, DEFAULT_RA_GUIDE);
   log("Preferences loaded for model rewindspeed: %d limitToMiddle %d radius "
-      "%d ",
-      rewindFastFowardSpeed, limitSwitchToMiddleDistance, greatCircleRadius);
+      "%d RA Guide multiplier %f",
+      rewindFastFowardSpeed, limitSwitchToMiddleDistance, greatCircleRadius,
+      raGuideSpeedMultiplier);
   //order matters here: rewind fast forward speed uses previous sets for calcs
+  model.setRaGuideRateMultiplier(raGuideSpeedMultiplier);
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
   model.setGreatCircleRadius(greatCircleRadius);
   model.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
-  model.setRAGuideRateArcSecondsPerSecond(
-      model.getTrackingRateArcsSecondsSec() * .5);
+  
   server.on("/getStatus", HTTP_GET,
             [&motor, &model](AsyncWebServerRequest *request) {
               getStatus(request, motor, model);
