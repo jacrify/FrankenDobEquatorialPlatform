@@ -23,8 +23,8 @@
     <label for="acceleration">Acceleration</label>
     <input type="number" id="acceleration"><br />
 
-    <label for="nunchukmultipler">NunChuk Sidereal Multiplier</label>
-    <input type="number" id="nunchukmultipler"><br />
+    <label for="nunChukMultiplier">NunChuk Sidereal Multiplier</label>
+    <input type="number" id="nunChukMultiplier"><br />
 
     <label for="position">Position (mm):</label>
     <span id="position">0</span><br />
@@ -64,8 +64,8 @@
                     $("#acceleration").val(data.acceleration);
                 }
 
-                  if (!$("#nunchukmultipler").is(":focus")) {
-                    $("#nunchukmultipler").val(data.nunchukmultipler);
+                  if (!$("#nunChukMultiplier").is(":focus")) {
+                    $("#nunChukMultiplier").val(data.nunChukMultiplier);
                 }
 
                 $("#position").text(data.position);
@@ -90,7 +90,7 @@
             chart.update();
         });
 
-        $("#runbackSpeed, #limitToMiddleDistance, #greatCircleRadius,#raGuideRate, #acceleration, #nunchukmultipler").change(function () {
+        $("#runbackSpeed, #limitToMiddleDistance, #greatCircleRadius,#raGuideRate, #acceleration, #nunChukMultiplier").change(function () {
             $.post("/" + $(this).attr('id'), { value: $(this).val() });
         });
         setInterval(update, 1000);
