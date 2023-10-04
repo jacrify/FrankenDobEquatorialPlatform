@@ -17,7 +17,7 @@ void test_timetomiddle_calc(void) {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -56,7 +56,7 @@ void test_speed_calc(void) {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
   log("====test_speed_calc====");
@@ -80,19 +80,19 @@ void test_speed_calc(void) {
   TEST_ASSERT_EQUAL_INT_MESSAGE(119857, speedInMilliHz,
                                 "Should be faster at limit: approx 1.8%");
 
-  model.setGreatCircleRadius(447);
+  model.setConeRadiusAtAttachmentPoint(447);
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(117344, speedInMilliHz,
                                 "Smaller great circle should be slower speed");
 
-  model.setGreatCircleRadius(449);
+  model.setConeRadiusAtAttachmentPoint(449);
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(117869, speedInMilliHz,
                                 "Larger great circle should be faster speed");
 
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(61); // smaller so closer to middle
 
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
@@ -112,7 +112,7 @@ void test_speed_calc(void) {
 }
 void test_rewind_fast_forward_speed_calc() {
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(62);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -158,7 +158,7 @@ void testGotoMiddleBasic() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -200,7 +200,7 @@ void testGotoMiddleLimitSwitch() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -240,7 +240,7 @@ void testGotoMiddleAtMiddle() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -281,7 +281,7 @@ void testGotoMiddleAtMiddleResumeTracking() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -319,7 +319,7 @@ void testGotoStartBasic() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -359,7 +359,7 @@ void testGotoStartLimit() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -393,7 +393,7 @@ void testGotoStartLimitTracking() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -434,7 +434,7 @@ void testGotoEndBasic() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -475,7 +475,7 @@ void testGotoEndLimitHit() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -516,7 +516,7 @@ void testGotoEndAtEndWithTracking() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -558,7 +558,7 @@ void testMoveAxisPositive() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -650,7 +650,7 @@ void testOffsetAccumulation() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
@@ -703,7 +703,7 @@ void testGotoStartSafety() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   PlatformStatic model;
-  model.setGreatCircleRadius(448);
+  model.setConeRadiusAtAttachmentPoint(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 

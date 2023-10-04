@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 using namespace std;
-double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
+double coneRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 
 // this is millimeters from pivot to center rod. Think of a
 // cone lying on the ground, with the axis of the cone pointing at the
@@ -16,7 +16,7 @@ double greatCircleRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 // Effectivly it drives the speed of the platform, as it is used
 // in the speeed calculations
 
-double greatCircleRadius;
+double coneRadius;
 
 #define sideRealArcSecondsPerSec 15.041
 
@@ -85,7 +85,7 @@ PlatformStatic::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
   double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
 
   double absoluteAngleMovedAtThisPoint =
-      atan(distanceFromCenterInMM / greatCircleRadius);
+      atan(distanceFromCenterInMM / coneRadius);
 
   double fractionMoved = absoluteAngleMovedAtThisPoint / fullRotation;
 
@@ -120,7 +120,7 @@ uint32_t PlatformStatic::calculateFowardSpeedInMilliHz(
   double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
 
   double absoluteAngleMovedAtThisPoint =
-      atan(distanceFromCenterInMM / greatCircleRadius);
+      atan(distanceFromCenterInMM / coneRadius);
 
   double radiansPerSecond =
       desiredArcSecondsPerSecond * (M_PI / 180.0 / 3600.0);
@@ -129,7 +129,7 @@ uint32_t PlatformStatic::calculateFowardSpeedInMilliHz(
       absoluteAngleMovedAtThisPoint + radiansPerSecond;
 
   double distanceAlongRodAfterOneMoreSecond =
-      greatCircleRadius * tan(absoluteAngleAfterOneMoreSecond);
+      coneRadius * tan(absoluteAngleAfterOneMoreSecond);
 
   double threadDistancePerSecond =
       distanceAlongRodAfterOneMoreSecond - distanceFromCenterInMM;
@@ -148,10 +148,10 @@ uint32_t PlatformStatic::calculateFowardSpeedInMilliHz(
   return stepperSpeedInMilliHertz;
 }
 
-double PlatformStatic::getGreatCircleRadius() { return greatCircleRadius; }
+double PlatformStatic::getConeRadiusAtAttachmentPoint() { return coneRadius; }
 
-void PlatformStatic::setGreatCircleRadius(double radius) {
-  greatCircleRadius = radius;
+void PlatformStatic::setConeRadiusAtAttachmentPoint(double radius) {
+  coneRadius = radius;
 }
 
 void PlatformStatic::setRaGuideRateMultiplier(double d) {
@@ -181,7 +181,7 @@ int32_t PlatformStatic::getLimitPosition() {
   return limitSwitchToEndDistance * stepsPerMM;
 }
 
-long PlatformStatic::getRewindFastFowardSpeedInMilliHz() {
+uint32_t PlatformStatic::getRewindFastFowardSpeedInMilliHz() {
   return rewindFastFowardSpeed * 1000;
 }
 int PlatformStatic::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
@@ -196,7 +196,7 @@ void PlatformStatic::setRewindFastFowardSpeedInHz(int speedInHz) {
   double rodTurnsPerSec =
       speedInHz / (rodStepperRatio * stepperStepsPerRevolution * microsteps);
   double distancePerSec = rodTurnsPerSec * threadedRodPitch;
-  double anglePerSec = atan(distancePerSec / greatCircleRadius);
+  double anglePerSec = atan(distancePerSec / coneRadius);
 
   rewindFastForwardSpeedDegreesSec = anglePerSec * (180.0 / M_PI);
 }

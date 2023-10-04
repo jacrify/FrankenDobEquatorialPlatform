@@ -106,10 +106,11 @@ void setRAGuideRate(AsyncWebServerRequest *request, PlatformStatic &model,
   log("No speed arg found");
 }
 
-void setGreatCircleRadius(AsyncWebServerRequest *request, PlatformStatic &model,
-                          Preferences &preferences) {
+void setConeRadiusAtAttachmentPoint(AsyncWebServerRequest *request,
+                                    PlatformStatic &model,
+                                    Preferences &preferences) {
 
-  log("/setGreatCircleRadius");
+  log("/setConeRadiusAtAttachmentPoint");
   if (request->hasArg("value")) {
     String radius = request->arg("value");
 
@@ -118,7 +119,7 @@ void setGreatCircleRadius(AsyncWebServerRequest *request, PlatformStatic &model,
       log("Could not parse radius");
       return;
     }
-    model.setGreatCircleRadius(radValue);
+    model.setConeRadiusAtAttachmentPoint(radValue);
     preferences.putDouble(PREF_CIRCLE_KEY, radValue);
     return;
   }
@@ -130,10 +131,11 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
   // log("/getStatus");
 
   char buffer[400];
-  sprintf(buffer,
-          R"({
+  sprintf(
+      buffer,
+      R"({
         "runbackSpeed" : %ld,
-        "greatCircleRadius": %f,
+        "coneRadius": %f,
         "limitToMiddleDistance":%ld,
         "raGuideRate" : %f,
         "position" : %f,
@@ -141,11 +143,10 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
         "acceleration" : %ld,
         "nunChukMultiplier" : %d
       })",
-          model.getRewindFastFowardSpeed(), model.getGreatCircleRadius(),
-          model.getLimitSwitchToMiddleDistance(),
-          model.getRaGuideRateMultiplier(), motor.getPositionInMM(),
-          motor.getVelocityInMMPerMinute(), motor.getAcceleration(),
-          model.getNunChukMultiplier());
+      model.getRewindFastFowardSpeed(), model.getConeRadiusAtAttachmentPoint(),
+      model.getLimitSwitchToMiddleDistance(), model.getRaGuideRateMultiplier(),
+      motor.getPositionInMM(), motor.getVelocityInMMPerMinute(),
+      motor.getAcceleration(), model.getNunChukMultiplier());
 
   String json = buffer;
 
@@ -162,7 +163,7 @@ void setupWebServer(MotorUnit &motor, PlatformStatic &model,
       preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
   int limitSwitchToMiddleDistance =
       preferences.getUInt(PREF_MIDDLE_KEY, DEFAULT_MIDDLE_DISTANCE);
-  double greatCircleRadius =
+  double coneRadius =
       preferences.getDouble(PREF_CIRCLE_KEY, DEFAULT_CIRCLE_RADIUS);
   int nunChukMultiplier =
       preferences.getInt(NUNCHUK_MULIPLIER_KEY, DEFAULT_NUNCHUK_MULIPLIER);
@@ -172,13 +173,13 @@ void setupWebServer(MotorUnit &motor, PlatformStatic &model,
   unsigned long acceleration = preferences.getULong(ACCEL_KEY, DEFAULT_ACCEL);
   log("Preferences loaded for model rewindspeed: %d limitToMiddle %d radius "
       "%d RA Guide multiplier %f Accel: %ld",
-      rewindFastFowardSpeed, limitSwitchToMiddleDistance, greatCircleRadius,
+      rewindFastFowardSpeed, limitSwitchToMiddleDistance, coneRadius,
       raGuideSpeedMultiplier, acceleration);
   // order matters here: rewind fast forward speed uses previous sets for calcs
   model.setNunChukMultiplier(nunChukMultiplier);
   model.setRaGuideRateMultiplier(raGuideSpeedMultiplier);
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
-  model.setGreatCircleRadius(greatCircleRadius);
+  model.setConeRadiusAtAttachmentPoint(coneRadius);
   model.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
   motor.setAcceleration(acceleration);
 
@@ -192,9 +193,9 @@ void setupWebServer(MotorUnit &motor, PlatformStatic &model,
               setRewindFastFowardSpeedInHz(request, model, preferences);
             });
 
-  server.on("/greatCircleRadius", HTTP_POST,
+  server.on("/coneRadius", HTTP_POST,
             [&model, &preferences](AsyncWebServerRequest *request) {
-              setGreatCircleRadius(request, model, preferences);
+              setConeRadiusAtAttachmentPoint(request, model, preferences);
             });
   server.on("/limitToMiddleDistance", HTTP_POST,
             [&model, &preferences](AsyncWebServerRequest *request) {

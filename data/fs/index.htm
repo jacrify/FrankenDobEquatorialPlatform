@@ -10,8 +10,8 @@
     <label for="runbackSpeed">RunBack Speed (hz)</label>
     <input type="number" id="runbackSpeed"><br />
 
-    <label for="greatCircleRadius">Great Circle Radius (mm)</label>
-    <input type="number" id="greatCircleRadius"><br />
+    <label for="coneRadius">Cone Radius At Attachment Point (mm) - increase to go faster</label>
+    <input type="number" id="coneRadius"><br />
 
     <label for="limitToMiddleDistance">Limit To Middle Distance (mm)</label>
     <input type="number" id="limitToMiddleDistance"><br />
@@ -52,8 +52,8 @@
                     $("#limitToMiddleDistance").val(data.limitToMiddleDistance);
                 }
 
-                if (!$("#greatCircleRadius").is(":focus")) {
-                    $("#greatCircleRadius").val(data.greatCircleRadius);
+                if (!$("#coneRadius").is(":focus")) {
+                    $("#coneRadius").val(data.coneRadius);
                 }
 
                 if (!$("#raGuideRate").is(":focus")) {
@@ -64,7 +64,7 @@
                     $("#acceleration").val(data.acceleration);
                 }
 
-                  if (!$("#nunChukMultiplier").is(":focus")) {
+                if (!$("#nunChukMultiplier").is(":focus")) {
                     $("#nunChukMultiplier").val(data.nunChukMultiplier);
                 }
 
@@ -90,7 +90,7 @@
             chart.update();
         });
 
-        $("#runbackSpeed, #limitToMiddleDistance, #greatCircleRadius,#raGuideRate, #acceleration, #nunChukMultiplier").change(function () {
+        $("#runbackSpeed, #limitToMiddleDistance, #coneRadius,#raGuideRate, #acceleration, #nunChukMultiplier").change(function () {
             $.post("/" + $(this).attr('id'), { value: $(this).val() });
         });
         setInterval(update, 1000);

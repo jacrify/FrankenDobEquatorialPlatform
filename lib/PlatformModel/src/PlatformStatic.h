@@ -12,7 +12,7 @@ class PlatformStatic {
 public:
   void setupModel();
 
-  void setGreatCircleRadius(double r);
+  void setConeRadiusAtAttachmentPoint(double r);
   // void setRAGuideRateArcSecondsPerSecond(double arcSecsPerSecond);
   void setRaGuideRateMultiplier(double d);
   // set distance in mm
@@ -32,7 +32,7 @@ public:
                                             long pulseDurationInMilliseconds,
                                             int32_t stepperCurrentPosition);
 
-  double getGreatCircleRadius();
+  double getConeRadiusAtAttachmentPoint();
   double getStepsPerMM();
   double getMaxAxisMoveRateDegreesSec();
   double getMinAxisMoveRateDegreesSec();
@@ -47,8 +47,8 @@ public:
   int32_t getLimitPosition();
   // get position of middle, in steps
   int32_t getMiddlePosition();
-  // TODO make unint32
-  long getRewindFastFowardSpeedInMilliHz();
+
+  uint32_t getRewindFastFowardSpeedInMilliHz();
   int getRewindFastFowardSpeed(); // hz
 
 private:
