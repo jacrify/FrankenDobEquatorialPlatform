@@ -40,8 +40,8 @@ void setNunChukMultiplier(AsyncWebServerRequest *request, PlatformModel &model,
       log("Could not parse nunchuk multiplier");
       return;
     }
-    model.setLimitSwitchToMiddleDistance(nunChukValue);
-    preferences.putUInt(NUNCHUK_MULIPLIER_KEY, nunChukValue);
+    model.setNunChukMultiplier(nunChukValue);
+    preferences.putInt(NUNCHUK_MULIPLIER_KEY, nunChukValue);
     return;
   }
   log("No Nunchuk multiplier");
@@ -138,12 +138,14 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
         "raGuideRate" : %f,
         "position" : %f,
         "velocity" : %f,
-        "acceleration" : %ld
+        "acceleration" : %ld,
+        "nunChukMultiplier" : %d
       })",
           model.getRewindFastFowardSpeed(), model.getGreatCircleRadius(),
           model.getLimitSwitchToMiddleDistance(),
           model.getRaGuideRateMultiplier(), motor.getPositionInMM(),
-          motor.getVelocityInMMPerMinute(), motor.getAcceleration());
+          motor.getVelocityInMMPerMinute(), motor.getAcceleration(),
+          model.getNunChukMultiplier());
 
   String json = buffer;
 
