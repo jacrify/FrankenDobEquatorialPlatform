@@ -59,12 +59,13 @@ void MotorUnit::setupMotor() {
     stepper->setAutoEnable(true);
 
     // stepper->setSpeedInHz(5000);
-    stepper->setAcceleration(100000); // 100 steps/s²
+    stepper->setAcceleration(acceleration); // 100 steps/s²
+    // stepper->setAcceleration(100000); // 100 steps/s²
 
     // preferences = p;
     int32_t savedPosition = preferences.getInt(PREF_SAVED_POS_KEY, INT32_MAX);
     log("Loaded saved position %d", savedPosition);
-    //when current position is not know, go slowly.
+    // when current position is not know, go slowly.
     if (savedPosition == INT32_MAX) {
       control.setSafetyMode(true);
     }
@@ -155,6 +156,15 @@ double MotorUnit::getVelocityInMMPerMinute() {
   double speedInMMPerSecond = speedInHz / model.getStepsPerMM();
   double speedInMMPerMinute = speedInMMPerSecond * 60.0;
   return speedInMMPerMinute;
+}
+
+unsigned long MotorUnit::getAcceleration() { return acceleration; }
+
+void MotorUnit::setAcceleration(unsigned long a) {
+  acceleration = a;
+  if (stepper != NULL) {
+    stepper->setAcceleration(a);
+  }
 }
 double MotorUnit::getPositionInMM() {
   return ((double)stepper->getCurrentPosition()) / model.getStepsPerMM();

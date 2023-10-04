@@ -11,31 +11,18 @@ public:
 
   void setupMotor();
   void onLoop();
-  // double getGreatCircleRadius();
-  // void setGreatCircleRadius(double radius);
-  int getLimitSwitchToEndDistance();
+
   double getPositionInMM();
   double getVelocityInMMPerMinute();
-
-
-  // double getPlatformResetOffsetSeconds();
-
-
-  
-  bool isSlewing();
-
+  unsigned long getAcceleration();
+  void setAcceleration(unsigned long a);
 
 private:
   PlatformModel &model;
   PlatformControl &control;
   Preferences &preferences;
+  unsigned long acceleration;
   
-
-  // void runModeSwitchCheck();
-  // void calibrationModeSwitchCheck();
-  // void slewToPosition(int32_t position);
-
-
 };
 
 #endif
