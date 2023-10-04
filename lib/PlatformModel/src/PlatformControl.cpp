@@ -115,9 +115,7 @@ void PlatformControl::gotoMiddle() {
 }
 
 void PlatformControl::gotoEndish() {
-  // TODO set back from end
-  // slewToPosition(model.getStepsPerMM() * 10);
-  targetPosition = 0;
+  targetPosition = model.getEndStandOffPosition();
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
@@ -177,7 +175,7 @@ void PlatformControl::pulseGuide(int direction,
     }
     targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
         stepperWrapper->getPosition(), targetSpeedInArcSecsSec);
-        
+
     pulseGuideDurationMillis = pulseDurationInMilliseconds;
     log("Pulseguiding %s for %ld ms at speed %lu",
         direction == 3 ? "West" : "East", pulseDurationInMilliseconds,
@@ -246,19 +244,20 @@ void PlatformControl::moveAxis(double degreesPerSecond) {
  * When passed a percentage (-100 to +100) turn this into a degrees
  * per second value and do moveaxis. Currently considers percentage
  * as a % of tracking rate.
-*/
+ */
 void PlatformControl::moveAxisPercentage(int percentage) {
-  log("Received moveaxispercentage with value %d",percentage);
-   if (percentage == 0) {
+  log("Received moveaxispercentage with value %d", percentage);
+  if (percentage == 0) {
     moveAxis(0);
     return;
   }
-  double degreesPerSecond=model.getNunChukMultiplier()* model.getTrackingRateDegreesSec() * (double)percentage/100.0;
+  double degreesPerSecond = model.getNunChukMultiplier() *
+                            model.getTrackingRateDegreesSec() *
+                            (double)percentage / 100.0;
   log("Moving axis with %lf degrees sec", degreesPerSecond);
 
   moveAxis(degreesPerSecond);
 };
-
 
 double PlatformControl::getTimeToCenterInSeconds() {
   return model.calculateTimeToCenterInSeconds(stepperWrapper->getPosition());

@@ -449,7 +449,8 @@ void testGotoEndBasic() {
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getEndStandOffPosition(),
+                                  control.getTargetPosition(),
                                   "Target Position should be endish");
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
                                   control.getTargetSpeedInMilliHz(),
@@ -489,7 +490,8 @@ void testGotoEndLimitHit() {
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getEndStandOffPosition(),
+                                  control.getTargetPosition(),
                                   "Target Position should be endish");
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
                                   control.getTargetSpeedInMilliHz(),
@@ -529,15 +531,16 @@ void testGotoEndAtEndWithTracking() {
   control.calculateOutput();
 
   try {
-    Verify(stepper.moveTo).Times(0);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getEndStandOffPosition()
+                                     , control.getTargetPosition(),
                                   "Target Position should be endish");
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
                                   control.getTargetSpeedInMilliHz(),
                                   "Target speed should be ff rw");
 
     Verify(stepper.resetPosition).Times(0);
-    Verify(stepper.stop).Times(1);
+    Verify(stepper.stop).Times(0);
 
   } catch (std::runtime_error e) {
     TEST_FAIL_MESSAGE(e.what());
