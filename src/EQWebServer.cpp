@@ -29,7 +29,7 @@ void setLimitToMiddleDistance(AsyncWebServerRequest *request,
   log("No distance arg found");
 }
 
-void setNunChukMultipler(AsyncWebServerRequest *request, PlatformModel &model,
+void setNunChukMultiplier(AsyncWebServerRequest *request, PlatformModel &model,
                          Preferences &preferences) {
   log("/setNunChukMultipler");
   if (request->hasArg("value")) {
@@ -199,9 +199,9 @@ void setupWebServer(MotorUnit &motor, PlatformModel &model,
               setLimitToMiddleDistance(request, model, preferences);
             });
 
-  server.on("/nunchukmultipler", HTTP_POST,
+  server.on("/nunChukMultiplier", HTTP_POST,
             [&model, &preferences](AsyncWebServerRequest *request) {
-              setNunChukMultipler(request, model, preferences);
+              setNunChukMultiplier(request, model, preferences);
             });
   server.on("/acceleration", HTTP_POST,
             [&motor, &preferences](AsyncWebServerRequest *request) {
