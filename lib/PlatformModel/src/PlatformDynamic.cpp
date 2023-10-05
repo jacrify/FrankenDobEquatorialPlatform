@@ -5,18 +5,6 @@ void PlatformDynamic::setLimitSwitchState(bool state) {
   limitSwitchState = state;
 }
 
-void PlatformDynamic::setPlayButtonState(bool state) {
-  playButtonState = state;
-}
-
-void PlatformDynamic::setRewindButtonState(bool state) {
-  rewindButtonState = state;
-}
-
-void PlatformDynamic::setFastForwardButtonState(bool state) {
-  fastForwardButtonState = state;
-}
-
 void PlatformDynamic::setSafetyMode(bool s) { safetyMode = s; }
 
 void PlatformDynamic::setTrackingOnOff(bool t) { trackingOn = t; }

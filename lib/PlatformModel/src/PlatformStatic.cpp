@@ -73,8 +73,7 @@ double PlatformStatic::calculateTimeToEndOfRunInSeconds(
   return calculateTimeToCenterInSeconds(stepperCurrentPosition +
                                         endToMiddleInSteps);
 }
-// work out how long it will be until we are at center. If we've passed center
-// will be negative.
+
 double
 PlatformStatic::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
   int middle = getMiddlePosition();
@@ -230,30 +229,4 @@ double PlatformStatic::getRAGuideRateDegreesSec() {
 }
 double PlatformStatic::getRAGuideRateArcSecondsSecond() {
   return raGuideRateInArcSecondsSecond;
-}
-/**
- * Give current stepper location, a direction, and a duration,
- * this method uses the raGuideRateInHz to calculate what step position
- * to move to that would take the designated number of milliseconds
- * to reach. Acceleration is assumed to be instant.
- */
-int32_t PlatformStatic::calculatePulseGuideTargetPosition(
-    int direction, long pulseDurationInMilliseconds,
-    int32_t stepperCurrentPosition) {
-  // Direction is either  2 = guideEast, 3 = guideWest.
-  // If 2 then returned value will be higher than stepperCurrentPosition
-  // If 3 then return value will be lower.
-
-  uint32_t speedInMilliHz = calculateFowardSpeedInMilliHz(
-      stepperCurrentPosition, raGuideRateInArcSecondsSecond);
-  int32_t stepsToMove = (speedInMilliHz * pulseDurationInMilliseconds) / 1000;
-
-  if (direction == 2) // east.Positive step change ie towards limit switch
-    return stepperCurrentPosition + stepsToMove;
-
-  if (direction == 3) // west. negative step change
-    return stepperCurrentPosition - stepsToMove;
-
-  log("Error: direction not supported %d ", direction);
-  return stepperCurrentPosition;
 }
