@@ -158,7 +158,6 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
 
 void setupWebServer(MotorUnit &motor, PlatformStatic &model,
                     PlatformDynamic &control, Preferences &preferences) {
-
   int rewindFastFowardSpeed =
       preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
   int limitSwitchToMiddleDistance =
@@ -167,15 +166,17 @@ void setupWebServer(MotorUnit &motor, PlatformStatic &model,
       preferences.getDouble(PREF_CIRCLE_KEY, DEFAULT_CIRCLE_RADIUS);
   int nunChukMultiplier =
       preferences.getInt(NUNCHUK_MULIPLIER_KEY, DEFAULT_NUNCHUK_MULIPLIER);
-
   double raGuideSpeedMultiplier =
       preferences.getDouble(RA_GUIDE_KEY, DEFAULT_RA_GUIDE);
   unsigned long acceleration = preferences.getULong(ACCEL_KEY, DEFAULT_ACCEL);
-  log("Preferences loaded for model rewindspeed: %d limitToMiddle %d radius "
-      "%d RA Guide multiplier %f Accel: %ld",
+  
+  log("Preferences loaded for model rewindspeed: %d limitToMiddle %d "
+      "radius "
+      "%f NunChuk multiplier %f RA Guide multiplier %f Accel: %d",
       rewindFastFowardSpeed, limitSwitchToMiddleDistance, coneRadius,
-      raGuideSpeedMultiplier, acceleration);
-  // order matters here: rewind fast forward speed uses previous sets for calcs
+      nunChukMultiplier, raGuideSpeedMultiplier, acceleration);
+  // order matters here: rewind fast forward speed uses previous sets for
+  // calcs
   model.setNunChukMultiplier(nunChukMultiplier);
   model.setRaGuideRateMultiplier(raGuideSpeedMultiplier);
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
