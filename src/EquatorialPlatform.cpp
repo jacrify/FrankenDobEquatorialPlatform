@@ -4,7 +4,7 @@
 #include "Logging.h"
 #include "MotorUnit.h"
 #include "Network.h"
-#include "OTA.h"
+// #include "OTA.h"
 #include "PlatformDynamic.h"
 #include "PlatformStatic.h"
 #include "UDPListener.h"
@@ -30,7 +30,7 @@ void setup() {
   model.setupModel();
 
   delay(500);
-  // order of setup matters here
+  // order of setup matters here. Web server loads prefs
   setupWebServer(motorUnit, model, control, prefs);
 
   motorUnit.setupMotor();

@@ -254,3 +254,5 @@ double PlatformDynamic::getTimeToCenterInSeconds() {
 double PlatformDynamic::getTimeToEndOfRunInSeconds() {
   return model.calculateTimeToEndOfRunInSeconds(stepperWrapper->getPosition());
 }
+
+void PlatformDynamic::zeroOffset() { platformResetOffset = 0; }

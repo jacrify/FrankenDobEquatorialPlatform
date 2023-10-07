@@ -71,20 +71,20 @@ public:
   void stop();
   void gotoMiddle();
 
-  //Goto a position just short of end
+  // Goto a position just short of end
   void gotoEndish();
-  
-  //Find limit switch
+
+  // Find limit switch
   void gotoStart();
 
-  //Get number of seconds delta to apply based on 
-  //rewinds/fast forwards
+  // Get number of seconds delta to apply based on
+  // rewinds/fast forwards
   double getPlatformResetOffset();
 
-  //Get run time until platform is centered
+  // Get run time until platform is centered
   double getTimeToCenterInSeconds();
 
-  //Get time left to run
+  // Get time left to run
   double getTimeToEndOfRunInSeconds();
 
   void setStepperWrapper(StepperWrapper *wrapper);
@@ -92,6 +92,8 @@ public:
   int32_t getTargetPosition();
   uint32_t getTargetSpeedInMilliHz();
 
+  //set offset time to zero. Assumes platform not running?
+  void zeroOffset();
   // Output
 
 private:
