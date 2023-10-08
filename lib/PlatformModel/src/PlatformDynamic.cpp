@@ -73,11 +73,8 @@ long PlatformDynamic::calculateOutput() {
   if (stopMove) {
     // we've finished a move. Work out sidereal clock offset to apply
     double endMoveTimeOffset = model.calculateTimeToCenterInSeconds(pos);
-    // if move started at startMoveTimeOffset=10, and finishes at
-    // startMoveTimeOffset=20 then we've rewound by 10s. We should accumalate
-    // -10s in platformResetOffset
-    double moveClockDelta = startMoveTimeOffset - endMoveTimeOffset;
-    platformResetOffset += moveClockDelta;
+
+
     stopMove = false;
   }
   if (trackingOn) {
@@ -128,7 +125,7 @@ uint32_t PlatformDynamic::getTargetSpeedInMilliHz() {
   return targetSpeedInMilliHz;
 }
 
-double PlatformDynamic::getPlatformResetOffset() { return platformResetOffset; }
+
 
 void PlatformDynamic::setStepperWrapper(StepperWrapper *wrapper) {
   stepperWrapper = wrapper;
@@ -176,7 +173,8 @@ void PlatformDynamic::pulseGuide(int direction,
     // int32_t stepsToMove =
     //     (stepperCurrentPosition * pulseDurationInMilliseconds) / 1000000;
 
-    // if (direction == 2) // east.Positive step change ie towards limit switch
+    // if (direction == 2) // east.Positive step change ie towards limit
+    // switch
     //   targetPosition += stepsToMove;
 
     // if (direction == 3) // west. negative step change
@@ -185,7 +183,8 @@ void PlatformDynamic::pulseGuide(int direction,
     // // make sure we don't run off end
     // targetPosition = (targetPosition < 0) ? 0 : targetPosition;
 
-    // log("Pulse guiding %d for %ld ms to position %ld at speed (millihz) %lf",
+    // log("Pulse guiding %d for %ld ms to position %ld at speed (millihz)
+    // %lf",
     //     direction, pulseDurationInMilliseconds, targetPosition);
 
     // isExecutingMove = true;
@@ -255,4 +254,4 @@ double PlatformDynamic::getTimeToEndOfRunInSeconds() {
   return model.calculateTimeToEndOfRunInSeconds(stepperWrapper->getPosition());
 }
 
-void PlatformDynamic::zeroOffset() { platformResetOffset = 0; }
+

@@ -67,9 +67,7 @@ void setupUDPListener(MotorUnit &motor, PlatformDynamic &control) {
             return;
           }
 
-          if (command == "zerooffset") {
-            control.zeroOffset();
-          }
+
           log("Unknown command %s", command.c_str());
           return;
 

@@ -28,7 +28,7 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
       char response[400];
       double secondsToCenter = control.getTimeToCenterInSeconds();
       double secondsToEnd = control.getTimeToEndOfRunInSeconds();
-      double platformResetOffsetSeconds = control.getPlatformResetOffset();
+      
 
       bool platformTracking = control.isTrackingOn();
       double axisMoveRateMax = model.getMaxAxisMoveRateDegreesSec();
@@ -39,14 +39,13 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
                "DSC:{ "
                "\"timeToCenter\": %.2lf, "
                "\"timeToEnd\": %.2lf, "
-               "\"platformResetOffset\": %.2lf, "
                "\"isTracking\" : %s, "
                "\"guideMoveRate\": %.5lf, "
                "\"trackingRate\": %.5lf, "
                "\"axisMoveRateMax\": %.5lf, "
                "\"axisMoveRateMin\": %.5lf "
                " }\n",
-               secondsToCenter, secondsToEnd, platformResetOffsetSeconds,
+               secondsToCenter, secondsToEnd, 
                platformTracking ? "true" : "false", guideMoveRate, trackingRate,
                axisMoveRateMax, axisMoveRateMin);
       udp.print(response);

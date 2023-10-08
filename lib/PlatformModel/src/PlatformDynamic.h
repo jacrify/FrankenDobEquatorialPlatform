@@ -77,10 +77,6 @@ public:
   // Find limit switch
   void gotoStart();
 
-  // Get number of seconds delta to apply based on
-  // rewinds/fast forwards
-  double getPlatformResetOffset();
-
   // Get run time until platform is centered
   double getTimeToCenterInSeconds();
 
@@ -92,8 +88,7 @@ public:
   int32_t getTargetPosition();
   uint32_t getTargetSpeedInMilliHz();
 
-  //set offset time to zero. Assumes platform not running?
-  void zeroOffset();
+
   // Output
 
 private:
@@ -116,7 +111,6 @@ private:
   long pulseGuideDurationMillis;
 
   double startMoveTimeOffset;
-  double platformResetOffset;
 };
 
 #endif // __PlatformStatic_H__
