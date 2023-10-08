@@ -34,7 +34,7 @@ void setupWifi(Preferences &prefs) {
   }
   if (prefs.isKey(HOMEWIFISSID) && prefs.isKey(HOMEWIFIPASS)) {
     log("Connnecting to home wifi...");
-    WiFi.begin(prefs.getString(HOMEWIFISSID), prefs.getString(HOMEWIFIPASS));
+    WiFi.begin(prefs.getString(HOMEWIFISSID).c_str(), prefs.getString(HOMEWIFIPASS).c_str());
     logIP();
     return;
   } else {
