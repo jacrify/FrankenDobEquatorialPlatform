@@ -7,6 +7,7 @@
 #include <Bounce2.h>
 #include <FastAccelStepper.h>
 #include <Preferences.h>
+#include <TMC2209.h>
 
 #define dirPinStepper 19
 #define stepPinStepper 18
@@ -21,6 +22,17 @@
 
 // See
 // https://github.com/gin66/FastAccelStepper/blob/master/extras/doc/FastAccelStepper_API.md
+
+HardwareSerial &serial_stream = Serial1;
+const long SERIAL_BAUD_RATE = 115200;
+const int RX_PIN = 16;
+const int TX_PIN = 17;
+
+// current values may need to be reduced to prevent overheating depending on
+// specific motor and power supply voltage
+const uint8_t RUN_CURRENT_PERCENT = 100;
+
+TMC2209 stepper_driver;
 
 long lastCheckTime = 0;
 
@@ -51,6 +63,22 @@ void MotorUnit::setupMotor() {
   bouncePlay.interval(100);        // interval in ms
 
   bounceLimit.interval(10); // interval in ms
+
+  stepper_driver.setup(serial_stream, SERIAL_BAUD_RATE,
+                       TMC2209::SERIAL_ADDRESS_0, RX_PIN, TX_PIN);
+
+  
+  stepper_driver.setRunCurrent(RUN_CURRENT_PERCENT);
+  // stepper_driver.enableCoolStep();
+  
+  stepper_driver.enableStealthChop();
+  
+  stepper_driver.setMicrostepsPerStep(16);
+  stepper_driver.enableAutomaticCurrentScaling();
+  stepper_driver.enableAutomaticGradientAdaptation();
+  // stepper_driver.setPwmOffset(255);
+  // stepper_driver.setPwmGradient(255);
+   stepper_driver.enable();
 
   engine.init();
   stepper = engine.stepperConnectToPin(stepPinStepper);
