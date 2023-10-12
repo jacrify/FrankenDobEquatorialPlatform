@@ -4,7 +4,7 @@
 #include "Logging.h"
 #include "MotorUnit.h"
 #include "Network.h"
-#include <SPI.h>
+#include <SPI.h> //needed to make tcmstepper compile!
 // #include "OTA.h"
 #include "PlatformDynamic.h"
 #include "PlatformStatic.h"
