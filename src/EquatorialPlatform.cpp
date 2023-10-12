@@ -4,6 +4,7 @@
 #include "Logging.h"
 #include "MotorUnit.h"
 #include "Network.h"
+#include <SPI.h>
 // #include "OTA.h"
 #include "PlatformDynamic.h"
 #include "PlatformStatic.h"
@@ -12,6 +13,7 @@
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <Preferences.h>
+
 
 PlatformStatic model;
 Preferences prefs;

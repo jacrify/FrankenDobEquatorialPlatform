@@ -8,6 +8,7 @@
 #include <FastAccelStepper.h>
 #include <Preferences.h>
 #include <TMC2209.h>
+#include <TMCStepper.h>
 
 #define dirPinStepper 19
 #define stepPinStepper 18
@@ -23,16 +24,26 @@
 // See
 // https://github.com/gin66/FastAccelStepper/blob/master/extras/doc/FastAccelStepper_API.md
 
+
+
 HardwareSerial &serial_stream = Serial1;
 const long SERIAL_BAUD_RATE = 115200;
 const int RX_PIN = 16;
 const int TX_PIN = 17;
+const uint8_t DRIVER_ADDRESS = 0; // Assuming address 0. Adjust if necessary.
 
-// current values may need to be reduced to prevent overheating depending on
-// specific motor and power supply voltage
-const uint8_t RUN_CURRENT_PERCENT = 100;
+const float R_SENSE = 0.11; // Check your board's documentation. Typically it's
+                            // 0.11 or 0.22 for TMC2209 modules.
+const float HOLD_MULTIPLIER =
+    0.5; // Specifies the hold current as a fraction of the run current
+const uint8_t MICROSTEPS = 16; // 1/16th microstepping
 
-TMC2209 stepper_driver;
+
+
+
+// Initialize the driver instance
+TMC2209Stepper stepper_driver =
+    TMC2209Stepper(&serial_stream, R_SENSE, DRIVER_ADDRESS);
 
 long lastCheckTime = 0;
 
@@ -64,21 +75,17 @@ void MotorUnit::setupMotor() {
 
   bounceLimit.interval(10); // interval in ms
 
-  stepper_driver.setup(serial_stream, SERIAL_BAUD_RATE,
-                       TMC2209::SERIAL_ADDRESS_0, RX_PIN, TX_PIN);
+  serial_stream.begin(SERIAL_BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
 
-  
-  stepper_driver.setRunCurrent(RUN_CURRENT_PERCENT);
-  // stepper_driver.enableCoolStep();
-  
-  stepper_driver.enableStealthChop();
-  
-  stepper_driver.setMicrostepsPerStep(16);
-  stepper_driver.enableAutomaticCurrentScaling();
-  stepper_driver.enableAutomaticGradientAdaptation();
-  // stepper_driver.setPwmOffset(255);
-  // stepper_driver.setPwmGradient(255);
-   stepper_driver.enable();
+  // Set motor current
+  stepper_driver.rms_current(
+      2000); // This sets the RMS current to 2A. Adjust as necessary.
+  stepper_driver.microsteps(MICROSTEPS);
+
+  // StealthChop configuration
+  stepper_driver.en_spreadCycle(false); // This enables StealthChop
+  stepper_driver.pwm_autograd(1);  // This enables automatic gradient adaptation
+  stepper_driver.pwm_autoscale(1); // This enables automatic current scaling
 
   engine.init();
   stepper = engine.stepperConnectToPin(stepPinStepper);
