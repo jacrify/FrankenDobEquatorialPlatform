@@ -112,7 +112,7 @@ void PlatformDynamic::gotoStart() {
   int32_t limitPos = model.getLimitPosition();
   // when limit not known, find it slowly
   if (safetyMode)
-    targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / 10;
+    targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / 3;
   else
     targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;

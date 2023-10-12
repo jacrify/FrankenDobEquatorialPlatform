@@ -51,7 +51,7 @@ double raGuideRateMultiplier;
 // double raGuideRateDegreesSec;
 
 // speed in hz
-int rewindFastFowardSpeed;
+long rewindFastFowardSpeed;
 
 // used by alpaca.
 double rewindFastForwardSpeedDegreesSec;
@@ -183,9 +183,9 @@ int32_t PlatformStatic::getLimitPosition() {
 uint32_t PlatformStatic::getRewindFastFowardSpeedInMilliHz() {
   return rewindFastFowardSpeed * 1000;
 }
-int PlatformStatic::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
+long PlatformStatic::getRewindFastFowardSpeed() { return rewindFastFowardSpeed; }
 
-void PlatformStatic::setRewindFastFowardSpeedInHz(int speedInHz) {
+void PlatformStatic::setRewindFastFowardSpeedInHz(long speedInHz) {
   // log("updating speed to %d",speed);
   rewindFastFowardSpeed = speedInHz;
 

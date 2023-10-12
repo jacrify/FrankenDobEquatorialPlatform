@@ -7,7 +7,6 @@
 #include <Bounce2.h>
 #include <FastAccelStepper.h>
 #include <Preferences.h>
-#include <TMC2209.h>
 #include <TMCStepper.h>
 
 #define dirPinStepper 19
@@ -24,10 +23,10 @@
 // See
 // https://github.com/gin66/FastAccelStepper/blob/master/extras/doc/FastAccelStepper_API.md
 
-
-
 HardwareSerial &serial_stream = Serial1;
-const long SERIAL_BAUD_RATE = 115200;
+// const long SERIAL_BAUD_RATE = 115200;
+const long SERIAL_BAUD_RATE = 19200;
+
 const int RX_PIN = 16;
 const int TX_PIN = 17;
 const uint8_t DRIVER_ADDRESS = 0; // Assuming address 0. Adjust if necessary.
@@ -36,10 +35,7 @@ const float R_SENSE = 0.11; // Check your board's documentation. Typically it's
                             // 0.11 or 0.22 for TMC2209 modules.
 const float HOLD_MULTIPLIER =
     0.5; // Specifies the hold current as a fraction of the run current
-const uint8_t MICROSTEPS = 16; // 1/16th microstepping
-
-
-
+const uint16_t MICROSTEPS = 16; // 1/16th microstepping
 
 // Initialize the driver instance
 TMC2209Stepper stepper_driver =
@@ -76,13 +72,16 @@ void MotorUnit::setupMotor() {
   bounceLimit.interval(10); // interval in ms
 
   serial_stream.begin(SERIAL_BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
+  stepper_driver.begin();
 
   // Set motor current
-  stepper_driver.rms_current(
-      2000); // This sets the RMS current to 2A. Adjust as necessary.
+
   stepper_driver.microsteps(MICROSTEPS);
 
   // StealthChop configuration
+  stepper_driver.toff(5);
+  stepper_driver.intpol(true);
+  stepper_driver.rms_current(1700, 0.1);
   stepper_driver.en_spreadCycle(false); // This enables StealthChop
   stepper_driver.pwm_autograd(1);  // This enables automatic gradient adaptation
   stepper_driver.pwm_autoscale(1); // This enables automatic current scaling

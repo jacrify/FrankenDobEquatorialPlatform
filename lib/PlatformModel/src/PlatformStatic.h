@@ -40,7 +40,7 @@ public:
   // get distance in mm
   int getLimitSwitchToMiddleDistance();
 
-  void setRewindFastFowardSpeedInHz(int speed);
+  void setRewindFastFowardSpeedInHz(long speed);
 
   /** When nunchuk on focuser is moved, a percentage 0-100
    * is sent. This multiplier is muliplied by that perecentage
@@ -97,7 +97,7 @@ public:
   int32_t getMiddlePosition();
 
   uint32_t getRewindFastFowardSpeedInMilliHz();
-  int getRewindFastFowardSpeed(); // hz
+  long getRewindFastFowardSpeed(); // hz
 
 private:
 };

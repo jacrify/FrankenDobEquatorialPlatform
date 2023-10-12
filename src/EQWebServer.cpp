@@ -53,8 +53,8 @@ void setRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
   log("/setrunbackSpeed");
   if (request->hasArg("value")) {
     String speed = request->arg("value");
-
-    int speedValue = speed.toInt();
+    long speedValue = std::stoul(speed.c_str());
+    
     if (speedValue == 0 && speed != "0") {
       log("Could not parse speed");
       return;
