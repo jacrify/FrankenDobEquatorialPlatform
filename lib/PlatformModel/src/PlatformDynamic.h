@@ -58,6 +58,10 @@ public:
   void pulseGuide(int direction, long pulseDurationInMilliseconds);
 
   /**
+   * Slew forward or back on ra axis by a number of degrees
+   */
+  void slewByDegrees(double degreesToSlew);
+  /**
    * Queue a moveaxis.  degreesPerSecond can be positive or negative.
    */
   void moveAxis(double degreesPerSecond);
@@ -87,7 +91,6 @@ public:
 
   int32_t getTargetPosition();
   uint32_t getTargetSpeedInMilliHz();
-
 
   // Output
 

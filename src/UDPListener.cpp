@@ -58,6 +58,11 @@ void setupUDPListener(MotorUnit &motor, PlatformDynamic &control) {
             return;
           }
 
+          if (command == "slewbydegrees") {
+            control.slewByDegrees(parameter1);
+            return;
+          }
+
           if (command == "moveaxispercentage") {
             control.moveAxisPercentage(parameter1);
             return;

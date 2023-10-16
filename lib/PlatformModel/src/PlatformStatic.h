@@ -76,11 +76,13 @@ public:
   uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition,
                                          double desiredArcSecondsPerSecond);
 
-  //Calculates runtime to center based on sidreal rate
+  // Calculates runtime to center based on sidreal rate
   double calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition);
-  
+
   // Calculates runtime to end based on sidreal rate
   double calculateTimeToEndOfRunInSeconds(int32_t stepperCurrentPosition);
+
+  uint32_t calculatePositionByDegreeShift(double degreesToMove);
 
   double getStepsPerMM();
   double getMaxAxisMoveRateDegreesSec();
@@ -92,7 +94,7 @@ public:
 
   // get position of limit, in steps
   int32_t getLimitPosition();
-  
+
   // get position of middle, in steps
   int32_t getMiddlePosition();
 

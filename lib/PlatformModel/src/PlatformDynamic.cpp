@@ -196,62 +196,69 @@ void PlatformDynamic::stop() {
   isExecutingMove = false;
   stopMove = true;
 }
-
-void PlatformDynamic::moveAxis(double degreesPerSecond) {
-
-  log("Incoming movexis command speed %lf", degreesPerSecond);
-  if (degreesPerSecond == 0) {
-    log("Move axis target is 0 ");
-    isExecutingMove = false; // loop should perform stop / resume track
-    return;
-  }
-  // If we are currently tracking, add the tracking speed.
-  // If we don't do this, if rate from client is 1x sidereal and they move
-  // 1x sidereal forward, stars stay stationary.
-
-  // positive is east, away from tracking direction (arbitary?)
-  if (trackingOn) {
-    degreesPerSecond -= model.getTrackingRateDegreesSec();
-  }
-  targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
-      stepperWrapper->getPosition(), 3600.0 * fabs(degreesPerSecond));
-  log("Move axis target speed millihz %lu", targetSpeedInMilliHz);
-
-  isExecutingMove = true;
-  isMoveQueued = true;
-  // forward
-  if (degreesPerSecond < 0) {
-    targetPosition = 0;
-  } else {
-    targetPosition = INT32_MAX;
-  }
-}
-
 /**
- * When passed a percentage (-100 to +100) turn this into a degrees
- * per second value and do moveaxis. Currently considers percentage
- * as a % of tracking rate.
- */
-void PlatformDynamic::moveAxisPercentage(int percentage) {
-  log("Received moveaxispercentage with value %d", percentage);
-  if (percentage == 0) {
-    moveAxis(0);
-    return;
+ * Slew by degrees.
+ * Caclulates target position
+ * */
+void PlatformDynamic::slewByDegrees(double degreesPerSecond) {
+  log("Incoming slewByDegrees command, degrees to slew is  %lf", degreesPerSecond);
+  model.
+}
+
+  void PlatformDynamic::moveAxis(double degreesPerSecond) {
+
+    log("Incoming movexis command speed %lf", degreesPerSecond);
+    if (degreesPerSecond == 0) {
+      log("Move axis target is 0 ");
+      isExecutingMove = false; // loop should perform stop / resume track
+      return;
+    }
+    // If we are currently tracking, add the tracking speed.
+    // If we don't do this, if rate from client is 1x sidereal and they move
+    // 1x sidereal forward, stars stay stationary.
+
+    // positive is east, away from tracking direction (arbitary?)
+    if (trackingOn) {
+      degreesPerSecond -= model.getTrackingRateDegreesSec();
+    }
+    targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
+        stepperWrapper->getPosition(), 3600.0 * fabs(degreesPerSecond));
+    log("Move axis target speed millihz %lu", targetSpeedInMilliHz);
+
+    isExecutingMove = true;
+    isMoveQueued = true;
+    // forward
+    if (degreesPerSecond < 0) {
+      targetPosition = 0;
+    } else {
+      targetPosition = INT32_MAX;
+    }
   }
-  double degreesPerSecond = model.getNunChukMultiplier() *
-                            model.getTrackingRateDegreesSec() *
-                            (double)percentage / 100.0;
-  log("Moving axis with %lf degrees sec", degreesPerSecond);
 
-  moveAxis(degreesPerSecond);
-};
+  /**
+   * When passed a percentage (-100 to +100) turn this into a degrees
+   * per second value and do moveaxis. Currently considers percentage
+   * as a % of tracking rate.
+   */
+  void PlatformDynamic::moveAxisPercentage(int percentage) {
+    log("Received moveaxispercentage with value %d", percentage);
+    if (percentage == 0) {
+      moveAxis(0);
+      return;
+    }
+    double degreesPerSecond = model.getNunChukMultiplier() *
+                              model.getTrackingRateDegreesSec() *
+                              (double)percentage / 100.0;
+    log("Moving axis with %lf degrees sec", degreesPerSecond);
 
-double PlatformDynamic::getTimeToCenterInSeconds() {
-  return model.calculateTimeToCenterInSeconds(stepperWrapper->getPosition());
-}
+    moveAxis(degreesPerSecond);
+  };
 
-double PlatformDynamic::getTimeToEndOfRunInSeconds() {
-  return model.calculateTimeToEndOfRunInSeconds(stepperWrapper->getPosition());
-}
+  double PlatformDynamic::getTimeToCenterInSeconds() {
+    return model.calculateTimeToCenterInSeconds(stepperWrapper->getPosition());
+  }
 
-
+  double PlatformDynamic::getTimeToEndOfRunInSeconds() {
+    return model.calculateTimeToEndOfRunInSeconds(
+        stepperWrapper->getPosition());
+  }
