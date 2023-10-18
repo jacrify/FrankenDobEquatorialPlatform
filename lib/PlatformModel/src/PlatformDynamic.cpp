@@ -262,3 +262,5 @@ double PlatformDynamic::getTimeToCenterInSeconds() {
 double PlatformDynamic::getTimeToEndOfRunInSeconds() {
   return model.calculateTimeToEndOfRunInSeconds(stepperWrapper->getPosition());
 }
+
+bool PlatformDynamic::isSlewing() { return isExecutingMove; }

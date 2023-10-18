@@ -28,7 +28,7 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
       char response[400];
       double secondsToCenter = control.getTimeToCenterInSeconds();
       double secondsToEnd = control.getTimeToEndOfRunInSeconds();
-      
+      bool slewing = control.isSlewing();
 
       bool platformTracking = control.isTrackingOn();
       double axisMoveRateMax = model.getMaxAxisMoveRateDegreesSec();
@@ -40,12 +40,13 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
                "\"timeToCenter\": %.2lf, "
                "\"timeToEnd\": %.2lf, "
                "\"isTracking\" : %s, "
+               "\"slewing\" : %s, "
                "\"guideMoveRate\": %.5lf, "
                "\"trackingRate\": %.5lf, "
                "\"axisMoveRateMax\": %.5lf, "
                "\"axisMoveRateMin\": %.5lf "
                " }\n",
-               secondsToCenter, secondsToEnd, 
+               secondsToCenter, secondsToEnd,
                platformTracking ? "true" : "false", guideMoveRate, trackingRate,
                axisMoveRateMax, axisMoveRateMin);
       udp.print(response);

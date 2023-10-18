@@ -35,6 +35,8 @@ public:
   void setSafetyMode(bool b);
 
   bool isTrackingOn();
+  bool isSlewing();
+
 
   // Called from loop
   // Returns either 0, or a number of milliseconds.
