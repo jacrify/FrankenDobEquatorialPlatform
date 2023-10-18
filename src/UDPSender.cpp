@@ -2,7 +2,7 @@
 #include "AsyncUDP.h"
 #include "Logging.h"
 #include "WiFi.h"
-
+#include <ArduinoJson.h>
 #define IPBROADCASTPERIOD 1000
 #define IPBROADCASTPORT 50375
 AsyncUDP udp;
@@ -25,31 +25,25 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
     if (udp.connect(
             IPAddress(255, 255, 255, 255),
             IPBROADCASTPORT)) { // Choose any available port, e.g., 12345
-      char response[400];
-      double secondsToCenter = control.getTimeToCenterInSeconds();
-      double secondsToEnd = control.getTimeToEndOfRunInSeconds();
-      bool slewing = control.isSlewing();
 
-      bool platformTracking = control.isTrackingOn();
-      double axisMoveRateMax = model.getMaxAxisMoveRateDegreesSec();
-      double axisMoveRateMin = model.getMinAxisMoveRateDegreesSec();
-      double guideMoveRate = model.getRAGuideRateDegreesSec();
-      double trackingRate = model.getTrackingRateArcsSecondsSec();
-      snprintf(response, sizeof(response),
-               "DSC:{ "
-               "\"timeToCenter\": %.2lf, "
-               "\"timeToEnd\": %.2lf, "
-               "\"isTracking\" : %s, "
-               "\"slewing\" : %s, "
-               "\"guideMoveRate\": %.5lf, "
-               "\"trackingRate\": %.5lf, "
-               "\"axisMoveRateMax\": %.5lf, "
-               "\"axisMoveRateMin\": %.5lf "
-               " }\n",
-               secondsToCenter, secondsToEnd,
-               platformTracking ? "true" : "false", guideMoveRate, trackingRate,
-               axisMoveRateMax, axisMoveRateMin);
-      udp.print(response);
+      // Estimate JSON capacity
+      const size_t capacity = JSON_OBJECT_SIZE(15);
+
+      DynamicJsonDocument doc(capacity);
+      // Populate the JSON object
+      doc["timeToCenter"] = control.getTimeToEndOfRunInSeconds();
+      doc["timeToEnd"] = control.getTimeToEndOfRunInSeconds();
+      doc["isTracking"] = control.isTrackingOn();
+      doc["slewing"] = control.isSlewing();
+      doc["guideMoveRate"] = model.getRAGuideRateDegreesSec();
+      doc["trackingRate"] = model.getTrackingRateArcsSecondsSec();
+      doc["axisMoveRateMax"] = model.getMaxAxisMoveRateDegreesSec();
+      doc["axisMoveRateMin"] = model.getMinAxisMoveRateDegreesSec();
+
+      String json;
+      serializeJson(doc, json);
+     
+      udp.print(json.c_str());
       // log("Status Packet sent\r\n %s", response);
     }
   }
