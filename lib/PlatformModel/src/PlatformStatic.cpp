@@ -95,19 +95,34 @@ PlatformStatic::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
   return secondsMoved;
 }
 
-uint32_t PlatformStatic::calculatePositionByDegreeShift(double degreesToMove) {
-  int middle = getMiddlePosition();
+uint32_t
+PlatformStatic::calculatePositionByDegreeShift(double degreesToMove,
+                                               int32_t stepperCurrentPosition) {
+  int32_t middle = getMiddlePosition();
   // note this calculation is the other way around from
   // calculateFowardSpeedInMilliHz:
   double stepsFromMiddle = (double)(stepperCurrentPosition - middle);
   double stepsPerMM = getStepsPerMM();
   double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
 
-  double absoluteAngleMovedAtThisPoint =
+  // tan(angle)=o/r
+  double angleMovedFromCenterRadians =
       atan(distanceFromCenterInMM / coneRadius);
 
-  double targetDegrees = absoluteAngleMovedAtThisPoint + degreesToMove;
-  
+  double radiansToMove = degreesToMove * M_PI / 180.0;
+
+  double targetRadians = angleMovedFromCenterRadians + radiansToMove;
+  // o=tan(angle)*r
+
+  double targetDistanceFromCenterInMM = tan(targetRadians) * coneRadius;
+  uint32_t targetStepsFromMiddle = targetDistanceFromCenterInMM * stepsPerMM;
+
+  int32_t targetPosition = middle + targetStepsFromMiddle;
+  if (targetPosition < 0)
+    return 0;
+  if (targetPosition > getLimitPosition())
+    return getLimitPosition();
+  return targetPosition;
 }
 
 // returns max drive speed in degrees per second

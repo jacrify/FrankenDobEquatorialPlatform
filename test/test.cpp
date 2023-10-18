@@ -547,6 +547,45 @@ void testGotoEndAtEndWithTracking() {
   }
 }
 
+void testCalculateMoveByDegrees() {
+  // MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+
+  PlatformStatic model;
+  model.setConeRadiusAtAttachmentPoint(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  uint32_t target= model.calculatePositionByDegreeShift(0,0);
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, target,
+                           "Target should be end");
+
+  target = model.calculatePositionByDegreeShift(0,stepPositionOfLimit);
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(stepPositionOfLimit, target,
+                                   "Target should be limit");
+
+  target = model.calculatePositionByDegreeShift(-1, stepPositionOfLimit);
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(
+      439378, target, "Target should be smaller than stepPositionOfLimit");
+
+  target = model.calculatePositionByDegreeShift(-15, stepPositionOfLimit);
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(43323., target,
+                                   "Target should be close to zero");
+
+  target = model.calculatePositionByDegreeShift(-20, stepPositionOfLimit);
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, target,
+                                   "Target should be  to zero as off end");
+  target = model.calculatePositionByDegreeShift(20, 0);
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(stepPositionOfLimit, target,
+                                   "Target should be  to limit as off end");
+}
+
 void testMoveAxisPositive() {
   // setup
   MockStepper stepper;
@@ -639,7 +678,6 @@ void testMoveAxisPositive() {
   }
 }
 
-
 void testGotoStartSafety() {
   // setup
   MockStepper stepper;
@@ -697,7 +735,7 @@ void setup() {
   RUN_TEST(testGotoEndLimitHit);
   RUN_TEST(testGotoEndAtEndWithTracking);
   RUN_TEST(testMoveAxisPositive);
-
+  RUN_TEST(testCalculateMoveByDegrees);
   UNITY_END(); // IMPORTANT LINE!
 }
 

@@ -82,7 +82,7 @@ public:
   // Calculates runtime to end based on sidreal rate
   double calculateTimeToEndOfRunInSeconds(int32_t stepperCurrentPosition);
 
-  uint32_t calculatePositionByDegreeShift(double degreesToMove);
+  uint32_t calculatePositionByDegreeShift(double degreesToMove, int32_t stepperCurrentPosition);
 
   double getStepsPerMM();
   double getMaxAxisMoveRateDegreesSec();
