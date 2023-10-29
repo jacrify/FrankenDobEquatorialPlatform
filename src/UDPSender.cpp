@@ -42,8 +42,9 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
 
       String json;
       serializeJson(doc, json);
-     
+      json = "DSC:"+json;
       udp.print(json.c_str());
+
       // log("Status Packet sent\r\n %s", response);
     }
   }
