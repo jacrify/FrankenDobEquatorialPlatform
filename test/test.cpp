@@ -567,15 +567,14 @@ void testCalculateMoveByDegrees() {
                            "Target should be end");
 
   target = model.calculatePositionByDegreeShift(0,stepPositionOfLimit);
-  TEST_ASSERT_EQUAL_UINT32_MESSAGE(stepPositionOfLimit, target,
-                                   "Target should be limit");
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(468000, target, "Target should be limit");
 
   target = model.calculatePositionByDegreeShift(-1, stepPositionOfLimit);
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(
       439378, target, "Target should be smaller than stepPositionOfLimit");
 
   target = model.calculatePositionByDegreeShift(-15, stepPositionOfLimit);
-  TEST_ASSERT_EQUAL_UINT32_MESSAGE(43323., target,
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(43323, target,
                                    "Target should be close to zero");
 
   target = model.calculatePositionByDegreeShift(-20, stepPositionOfLimit);
