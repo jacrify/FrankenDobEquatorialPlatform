@@ -37,7 +37,6 @@ public:
   bool isTrackingOn();
   bool isSlewing();
 
-
   // Called from loop
   // Returns either 0, or a number of milliseconds.
   // If non zero, called should pause for this
@@ -58,6 +57,11 @@ public:
    * Direction is either  2 = guideEast, 3 = guideWest
    *    */
   void pulseGuide(int direction, long pulseDurationInMilliseconds);
+
+  /**
+   * Resume tracking. Called from isr so needs to be fast
+   */
+  void stopPulse();
 
   /**
    * Slew forward or back on ra axis by a number of degrees
@@ -109,6 +113,7 @@ private:
   PlatformStatic &model;
 
   bool isExecutingMove;
+  bool isPulseGuiding;
   bool isMoveQueued;
   bool stopMove;
   bool safetyMode;
@@ -116,6 +121,8 @@ private:
   long pulseGuideDurationMillis;
 
   double startMoveTimeOffset;
+
+  uint32_t speedBeforePulseMHz;
 };
 
 #endif // __PlatformStatic_H__

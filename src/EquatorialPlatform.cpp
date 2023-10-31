@@ -14,6 +14,9 @@
 #include <LittleFS.h>
 #include <Preferences.h>
 
+//How long we delay the main loop.
+//Half of this time is the average pulsetime end error
+#define MAINLOOPTIME 25 //ms
 
 PlatformStatic model;
 Preferences prefs;
@@ -41,8 +44,8 @@ void setup() {
 }
 
 void loop() {
-  delay(100);
-  // send status to dsc via udp
+  delay(MAINLOOPTIME);
+  // send status to dsc via udp (contains a timer to stop spamming each loop)
   broadcastStatus(motorUnit, model, control);
   // motor control loop
   motorUnit.onLoop();

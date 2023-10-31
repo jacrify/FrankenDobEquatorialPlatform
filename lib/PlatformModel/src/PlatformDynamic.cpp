@@ -13,6 +13,11 @@ bool PlatformDynamic::isTrackingOn() { return trackingOn; }
 
 long PlatformDynamic::calculateOutput() {
 
+  // If pulse guide is in progress, then exit.
+  if (isPulseGuiding) {
+    return 0;
+  }
+
   // Pulseguide command has been queued. Apply new motor
   // speed, and ask client to call back after pulseguide milliseconds.
   // Second call should fall through and resume tracking speed.
@@ -20,6 +25,7 @@ long PlatformDynamic::calculateOutput() {
     stepperWrapper->setStepperSpeed(targetSpeedInMilliHz);
     long delay = pulseGuideDurationMillis;
     pulseGuideDurationMillis = 0;
+    isPulseGuiding = true;
     return delay; // caller will call back right after delay.
   }
 
@@ -134,8 +140,13 @@ PlatformDynamic::PlatformDynamic(PlatformStatic &m) : model(m) {
   trackingOn = false;
   stopMove = false;
   pulseGuideDurationMillis = 0;
+  isPulseGuiding=false;
 }
 
+void PlatformDynamic::stopPulse() {
+  stepperWrapper->setStepperSpeed(speedBeforePulseMHz);
+  isPulseGuiding = false;
+}
 void PlatformDynamic::pulseGuide(int direction,
                                  long pulseDurationInMilliseconds) {
   // if not tracking, do nothing
@@ -159,6 +170,7 @@ void PlatformDynamic::pulseGuide(int direction,
         stepperWrapper->getPosition(), targetSpeedInArcSecsSec);
 
     pulseGuideDurationMillis = pulseDurationInMilliseconds;
+    speedBeforePulseMHz = stepperWrapper->getStepperSpeed();
     log("Pulseguiding %s for %ld ms at speed %lu",
         direction == 3 ? "West" : "East", pulseDurationInMilliseconds,
         targetSpeedInMilliHz);
@@ -200,7 +212,8 @@ void PlatformDynamic::stop() {
 void PlatformDynamic::slewByDegrees(double degreesToSlew) {
   log("Incoming slewByDegrees command, degrees to slew is  %lf", degreesToSlew);
 
-  targetPosition= model.calculatePositionByDegreeShift(degreesToSlew,stepperWrapper->getPosition());
+  targetPosition = model.calculatePositionByDegreeShift(
+      degreesToSlew, stepperWrapper->getPosition());
   isExecutingMove = true;
   isMoveQueued = true;
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();

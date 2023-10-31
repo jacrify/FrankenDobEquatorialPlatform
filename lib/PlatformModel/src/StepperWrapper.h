@@ -14,5 +14,6 @@ public:
    virtual void stop() = 0;
    virtual int32_t getPosition() = 0;
    virtual void setStepperSpeed(uint32_t speedInMillihz) = 0;
+   virtual uint32_t getStepperSpeed() = 0;
 };
 #endif // __STEPPERWRAPPER_H__

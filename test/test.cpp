@@ -145,6 +145,7 @@ public:
   MockMethod(void, stop, ());
   MockMethod(int32_t, getPosition, ());
   MockMethod(void, setStepperSpeed, (uint32_t));
+  MockMethod(uint32_t, getStepperSpeed, ());
 };
 
 void testGotoMiddleBasic() {
@@ -328,6 +329,8 @@ void testGotoStartBasic() {
 
   // test going to start
   control.setLimitSwitchState(false);
+  //safetymode runs at 1/3 speed when limit pos not known
+  control.setSafetyMode(false);
   control.gotoStart();
   control.calculateOutput();
 

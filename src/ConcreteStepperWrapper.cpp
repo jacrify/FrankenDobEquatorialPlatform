@@ -27,6 +27,10 @@ int32_t ConcreteStepperWrapper::getPosition() {
   return stepper->getCurrentPosition();
 }
 
+uint32_t ConcreteStepperWrapper::getStepperSpeed() {
+  return stepper->getSpeedInMilliHz();
+}
+
 void ConcreteStepperWrapper::setStepperSpeed(uint32_t speedInMillihz) {
   // log("Setting speed");
   stepper->setSpeedInMilliHz(speedInMillihz);

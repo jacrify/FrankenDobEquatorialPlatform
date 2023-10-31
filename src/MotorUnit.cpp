@@ -18,7 +18,13 @@
 
 #define limitSwitchPin 21
 
+// How often we run the button check and calculation.
+// Half of this timen is the average delay to starrt a pulseguide
+#define BUTTONANDRECALCPERIOD 250
+
 #define PREF_SAVED_POS_KEY "SavedPosition"
+
+unsigned long pulseGuideUntil; // absolute time in millis to pulseguide until
 
 // See
 // https://github.com/gin66/FastAccelStepper/blob/master/extras/doc/FastAccelStepper_API.md
@@ -58,7 +64,10 @@ MotorUnit::MotorUnit(PlatformStatic &m, PlatformDynamic &c, Preferences &p)
 }
 
 void MotorUnit::setupMotor() {
-  bounceFastForward.attach(fastForwardSwitchPin, INPUT_PULLUP);
+  pulseGuideUntil = 0;
+  lastButtonAndSpeedCalc=0;
+   bounceFastForward.attach(fastForwardSwitchPin,
+                                                  INPUT_PULLUP);
   bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
   bouncePlay.attach(playSwitchPin, INPUT_PULLUP);
 
@@ -149,46 +158,68 @@ bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 //   return degreesPerSecond * 3600.0;
 // }
 
+unsigned long lastButtonAndSpeedCalc;
+
 void MotorUnit::onLoop() {
-  bounceFastForward.update();
-  bounceRewind.update();
-  bouncePlay.update();
-  bounceLimit.update();
-
-  control.setLimitSwitchState(isLimitSwitchHit());
-
-  int32_t pos = stepper->getCurrentPosition();
-
-  if (isFastForwardJustPushed()) {
-    if (pos <= model.getMiddlePosition())
-      control.gotoEndish();
-    else
-      control.gotoMiddle();
-  }
-  if (isFastForwardJustReleased()) {
-    control.stop();
-  }
-  if (isRewindJustPushed()) {
-    if (pos >= model.getMiddlePosition())
-      control.gotoStart();
-    else
-      control.gotoMiddle();
-  }
-  if (isRewindJustReleased()) {
-    control.stop();
-  }
-  if (isPlayJustPushed()) {
-    control.setTrackingOnOff(true);
-  }
-  if (isPlayJustReleased()) {
-    control.setTrackingOnOff(false);
+  unsigned long now = millis();
+  if (pulseGuideUntil != 0) {
+    if (now > pulseGuideUntil) {
+      //stops the pulse and resets back to original speed
+      //we do this here to minise time overrun
+      control.stopPulse();
+      pulseGuideUntil = 0;
+      log("Pulse guide ended. Delta in milliseconds from requested duration "
+          "was %ld",
+          now - pulseGuideUntil);
+      lastButtonAndSpeedCalc = 0; // force recalc below
+    } else {
+      return;
+    }
   }
 
-  long d = control.calculateOutput();
-  // handle pulseguide delay
-  if (d > 0) {
-    delay(d);
-    control.calculateOutput();
+  if ((now - lastButtonAndSpeedCalc) > BUTTONANDRECALCPERIOD) {
+    lastButtonAndSpeedCalc = now;
+
+    bounceFastForward.update();
+    bounceRewind.update();
+    bouncePlay.update();
+    bounceLimit.update();
+
+    control.setLimitSwitchState(isLimitSwitchHit());
+
+    int32_t pos = stepper->getCurrentPosition();
+
+    if (isFastForwardJustPushed()) {
+      if (pos <= model.getMiddlePosition())
+        control.gotoEndish();
+      else
+        control.gotoMiddle();
+    }
+    if (isFastForwardJustReleased()) {
+      control.stop();
+    }
+    if (isRewindJustPushed()) {
+      if (pos >= model.getMiddlePosition())
+        control.gotoStart();
+      else
+        control.gotoMiddle();
+    }
+    if (isRewindJustReleased()) {
+      control.stop();
+    }
+    if (isPlayJustPushed()) {
+      control.setTrackingOnOff(true);
+    }
+    if (isPlayJustReleased()) {
+      control.setTrackingOnOff(false);
+    }
+
+    long d = control.calculateOutput();
+
+    // handle pulseguide delay
+    if (d > 0) {
+      pulseGuideUntil = millis() + d;
+    }
   }
 }
 
