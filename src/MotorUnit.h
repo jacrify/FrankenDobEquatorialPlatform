@@ -7,7 +7,7 @@
 
 class MotorUnit {
 public:
-  MotorUnit(PlatformStatic &model, PlatformDynamic &c, Preferences &p);
+  MotorUnit(PlatformStatic &model, RADynamic &c, Preferences &p);
 
   void setupMotor();
   void onLoop();
@@ -19,7 +19,7 @@ public:
 
 private:
   PlatformStatic &model;
-  PlatformDynamic &control;
+  RADynamic &control;
   Preferences &preferences;
   unsigned long acceleration;
 };

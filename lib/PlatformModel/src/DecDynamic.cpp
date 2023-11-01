@@ -1,17 +1,11 @@
-#include "PlatformDynamic.h"
+#include "DecDynamic.h"
 #include "Logging.h"
 #include <cmath>
-void PlatformDynamic::setLimitSwitchState(bool state) {
-  limitSwitchState = state;
-}
+void DecDynamic::setLimitSwitchState(bool state) { limitSwitchState = state; }
 
-void PlatformDynamic::setSafetyMode(bool s) { safetyMode = s; }
+void DecDynamic::setSafetyMode(bool s) { safetyMode = s; }
 
-void PlatformDynamic::setTrackingOnOff(bool t) { trackingOn = t; }
-
-bool PlatformDynamic::isTrackingOn() { return trackingOn; }
-
-long PlatformDynamic::calculateOutput() {
+long DecDynamic::calculateOutput() {
 
   // If pulse guide is in progress, then exit.
   if (isPulseGuiding) {
@@ -82,36 +76,19 @@ long PlatformDynamic::calculateOutput() {
 
     stopMove = false;
   }
-  if (trackingOn) {
-    if (pos > 0) {
-      targetPosition = 0;
-      targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(pos);
-      stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
-    } else {
-      stepperWrapper->stop();
-      trackingOn = false; // turn off at end of run.
-    }
-  } else {
-    stepperWrapper->stop();
-  }
+  stepperWrapper->stop();
+
   return 0;
 }
 
-void PlatformDynamic::gotoMiddle() {
+void DecDynamic::gotoMiddle() {
   targetPosition = model.getMiddlePosition();
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
 }
 
-void PlatformDynamic::gotoEndish() {
-  targetPosition = model.getEndStandOffPosition();
-  targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
-  isExecutingMove = true;
-  isMoveQueued = true;
-}
-
-void PlatformDynamic::gotoStart() {
+void DecDynamic::gotoStart() {
   // should run until limit switch hit
   targetPosition = model.getLimitSwitchSafetyStandoffPosition();
   int32_t limitPos = model.getLimitPosition();
@@ -124,84 +101,78 @@ void PlatformDynamic::gotoStart() {
   isMoveQueued = true;
 }
 
-int32_t PlatformDynamic::getTargetPosition() { return targetPosition; }
+int32_t DecDynamic::getTargetPosition() { return targetPosition; }
 
-uint32_t PlatformDynamic::getTargetSpeedInMilliHz() {
-  return targetSpeedInMilliHz;
-}
-
-void PlatformDynamic::setStepperWrapper(StepperWrapper *wrapper) {
+void DecDynamic::setStepperWrapper(StepperWrapper *wrapper) {
   stepperWrapper = wrapper;
 }
 
-PlatformDynamic::PlatformDynamic(PlatformStatic &m) : model(m) {
+DecDynamic::DecDynamic(PlatformStatic &m) : model(m) {
   isMoveQueued = false;
   isExecutingMove = false;
-  trackingOn = false;
+
   stopMove = false;
   pulseGuideDurationMillis = 0;
-  isPulseGuiding=false;
+  isPulseGuiding = false;
 }
 
-void PlatformDynamic::stopPulse() {
+void DecDynamic::stopPulse() {
   stepperWrapper->setStepperSpeed(speedBeforePulseMHz);
   isPulseGuiding = false;
 }
-void PlatformDynamic::pulseGuide(int direction,
-                                 long pulseDurationInMilliseconds) {
+void DecDynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
   // if not tracking, do nothing
-  if (trackingOn) {
-    // Direction is either  2 = guideEast, 3 = guideWest.
-    // If 2 then returned value will be higher than stepperCurrentPosition
-    // If 3 then return value will be lower.
-    double targetSpeedInArcSecsSec = model.getTrackingRateArcsSecondsSec();
-    log("Target guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
-    log("Model RA guide rate %lf ", model.getRAGuideRateArcSecondsSecond());
-    // NOTE: this assumes target speed will be positive
-    if (direction == 3) { // west: go faster {}
-      targetSpeedInArcSecsSec += model.getRAGuideRateArcSecondsSecond();
-      log("Adjusted W guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
-    }
-    if (direction == 2) { // east: go slower
-      targetSpeedInArcSecsSec -= model.getRAGuideRateArcSecondsSecond();
-      log("Adjusted E guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
-    }
-    targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
-        stepperWrapper->getPosition(), targetSpeedInArcSecsSec);
 
-    pulseGuideDurationMillis = pulseDurationInMilliseconds;
-    speedBeforePulseMHz = stepperWrapper->getStepperSpeed();
-    log("Pulseguiding %s for %ld ms at speed %lu",
-        direction == 3 ? "West" : "East", pulseDurationInMilliseconds,
-        targetSpeedInMilliHz);
-
-    // // divide by 1000 to get hz, then 1000 to get seconds.
-    // // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
-    // // and we move for 1000 millis (is one second)
-    // // then we move 1,000,000 / 1,000,000 = 1 step
-    // int32_t stepsToMove =
-    //     (stepperCurrentPosition * pulseDurationInMilliseconds) / 1000000;
-
-    // if (direction == 2) // east.Positive step change ie towards limit
-    // switch
-    //   targetPosition += stepsToMove;
-
-    // if (direction == 3) // west. negative step change
-    //   targetPosition -= stepsToMove;
-
-    // // make sure we don't run off end
-    // targetPosition = (targetPosition < 0) ? 0 : targetPosition;
-
-    // log("Pulse guiding %d for %ld ms to position %ld at speed (millihz)
-    // %lf",
-    //     direction, pulseDurationInMilliseconds, targetPosition);
-
-    // isExecutingMove = true;
-    // stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
+  // Direction is either  2 = guideEast, 3 = guideWest.
+  // If 2 then returned value will be higher than stepperCurrentPosition
+  // If 3 then return value will be lower.
+  double targetSpeedInArcSecsSec = model.getTrackingRateArcsSecondsSec();
+  log("Target guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+  log("Model RA guide rate %lf ", model.getRAGuideRateArcSecondsSecond());
+  // NOTE: this assumes target speed will be positive
+  if (direction == 3) { // west: go faster {}
+    targetSpeedInArcSecsSec += model.getRAGuideRateArcSecondsSecond();
+    log("Adjusted W guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
   }
+  if (direction == 2) { // east: go slower
+    targetSpeedInArcSecsSec -= model.getRAGuideRateArcSecondsSecond();
+    log("Adjusted E guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+  }
+  targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
+      stepperWrapper->getPosition(), targetSpeedInArcSecsSec);
+
+  pulseGuideDurationMillis = pulseDurationInMilliseconds;
+  speedBeforePulseMHz = stepperWrapper->getStepperSpeed();
+  log("Pulseguiding %s for %ld ms at speed %lu",
+      direction == 3 ? "West" : "East", pulseDurationInMilliseconds,
+      targetSpeedInMilliHz);
+
+  // // divide by 1000 to get hz, then 1000 to get seconds.
+  // // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
+  // // and we move for 1000 millis (is one second)
+  // // then we move 1,000,000 / 1,000,000 = 1 step
+  // int32_t stepsToMove =
+  //     (stepperCurrentPosition * pulseDurationInMilliseconds) / 1000000;
+
+  // if (direction == 2) // east.Positive step change ie towards limit
+  // switch
+  //   targetPosition += stepsToMove;
+
+  // if (direction == 3) // west. negative step change
+  //   targetPosition -= stepsToMove;
+
+  // // make sure we don't run off end
+  // targetPosition = (targetPosition < 0) ? 0 : targetPosition;
+
+  // log("Pulse guiding %d for %ld ms to position %ld at speed (millihz)
+  // %lf",
+  //     direction, pulseDurationInMilliseconds, targetPosition);
+
+  // isExecutingMove = true;
+  // stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
 }
 
-void PlatformDynamic::stop() {
+void DecDynamic::stop() {
   isExecutingMove = false;
   stopMove = true;
 }
@@ -209,7 +180,7 @@ void PlatformDynamic::stop() {
  * Slew by degrees.
  * Caclulates target position
  * */
-void PlatformDynamic::slewByDegrees(double degreesToSlew) {
+void DecDynamic::slewByDegrees(double degreesToSlew) {
   log("Incoming slewByDegrees command, degrees to slew is  %lf", degreesToSlew);
 
   targetPosition = model.calculatePositionByDegreeShift(
@@ -219,7 +190,7 @@ void PlatformDynamic::slewByDegrees(double degreesToSlew) {
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
 }
 
-void PlatformDynamic::moveAxis(double degreesPerSecond) {
+void DecDynamic::moveAxis(double degreesPerSecond) {
 
   log("Incoming movexis command speed %lf", degreesPerSecond);
   if (degreesPerSecond == 0) {
@@ -232,9 +203,7 @@ void PlatformDynamic::moveAxis(double degreesPerSecond) {
   // 1x sidereal forward, stars stay stationary.
 
   // positive is east, away from tracking direction (arbitary?)
-  if (trackingOn) {
-    degreesPerSecond -= model.getTrackingRateDegreesSec();
-  }
+
   targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
       stepperWrapper->getPosition(), 3600.0 * fabs(degreesPerSecond));
   log("Move axis target speed millihz %lu", targetSpeedInMilliHz);
@@ -254,7 +223,7 @@ void PlatformDynamic::moveAxis(double degreesPerSecond) {
  * per second value and do moveaxis. Currently considers percentage
  * as a % of tracking rate.
  */
-void PlatformDynamic::moveAxisPercentage(int percentage) {
+void DecDynamic::moveAxisPercentage(int percentage) {
   log("Received moveaxispercentage with value %d", percentage);
   if (percentage == 0) {
     moveAxis(0);
@@ -268,12 +237,6 @@ void PlatformDynamic::moveAxisPercentage(int percentage) {
   moveAxis(degreesPerSecond);
 };
 
-double PlatformDynamic::getTimeToCenterInSeconds() {
-  return model.calculateTimeToCenterInSeconds(stepperWrapper->getPosition());
-}
 
-double PlatformDynamic::getTimeToEndOfRunInSeconds() {
-  return model.calculateTimeToEndOfRunInSeconds(stepperWrapper->getPosition());
-}
 
-bool PlatformDynamic::isSlewing() { return isExecutingMove; }
+bool DecDynamic::isSlewing() { return isExecutingMove; }

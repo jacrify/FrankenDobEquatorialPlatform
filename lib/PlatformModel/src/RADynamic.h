@@ -1,5 +1,5 @@
-#ifndef __PlatformStatic_H__
-#define __PlatformStatic_H__
+#ifndef ___RADynamic_H__
+#define ___RADynamic_H__
 #include "PlatformStatic.h"
 #include "StepperWrapper.h"
 #include <cstdint>
@@ -18,9 +18,9 @@
  * Uses StepperWrapper to send commands to motor.
  *
  */
-class PlatformDynamic {
+class RADynamic {
 public:
-  PlatformDynamic(PlatformStatic &m);
+  RADynamic(PlatformStatic &m);
   // Input
   // Is Limit switch pushed
   void setLimitSwitchState(bool state);

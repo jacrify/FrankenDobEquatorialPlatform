@@ -13,7 +13,7 @@ unsigned long lastIPBroadcastTime;
 //(can be negative is center passed)
 // AxixMoveRate is max speed in degrees per second
 void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
-                     PlatformDynamic &control) {
+                     RADynamic &control) {
 
   long now = millis();
   if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
@@ -42,7 +42,7 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
 
       String json;
       serializeJson(doc, json);
-      json = "DSC:"+json;
+      json = "DSC:" + json;
       udp.print(json.c_str());
 
       // log("Status Packet sent\r\n %s", response);

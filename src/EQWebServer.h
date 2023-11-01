@@ -26,6 +26,6 @@
 #define DEFAULT_CIRCLE_RADIUS 448.0
 // 482.5; // And this is the value by design in 3d model
 
-void setupWebServer(MotorUnit &motor, PlatformStatic &model,
-                    PlatformDynamic &control, Preferences &prefs);
+void setupWebServer(MotorUnit &motor, PlatformStatic &model, RADynamic &control,
+                    Preferences &prefs);
 #endif

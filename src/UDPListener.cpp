@@ -9,7 +9,7 @@ AsyncUDP dscUDP;
  * Listen for UDP broadcasts from Digital Setting Circles.
  * This is used for alpaca commands passed from DSC.
  */
-void setupUDPListener(MotorUnit &motor, PlatformDynamic &control) {
+void setupUDPListener(MotorUnit &motor, RADynamic &control) {
   if (dscUDP.listen(IPBROADCASTPORT)) {
     log("Listening for dsc platform broadcasts");
     dscUDP.onPacket([&motor, &control](AsyncUDPPacket packet) {
@@ -71,7 +71,6 @@ void setupUDPListener(MotorUnit &motor, PlatformDynamic &control) {
             control.pulseGuide(parameter1, parameter2);
             return;
           }
-
 
           log("Unknown command %s", command.c_str());
           return;

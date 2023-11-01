@@ -54,7 +54,7 @@ void setRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
   if (request->hasArg("value")) {
     String speed = request->arg("value");
     long speedValue = std::stoul(speed.c_str());
-    
+
     if (speedValue == 0 && speed != "0") {
       log("Could not parse speed");
       return;
@@ -156,8 +156,8 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
   request->send(200, "application/json", json);
 }
 
-void setupWebServer(MotorUnit &motor, PlatformStatic &model,
-                    PlatformDynamic &control, Preferences &preferences) {
+void setupWebServer(MotorUnit &motor, PlatformStatic &model, RADynamic &control,
+                    Preferences &preferences) {
   int rewindFastFowardSpeed =
       preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
   int limitSwitchToMiddleDistance =
@@ -169,7 +169,7 @@ void setupWebServer(MotorUnit &motor, PlatformStatic &model,
   double raGuideSpeedMultiplier =
       preferences.getDouble(RA_GUIDE_KEY, DEFAULT_RA_GUIDE);
   unsigned long acceleration = preferences.getULong(ACCEL_KEY, DEFAULT_ACCEL);
-  
+
   log("Preferences loaded for model rewindspeed: %d limitToMiddle %d "
       "radius "
       "%f NunChuk multiplier %f RA Guide multiplier %f Accel: %d",

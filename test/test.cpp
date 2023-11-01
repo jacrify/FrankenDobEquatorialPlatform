@@ -1,7 +1,7 @@
 
 #include "Logging.h"
-#include "PlatformDynamic.h"
 #include "PlatformStatic.h"
+#include "RADynamic.h"
 #include <cstdint>
 
 #include "StepperWrapper.h"
@@ -163,7 +163,7 @@ void testGotoMiddleBasic() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   When(stepper.getPosition).Return(model.getMiddlePosition() - 100);
@@ -205,7 +205,7 @@ void testGotoMiddleLimitSwitch() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to middle
@@ -245,7 +245,7 @@ void testGotoMiddleAtMiddle() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to middle, when at middle
@@ -286,7 +286,7 @@ void testGotoMiddleAtMiddleResumeTracking() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to middle, when at middle. Tracking should restart
@@ -324,12 +324,12 @@ void testGotoStartBasic() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to start
   control.setLimitSwitchState(false);
-  //safetymode runs at 1/3 speed when limit pos not known
+  // safetymode runs at 1/3 speed when limit pos not known
   control.setSafetyMode(false);
   control.gotoStart();
   control.calculateOutput();
@@ -366,7 +366,7 @@ void testGotoStartLimit() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to start when limit hit
@@ -400,7 +400,7 @@ void testGotoStartLimitTracking() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to start when limit hit
@@ -441,7 +441,7 @@ void testGotoEndBasic() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to end
@@ -482,7 +482,7 @@ void testGotoEndLimitHit() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to end
@@ -523,7 +523,7 @@ void testGotoEndAtEndWithTracking() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to end
@@ -565,11 +565,10 @@ void testCalculateMoveByDegrees() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  uint32_t target= model.calculatePositionByDegreeShift(0,0);
-  TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, target,
-                           "Target should be end");
+  uint32_t target = model.calculatePositionByDegreeShift(0, 0);
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, target, "Target should be end");
 
-  target = model.calculatePositionByDegreeShift(0,stepPositionOfLimit);
+  target = model.calculatePositionByDegreeShift(0, stepPositionOfLimit);
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(468000, target, "Target should be limit");
 
   target = model.calculatePositionByDegreeShift(-1, stepPositionOfLimit);
@@ -603,7 +602,7 @@ void testMoveAxisPositive() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test moveaxis
@@ -695,7 +694,7 @@ void testGotoStartSafety() {
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
 
-  PlatformDynamic control = PlatformDynamic(model);
+  RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
   // test going to start

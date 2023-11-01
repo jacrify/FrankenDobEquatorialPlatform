@@ -14,14 +14,14 @@
 #include <LittleFS.h>
 #include <Preferences.h>
 
-//How long we delay the main loop.
-//Half of this time is the average pulsetime end error
-#define MAINLOOPTIME 25 //ms
+// How long we delay the main loop.
+// Half of this time is the average pulsetime end error
+#define MAINLOOPTIME 25 // ms
 
 PlatformStatic model;
 Preferences prefs;
 
-PlatformDynamic control(model);
+RADynamic control(model);
 MotorUnit motorUnit(model, control, prefs);
 
 void setup() {
