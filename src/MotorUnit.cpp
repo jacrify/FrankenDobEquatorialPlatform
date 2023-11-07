@@ -67,9 +67,8 @@ MotorUnit::MotorUnit(RAStatic &m, RADynamic &c, Preferences &p)
 
 void MotorUnit::setupMotor() {
   pulseGuideUntil = 0;
-  lastButtonAndSpeedCalc=0;
-   bounceFastForward.attach(fastForwardSwitchPin,
-                                                  INPUT_PULLUP);
+  lastButtonAndSpeedCalc = 0;
+  bounceFastForward.attach(fastForwardSwitchPin, INPUT_PULLUP);
   bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
   bouncePlay.attach(playSwitchPin, INPUT_PULLUP);
 
@@ -160,14 +159,12 @@ bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 //   return degreesPerSecond * 3600.0;
 // }
 
-
-
 void MotorUnit::onLoop() {
   unsigned long now = millis();
   if (pulseGuideUntil != 0) {
     if (now > pulseGuideUntil) {
-      //stops the pulse and resets back to original speed
-      //we do this here to minise time overrun
+      // stops the pulse and resets back to original speed
+      // we do this here to minise time overrun
       control.stopPulse();
       pulseGuideUntil = 0;
       log("Pulse guide ended. Delta in milliseconds from requested duration "
@@ -216,7 +213,7 @@ void MotorUnit::onLoop() {
       control.setTrackingOnOff(false);
     }
 
-    long d = control.calculateOutput();
+    long d = control.onLoop();
 
     // handle pulseguide delay
     if (d > 0) {

@@ -22,20 +22,17 @@
 class RADynamic : public MotorDynamic {
 public:
   RADynamic(RAStatic &m);
+
+  void moveAxisPercentage(int percentage);
+  void moveAxis(double degreesPerSecond);
+  void pulseGuide(int direction, long pulseDurationInMilliseconds);
+  void stopOrTrack(int32_t pos);
+
   void setTrackingOnOff(bool tracking);
   bool isTrackingOn();
-  void stopOrTrack(int32_t pos);
+
   // Get run time until platform is centered
   double getTimeToCenterInSeconds();
-  void moveAxisPercentage(int percentage);
-
-       void moveAxis(double degreesPerSecond);
-
-  /**
-   * Queue a pulseguide.
-   * Direction is either  2 = guideEast, 3 = guideWest
-   *    */
-  void pulseGuide(int direction, long pulseDurationInMilliseconds);
   // Get time left to run
   double getTimeToEndOfRunInSeconds();
 

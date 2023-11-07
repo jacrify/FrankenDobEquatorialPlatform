@@ -5,7 +5,7 @@ void MotorDynamic::setLimitSwitchState(bool state) { limitSwitchState = state; }
 
 void MotorDynamic::setSafetyMode(bool s) { safetyMode = s; }
 
-long MotorDynamic::calculateOutput() {
+long MotorDynamic::onLoop() {
 
   // If pulse guide is in progress, then exit.
   if (isPulseGuiding) {
@@ -71,6 +71,7 @@ long MotorDynamic::calculateOutput() {
   if (stopMove) {
     stopMove = false;
   }
+  //either stop, or resume tracking (delegeated to subclass)
   stopOrTrack(pos);
 
   return 0;

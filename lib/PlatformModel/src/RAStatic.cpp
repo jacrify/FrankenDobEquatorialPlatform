@@ -4,16 +4,7 @@
 #include <Math.h>
 
 using namespace std;
-double coneRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
-
-// this is millimeters from pivot to center rod. Think of a
-// cone lying on the ground, with the axis of the cone pointing at the
-// south pole in the sky. If you take a slice through this cone at
-// right angles to the axis, so the the slice passes through the contact
-// point between the drive unit and the top of the platform,
-// this value is the radius of that slice.
-// Effectivly it drives the speed of the platform, as it is used
-// in the speeed calculations
+// double coneRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 
 #define sideRealArcSecondsPerSec 15.041
 
@@ -75,43 +66,6 @@ uint32_t RAStatic::calculateTrackingSpeedInMilliHz(int stepperCurrentPosition) {
                                  sideRealArcSecondsPerSec);
 }
 
-uint32_t RAStatic::calculateSpeedInMilliHz(int stepperCurrentPosition,
-                                           double desiredArcSecondsPerSecond) {
-
-  int middle = getMiddlePosition();
-  double stepsFromMiddle = (double)(middle - stepperCurrentPosition);
-
-  double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
-
-  double absoluteAngleMovedAtThisPoint =
-      atan(distanceFromCenterInMM / screwToPivotInMM);
-
-  double radiansPerSecond =
-      desiredArcSecondsPerSecond * (M_PI / 180.0 / 3600.0);
-
-  double absoluteAngleAfterOneMoreSecond =
-      absoluteAngleMovedAtThisPoint + radiansPerSecond;
-
-  double distanceAlongRodAfterOneMoreSecond =
-      screwToPivotInMM * tan(absoluteAngleAfterOneMoreSecond);
-
-  double threadDistancePerSecond =
-      distanceAlongRodAfterOneMoreSecond - distanceFromCenterInMM;
-
-  double numberOfTurnsPerSecondOfRod =
-      threadDistancePerSecond / threadedRodPitch;
-
-  double numberOfTurnsPerSecondOfStepper =
-      numberOfTurnsPerSecondOfRod * rodStepperRatio;
-
-  double numberOfStepsPerSecondInMiddle =
-      numberOfTurnsPerSecondOfStepper * stepperStepsPerRevolution * microsteps;
-
-  double stepperSpeedInHertz = numberOfStepsPerSecondInMiddle;
-  uint32_t stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
-  return stepperSpeedInMilliHertz;
-}
-
 void RAStatic::setGuideRateMultiplier(double d) {
   guideRateMultiplier = d;
   guideRateInArcSecondsSecond = sideRealArcSecondsPerSec * d;
@@ -130,10 +84,3 @@ double RAStatic::getTrackingRateDegreesSec() {
 }
 
 double RAStatic::getGuideRateMultiplier() { return guideRateMultiplier; }
-
-// double RAStatic::getRAGuideRateDegreesSec() {
-//   return raGuideRateInArcSecondsSecond / 3600.0;
-// }
-// double RAStatic::getRAGuideRateArcSecondsSecond() {
-//   return raGuideRateInArcSecondsSecond;
-// }

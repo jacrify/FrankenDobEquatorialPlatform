@@ -31,16 +31,6 @@ public:
   /** Convenience method to calculate motor sidereal tracking */
   uint32_t calculateTrackingSpeedInMilliHz(int stepperCurrentPosition);
 
-  /**
-   * Calculate tracking speed for motor,,, correcting for tangent error.
-   * Converts a rotation speed of top of  platform, in arc
-   * seconds per second, into stepper millihz given a particular position.
-   * ie motor should run faster at ends than in middle.
-   */
-
-  uint32_t calculateSpeedInMilliHz(int stepperCurrentPosition,
-                                   double desiredArcSecondsPerSecond);
-
   // Calculates runtime to center based on sidreal rate
   double calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition);
 
