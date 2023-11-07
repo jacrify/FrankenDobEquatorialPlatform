@@ -75,9 +75,6 @@ long RADynamic::calculateOutput() {
   }
 
   if (stopMove) {
-    // we've finished a move. Work out sidereal clock offset to apply
-    double endMoveTimeOffset = model.calculateTimeToCenterInSeconds(pos);
-
     stopMove = false;
   }
   if (trackingOn) {
@@ -130,7 +127,7 @@ void RADynamic::setStepperWrapper(StepperWrapper *wrapper) {
   stepperWrapper = wrapper;
 }
 
-RADynamic::RADynamic(PlatformStatic &m) : model(m) {
+RADynamic::RADynamic(RAStatic &m) : model(m) {
   isMoveQueued = false;
   isExecutingMove = false;
   trackingOn = false;
@@ -151,14 +148,14 @@ void RADynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
     // If 3 then return value will be lower.
     double targetSpeedInArcSecsSec = model.getTrackingRateArcsSecondsSec();
     log("Target guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
-    log("Model RA guide rate %lf ", model.getRAGuideRateArcSecondsSecond());
+    log("Model RA guide rate %lf ", model.getGuideRateArcSecondsSecond());
     // NOTE: this assumes target speed will be positive
     if (direction == 3) { // west: go faster {}
-      targetSpeedInArcSecsSec += model.getRAGuideRateArcSecondsSecond();
+      targetSpeedInArcSecsSec += model.getGuideRateArcSecondsSecond();
       log("Adjusted W guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
     }
     if (direction == 2) { // east: go slower
-      targetSpeedInArcSecsSec -= model.getRAGuideRateArcSecondsSecond();
+      targetSpeedInArcSecsSec -= model.getGuideRateArcSecondsSecond();
       log("Adjusted E guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
     }
     targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(

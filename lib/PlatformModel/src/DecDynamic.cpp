@@ -28,6 +28,7 @@ long DecDynamic::calculateOutput() {
     int32_t limitPos = model.getLimitPosition();
     stepperWrapper->resetPosition(limitPos);
     safetyMode = false;
+    // TODO add new limit swtich to model
     if (targetPosition > limitPos ||
         targetPosition == model.getLimitSwitchSafetyStandoffPosition()) {
       if (isExecutingMove) {
@@ -46,8 +47,6 @@ long DecDynamic::calculateOutput() {
       log("Moving");
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
       isMoveQueued = false;
-      // store how many seconds from center we are at start of move
-      startMoveTimeOffset = model.calculateTimeToCenterInSeconds(pos);
     }
   }
   // check for move end
@@ -58,8 +57,10 @@ long DecDynamic::calculateOutput() {
     // if we have arrived at the limit switch safety standoff position,
     // assume the move is a move towards the safety.
     // Set new position and much lower speed
+    // TODO limit switch
     if (pos == model.getLimitSwitchSafetyStandoffPosition()) {
       targetPosition = INT32_MAX;
+      // TODO dec speed
       targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / 5;
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
       return 0;
@@ -71,9 +72,6 @@ long DecDynamic::calculateOutput() {
   }
 
   if (stopMove) {
-    // we've finished a move. Work out sidereal clock offset to apply
-    double endMoveTimeOffset = model.calculateTimeToCenterInSeconds(pos);
-
     stopMove = false;
   }
   stepperWrapper->stop();
@@ -82,6 +80,7 @@ long DecDynamic::calculateOutput() {
 }
 
 void DecDynamic::gotoMiddle() {
+  // TODO model middle position
   targetPosition = model.getMiddlePosition();
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
@@ -90,6 +89,7 @@ void DecDynamic::gotoMiddle() {
 
 void DecDynamic::gotoStart() {
   // should run until limit switch hit
+  // TODO model limits
   targetPosition = model.getLimitSwitchSafetyStandoffPosition();
   int32_t limitPos = model.getLimitPosition();
   // when limit not known, find it slowly
@@ -107,7 +107,7 @@ void DecDynamic::setStepperWrapper(StepperWrapper *wrapper) {
   stepperWrapper = wrapper;
 }
 
-DecDynamic::DecDynamic(PlatformStatic &m) : model(m) {
+DecDynamic::DecDynamic(DecStatic &m) : model(m) {
   isMoveQueued = false;
   isExecutingMove = false;
 
@@ -121,22 +121,26 @@ void DecDynamic::stopPulse() {
   isPulseGuiding = false;
 }
 void DecDynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
-  // if not tracking, do nothing
+  // TODO rewrite.
 
-  // Direction is either  2 = guideEast, 3 = guideWest.
-  // If 2 then returned value will be higher than stepperCurrentPosition
-  // If 3 then return value will be lower.
-  double targetSpeedInArcSecsSec = model.getTrackingRateArcsSecondsSec();
-  log("Target guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
-  log("Model RA guide rate %lf ", model.getRAGuideRateArcSecondsSecond());
+  // Direction is either  0 = guideNorth, 1 = guideSouth.
+  // As wedge angle increases, platform tilts north
+  // Motor position 0 is at top?, so
+  // If 0 then returned value will be higher than stepperCurrentPosition
+  // If 1 then return value will be lower.
+
+  double targetSpeedInArcSecsSec;
+  
+  log("Target guide rate arc seconds %lf ;", targetSpeedInArcSecsSec);
+  
   // NOTE: this assumes target speed will be positive
-  if (direction == 3) { // west: go faster {}
-    targetSpeedInArcSecsSec += model.getRAGuideRateArcSecondsSecond();
-    log("Adjusted W guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+  if (direction == 0) { // north: go up {}
+    targetSpeedInArcSecsSec = model.getGuideRateArcSecondsSecond();
+    log("N guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
   }
   if (direction == 2) { // east: go slower
-    targetSpeedInArcSecsSec -= model.getRAGuideRateArcSecondsSecond();
-    log("Adjusted E guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+    targetSpeedInArcSecsSec = -model.getGuideRateArcSecondsSecond();
+    log("S guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
   }
   targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
       stepperWrapper->getPosition(), targetSpeedInArcSecsSec);
@@ -183,6 +187,8 @@ void DecDynamic::stop() {
 void DecDynamic::slewByDegrees(double degreesToSlew) {
   log("Incoming slewByDegrees command, degrees to slew is  %lf", degreesToSlew);
 
+  // TODO mdeol
+
   targetPosition = model.calculatePositionByDegreeShift(
       degreesToSlew, stepperWrapper->getPosition());
   isExecutingMove = true;
@@ -203,7 +209,7 @@ void DecDynamic::moveAxis(double degreesPerSecond) {
   // 1x sidereal forward, stars stay stationary.
 
   // positive is east, away from tracking direction (arbitary?)
-
+  // TODO
   targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
       stepperWrapper->getPosition(), 3600.0 * fabs(degreesPerSecond));
   log("Move axis target speed millihz %lu", targetSpeedInMilliHz);
@@ -229,14 +235,13 @@ void DecDynamic::moveAxisPercentage(int percentage) {
     moveAxis(0);
     return;
   }
+  //TODO fix hardcoded degrees sec here
   double degreesPerSecond = model.getNunChukMultiplier() *
-                            model.getTrackingRateDegreesSec() *
+                            15 *
                             (double)percentage / 100.0;
   log("Moving axis with %lf degrees sec", degreesPerSecond);
 
   moveAxis(degreesPerSecond);
 };
-
-
 
 bool DecDynamic::isSlewing() { return isExecutingMove; }

@@ -1,6 +1,6 @@
 
 #include "Logging.h"
-#include "PlatformStatic.h"
+#include "RAStatic.h"
 #include "RADynamic.h"
 #include <cstdint>
 
@@ -16,11 +16,11 @@ void test_timetomiddle_calc(void) {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   double time_to_center =
       model.calculateTimeToCenterInSeconds(stepPositionOfMiddle);
   TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0, time_to_center,
@@ -55,10 +55,12 @@ void test_speed_calc(void) {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
+  
   log("====test_speed_calc====");
   uint32_t speedInMilliHz =
       model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
@@ -80,19 +82,19 @@ void test_speed_calc(void) {
   TEST_ASSERT_EQUAL_INT_MESSAGE(119857, speedInMilliHz,
                                 "Should be faster at limit: approx 1.8%");
 
-  model.setConeRadiusAtAttachmentPoint(447);
+  model.setScrewToPivotInMM(447);
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(117344, speedInMilliHz,
                                 "Smaller great circle should be slower speed");
 
-  model.setConeRadiusAtAttachmentPoint(449);
+  model.setScrewToPivotInMM(449);
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(117869, speedInMilliHz,
                                 "Larger great circle should be faster speed");
 
-  model.setConeRadiusAtAttachmentPoint(448);
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(61); // smaller so closer to middle
 
   speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
@@ -111,11 +113,11 @@ void test_speed_calc(void) {
       "than  62mm value of 119461");
 }
 void test_rewind_fast_forward_speed_calc() {
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(62);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   // sidereal we expect to go abut 1 turn per minute
   // one turn is 2mm
   // so 2mm*steps per mm pulses
@@ -158,11 +160,11 @@ void testGotoMiddleBasic() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -200,11 +202,11 @@ void testGotoMiddleLimitSwitch() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -240,11 +242,11 @@ void testGotoMiddleAtMiddle() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -281,11 +283,11 @@ void testGotoMiddleAtMiddleResumeTracking() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -319,11 +321,11 @@ void testGotoStartBasic() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -361,11 +363,11 @@ void testGotoStartLimit() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -395,11 +397,11 @@ void testGotoStartLimitTracking() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -436,11 +438,11 @@ void testGotoEndBasic() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -477,11 +479,11 @@ void testGotoEndLimitHit() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -518,11 +520,11 @@ void testGotoEndAtEndWithTracking() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -560,11 +562,11 @@ void testCalculateMoveByDegrees() {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
 
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   uint32_t target = model.calculatePositionByDegreeShift(0, 0);
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, target, "Target should be end");
 
@@ -597,11 +599,11 @@ void testMoveAxisPositive() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -689,11 +691,11 @@ void testGotoStartSafety() {
 
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
-  PlatformStatic model;
-  model.setConeRadiusAtAttachmentPoint(448);
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-
+  
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 

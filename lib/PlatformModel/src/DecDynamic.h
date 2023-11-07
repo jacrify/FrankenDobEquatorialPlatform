@@ -1,28 +1,26 @@
 #ifndef __DECDYNAMIC_H__
 #define __DECDYNAMIC_H__
 
-
-#include "PlatformStatic.h"
+#include "DecStatic.h"
 #include "StepperWrapper.h"
 #include <cstdint>
 
-/** Responsible for the dynamic state of the platform.
+/** Responsible for the dynamic state of the dexc axis.
  * Handles the following:
  * - what to do when external commands (webui/network) received
- * - remembers whether tracking is on or off
  * - keeps running clock offset for rewind/fast forward moves.
  *
  * Called in two ways: directly from webui/network, or periodically from
  * loop.
  *
- * Delegates to PlatformStatic for calculations.
+ * Delegates to DecStatic for calculations.
  *
  * Uses StepperWrapper to send commands to motor.
  *
  */
 class DecDynamic {
 public:
-  DecDynamic(PlatformStatic &m);
+  DecDynamic(DecStatic &m);
   // Input
   // Is Limit switch pushed
   void setLimitSwitchState(bool state);
@@ -42,7 +40,7 @@ public:
   // number of millis then call again.
   // This allows for exact implementation of pulseguides.
   // IE a queued pulseguide will set the pulseguide speed,
-  // then client will delay, 
+  // then client will delay,
   // Note there will be a delay in pulseguide start of
   // on average half the main loop delay
   // However pulseguide duration should be accurate.
@@ -79,14 +77,12 @@ public:
   void stop();
   void gotoMiddle();
 
-
   // Find limit switch
   void gotoStart();
 
   void setStepperWrapper(StepperWrapper *wrapper);
 
   int32_t getTargetPosition();
-
 
   // Output
 
@@ -98,7 +94,7 @@ private:
   uint32_t targetSpeedInMilliHz;
 
   StepperWrapper *stepperWrapper;
-  PlatformStatic &model;
+  DecStatic &model;
 
   bool isExecutingMove;
   bool isPulseGuiding;
@@ -108,10 +104,7 @@ private:
 
   long pulseGuideDurationMillis;
 
-  double startMoveTimeOffset;
-
   uint32_t speedBeforePulseMHz;
 };
-
 
 #endif // __DECDYNAMIC_H__

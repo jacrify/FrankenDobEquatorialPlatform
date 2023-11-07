@@ -6,8 +6,8 @@
 #include "Network.h"
 #include <SPI.h> //needed to make tcmstepper compile!
 // #include "OTA.h"
-#include "PlatformDynamic.h"
-#include "PlatformStatic.h"
+#include "RADynamic.h"
+#include "RAStatic.h"
 #include "UDPListener.h"
 #include "UDPSender.h"
 #include <ESPAsyncWebServer.h>
@@ -18,7 +18,7 @@
 // Half of this time is the average pulsetime end error
 #define MAINLOOPTIME 25 // ms
 
-PlatformStatic model;
+RAStatic model;
 Preferences prefs;
 
 RADynamic control(model);
@@ -32,7 +32,7 @@ void setup() {
   prefs.begin("Platform", false);
   setupWifi(prefs);
 
-  model.setupModel();
+  // model.setupModel();
 
   delay(500);
   // order of setup matters here. Web server loads prefs

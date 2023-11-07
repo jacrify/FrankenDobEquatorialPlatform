@@ -3,8 +3,8 @@
 #include <ESPAsyncWebServer.h>
 // #include "DigitalCaliper.h"
 #include "MotorUnit.h"
-#include "PlatformDynamic.h"
-#include "PlatformStatic.h"
+#include "RADynamic.h"
+#include "RAStatic.h"
 #include <Preferences.h>
 
 #define PREF_CIRCLE_KEY "cr"
@@ -26,6 +26,6 @@
 #define DEFAULT_CIRCLE_RADIUS 448.0
 // 482.5; // And this is the value by design in 3d model
 
-void setupWebServer(MotorUnit &motor, PlatformStatic &model, RADynamic &control,
+void setupWebServer(MotorUnit &motor, RAStatic &model, RADynamic &control,
                     Preferences &prefs);
 #endif

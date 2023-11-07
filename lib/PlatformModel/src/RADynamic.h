@@ -1,6 +1,6 @@
 #ifndef ___RADynamic_H__
 #define ___RADynamic_H__
-#include "PlatformStatic.h"
+#include "RAStatic.h"
 #include "StepperWrapper.h"
 #include <cstdint>
 
@@ -13,14 +13,14 @@
  * Called in two ways: directly from webui/network, or periodically from
  * loop.
  *
- * Delegates to PlatformStatic for calculations.
+ * Delegates to RAStatic for calculations.
  *
  * Uses StepperWrapper to send commands to motor.
  *
  */
 class RADynamic {
 public:
-  RADynamic(PlatformStatic &m);
+  RADynamic(RAStatic &m);
   // Input
   // Is Limit switch pushed
   void setLimitSwitchState(bool state);
@@ -110,7 +110,7 @@ private:
   uint32_t targetSpeedInMilliHz;
 
   StepperWrapper *stepperWrapper;
-  PlatformStatic &model;
+  RAStatic &model;
 
   bool isExecutingMove;
   bool isPulseGuiding;

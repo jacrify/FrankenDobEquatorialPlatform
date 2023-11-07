@@ -1,8 +1,8 @@
 #include "MotorUnit.h"
 #include "ConcreteStepperWrapper.h"
 #include "Logging.h"
-#include "PlatformDynamic.h"
-#include "PlatformStatic.h"
+#include "RADynamic.h"
+#include "RAStatic.h"
 #include <Arduino.h>
 #include <Bounce2.h>
 #include <FastAccelStepper.h>
@@ -23,6 +23,8 @@
 #define BUTTONANDRECALCPERIOD 250
 
 #define PREF_SAVED_POS_KEY "SavedPosition"
+
+unsigned long lastButtonAndSpeedCalc;
 
 unsigned long pulseGuideUntil; // absolute time in millis to pulseguide until
 
@@ -57,7 +59,7 @@ Bounce bounceRewind = Bounce();
 Bounce bouncePlay = Bounce();
 Bounce bounceLimit = Bounce();
 
-MotorUnit::MotorUnit(PlatformStatic &m, PlatformDynamic &c, Preferences &p)
+MotorUnit::MotorUnit(RAStatic &m, RADynamic &c, Preferences &p)
     : model(m), control(c), preferences(p) {
 
   // control = PlatformStatic(ConcreteStepperWrapper(stepper), model);
@@ -158,7 +160,7 @@ bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
 //   return degreesPerSecond * 3600.0;
 // }
 
-unsigned long lastButtonAndSpeedCalc;
+
 
 void MotorUnit::onLoop() {
   unsigned long now = millis();

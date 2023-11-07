@@ -11,8 +11,8 @@ AsyncWebServer server(80);
 #define IPBROADCASTPORT 50375
 
 // TODO #8 add pulseguide speed here
-void setLimitToMiddleDistance(AsyncWebServerRequest *request,
-                              PlatformStatic &model, Preferences &preferences) {
+void setLimitToMiddleDistance(AsyncWebServerRequest *request, RAStatic &model,
+                              Preferences &preferences) {
   log("/setLimitToMiddle");
   if (request->hasArg("value")) {
     String distance = request->arg("value");
@@ -29,7 +29,7 @@ void setLimitToMiddleDistance(AsyncWebServerRequest *request,
   log("No distance arg found");
 }
 
-void setNunChukMultiplier(AsyncWebServerRequest *request, PlatformStatic &model,
+void setNunChukMultiplier(AsyncWebServerRequest *request, RAStatic &model,
                           Preferences &preferences) {
   log("/setNunChukMultipler");
   if (request->hasArg("value")) {
@@ -48,8 +48,7 @@ void setNunChukMultiplier(AsyncWebServerRequest *request, PlatformStatic &model,
 }
 
 void setRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
-                                  PlatformStatic &model,
-                                  Preferences &preferences) {
+                                  RAStatic &model, Preferences &preferences) {
   log("/setrunbackSpeed");
   if (request->hasArg("value")) {
     String speed = request->arg("value");
@@ -86,7 +85,7 @@ void setAcceleration(AsyncWebServerRequest *request, Preferences &preferences,
   log("No acceleration arg found");
 }
 
-void setRAGuideRate(AsyncWebServerRequest *request, PlatformStatic &model,
+void setRAGuideRate(AsyncWebServerRequest *request, RAStatic &model,
                     Preferences &preferences) {
 
   log("/setRAGuideRate");
@@ -98,7 +97,7 @@ void setRAGuideRate(AsyncWebServerRequest *request, PlatformStatic &model,
       log("Could not parse rarateval");
       return;
     }
-    model.setRaGuideRateMultiplier(rarateval);
+    model.setGuideRateMultiplier(rarateval);
     preferences.putDouble(RA_GUIDE_KEY, rarateval);
     log("Saved new RA guide rate");
     return;
@@ -107,8 +106,7 @@ void setRAGuideRate(AsyncWebServerRequest *request, PlatformStatic &model,
 }
 
 void setConeRadiusAtAttachmentPoint(AsyncWebServerRequest *request,
-                                    PlatformStatic &model,
-                                    Preferences &preferences) {
+                                    RAStatic &model, Preferences &preferences) {
 
   log("/setConeRadiusAtAttachmentPoint");
   if (request->hasArg("value")) {
@@ -119,7 +117,7 @@ void setConeRadiusAtAttachmentPoint(AsyncWebServerRequest *request,
       log("Could not parse radius");
       return;
     }
-    model.setConeRadiusAtAttachmentPoint(radValue);
+    model.setScrewToPivotInMM(radValue);
     preferences.putDouble(PREF_CIRCLE_KEY, radValue);
     return;
   }
@@ -127,7 +125,7 @@ void setConeRadiusAtAttachmentPoint(AsyncWebServerRequest *request,
 }
 
 void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
-               PlatformStatic &model) {
+               RAStatic &model) {
   // log("/getStatus");
 
   char buffer[400];
@@ -143,8 +141,8 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
         "acceleration" : %ld,
         "nunChukMultiplier" : %d
       })",
-      model.getRewindFastFowardSpeed(), model.getConeRadiusAtAttachmentPoint(),
-      model.getLimitSwitchToMiddleDistance(), model.getRaGuideRateMultiplier(),
+      model.getRewindFastFowardSpeed(), model.getScrewToPivotInMM(),
+      model.getLimitSwitchToMiddleDistance(), model.getGuideRateMultiplier(),
       motor.getPositionInMM(), motor.getVelocityInMMPerMinute(),
       motor.getAcceleration(), model.getNunChukMultiplier());
 
@@ -156,7 +154,7 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
   request->send(200, "application/json", json);
 }
 
-void setupWebServer(MotorUnit &motor, PlatformStatic &model, RADynamic &control,
+void setupWebServer(MotorUnit &motor, RAStatic &model, RADynamic &control,
                     Preferences &preferences) {
   int rewindFastFowardSpeed =
       preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
@@ -178,9 +176,9 @@ void setupWebServer(MotorUnit &motor, PlatformStatic &model, RADynamic &control,
   // order matters here: rewind fast forward speed uses previous sets for
   // calcs
   model.setNunChukMultiplier(nunChukMultiplier);
-  model.setRaGuideRateMultiplier(raGuideSpeedMultiplier);
+  model.setGuideRateMultiplier(raGuideSpeedMultiplier);
   model.setLimitSwitchToMiddleDistance(limitSwitchToMiddleDistance);
-  model.setConeRadiusAtAttachmentPoint(coneRadius);
+  model.setScrewToPivotInMM(coneRadius);
   model.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
   motor.setAcceleration(acceleration);
 

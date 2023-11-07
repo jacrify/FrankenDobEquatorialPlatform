@@ -12,7 +12,7 @@ unsigned long lastIPBroadcastTime;
 // and how many seconds it will take to reach center.
 //(can be negative is center passed)
 // AxixMoveRate is max speed in degrees per second
-void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
+void broadcastStatus(MotorUnit &motorUnit, RAStatic &model,
                      RADynamic &control) {
 
   long now = millis();
@@ -35,7 +35,7 @@ void broadcastStatus(MotorUnit &motorUnit, PlatformStatic &model,
       doc["timeToEnd"] = control.getTimeToEndOfRunInSeconds();
       doc["isTracking"] = control.isTrackingOn();
       doc["slewing"] = control.isSlewing();
-      doc["guideMoveRate"] = model.getRAGuideRateDegreesSec();
+      doc["guideMoveRate"] = model.getGuideRateDegreesSec();
       doc["trackingRate"] = model.getTrackingRateArcsSecondsSec();
       doc["axisMoveRateMax"] = model.getMaxAxisMoveRateDegreesSec();
       doc["axisMoveRateMin"] = model.getMinAxisMoveRateDegreesSec();
