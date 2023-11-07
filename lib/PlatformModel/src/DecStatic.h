@@ -1,7 +1,6 @@
 #ifndef __DECSTATIC_H__
 #define __DECSTATIC_H__
 
-
 #include "MotorStatic.h"
 #include <cstdint>
 
@@ -12,11 +11,8 @@
 
 class DecStatic : public MotorStatic {
 public:
-   DecStatic();
-
-private:
-
+  DecStatic();
+  int32_t getGotoEndPosition();
 };
-
 
 #endif // __DECSTATIC_H__

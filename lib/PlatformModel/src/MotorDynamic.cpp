@@ -1,11 +1,9 @@
-#include "Logging.h"
 #include "MotorDynamic.h"
+#include "Logging.h"
 #include <cmath>
 void MotorDynamic::setLimitSwitchState(bool state) { limitSwitchState = state; }
 
 void MotorDynamic::setSafetyMode(bool s) { safetyMode = s; }
-
-
 
 long MotorDynamic::calculateOutput() {
 
@@ -48,7 +46,6 @@ long MotorDynamic::calculateOutput() {
       log("Moving");
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
       isMoveQueued = false;
-
     }
   }
   // check for move end
@@ -87,7 +84,7 @@ void MotorDynamic::gotoMiddle() {
 }
 
 void MotorDynamic::gotoEndish() {
-  targetPosition = model.getEndStandOffPosition();
+  targetPosition = model.getGotoEndPosition();
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
@@ -108,7 +105,9 @@ void MotorDynamic::gotoStart() {
 
 int32_t MotorDynamic::getTargetPosition() { return targetPosition; }
 
-uint32_t MotorDynamic::getTargetSpeedInMilliHz() { return targetSpeedInMilliHz; }
+uint32_t MotorDynamic::getTargetSpeedInMilliHz() {
+  return targetSpeedInMilliHz;
+}
 
 void MotorDynamic::setStepperWrapper(StepperWrapper *wrapper) {
   stepperWrapper = wrapper;
@@ -144,6 +143,5 @@ void MotorDynamic::slewByDegrees(double degreesToSlew) {
   isMoveQueued = true;
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
 }
-
 
 bool MotorDynamic::isSlewing() { return isExecutingMove; }

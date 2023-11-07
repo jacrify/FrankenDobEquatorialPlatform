@@ -1,7 +1,7 @@
 
 #include "Logging.h"
-#include "RAStatic.h"
 #include "RADynamic.h"
+#include "RAStatic.h"
 #include <cstdint>
 
 #include "StepperWrapper.h"
@@ -20,7 +20,7 @@ void test_timetomiddle_calc(void) {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   double time_to_center =
       model.calculateTimeToCenterInSeconds(stepPositionOfMiddle);
   TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0, time_to_center,
@@ -56,11 +56,11 @@ void test_speed_calc(void) {
   int stepPositionOfMiddle = middleToEnd * 3600;
   int stepPositionOfLimit = runTotal * 3600;
   RAStatic model;
-  
+
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   log("====test_speed_calc====");
   uint32_t speedInMilliHz =
       model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
@@ -117,7 +117,7 @@ void test_rewind_fast_forward_speed_calc() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(62);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   // sidereal we expect to go abut 1 turn per minute
   // one turn is 2mm
   // so 2mm*steps per mm pulses
@@ -164,7 +164,7 @@ void testGotoMiddleBasic() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -206,7 +206,7 @@ void testGotoMiddleLimitSwitch() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -246,7 +246,7 @@ void testGotoMiddleAtMiddle() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -287,7 +287,7 @@ void testGotoMiddleAtMiddleResumeTracking() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -325,7 +325,7 @@ void testGotoStartBasic() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -367,7 +367,7 @@ void testGotoStartLimit() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -401,7 +401,7 @@ void testGotoStartLimitTracking() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -442,7 +442,7 @@ void testGotoEndBasic() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -454,7 +454,7 @@ void testGotoEndBasic() {
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getEndStandOffPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getGotoEndPosition(),
                                   control.getTargetPosition(),
                                   "Target Position should be endish");
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
@@ -483,7 +483,7 @@ void testGotoEndLimitHit() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -495,7 +495,7 @@ void testGotoEndLimitHit() {
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getEndStandOffPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getGotoEndPosition(),
                                   control.getTargetPosition(),
                                   "Target Position should be endish");
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
@@ -524,7 +524,7 @@ void testGotoEndAtEndWithTracking() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -537,7 +537,7 @@ void testGotoEndAtEndWithTracking() {
 
   try {
     Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getEndStandOffPosition(),
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getGotoEndPosition(),
                                   control.getTargetPosition(),
                                   "Target Position should be endish");
     TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
@@ -566,7 +566,7 @@ void testCalculateMoveByDegrees() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   uint32_t target = model.calculatePositionByDegreeShift(0, 0);
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, target, "Target should be end");
 
@@ -603,7 +603,7 @@ void testMoveAxisPositive() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
@@ -695,7 +695,7 @@ void testGotoStartSafety() {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(limitToMiddle);
   model.setRewindFastFowardSpeedInHz(30000);
-  
+
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 

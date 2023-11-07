@@ -24,28 +24,22 @@ double coneRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 // 10 mm=approx 5 minutes
 #define END_STANDOFF_MM 10
 
-
-
 const double fullRotation =
     2 * M_PI; // M_PI is the value for pi from the cmath library
 const double fullRotationTimeInSeconds = 24 * 60 * 60;
 
 
-// how far along middle point is in mm. IE distance from limit switch to point
-// where platform is flat
-int32_t limitSwitchToMiddleDistance;
 
 // double raGuideRateInArcSecondsSecond;
 // double raGuideRateMultiplier;
 // double raGuideRateDegreesSec;
 
-RAStatic::RAStatic() :  MotorStatic() {
-  
+RAStatic::RAStatic() : MotorStatic() {
+
   limitSwitchToEndDistance = 130;
   stepsPerMM = (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
                (teethOnStepperPulley * threadedRodPitch);
-  rodStepperRatio =
-      (double)teethOnRodPulley / (double)teethOnStepperPulley;
+  rodStepperRatio = (double)teethOnRodPulley / (double)teethOnStepperPulley;
 }
 
 double
@@ -128,9 +122,7 @@ void RAStatic::setGuideRateMultiplier(double d) {
       guideRateInArcSecondsSecond, guideRateMultiplier);
 }
 
-int32_t RAStatic::getEndStandOffPosition() {
-  return stepsPerMM * END_STANDOFF_MM;
-}
+int32_t RAStatic::getGotoEndPosition()  { return stepsPerMM * END_STANDOFF_MM; }
 
 double RAStatic::getTrackingRateArcsSecondsSec() {
   return sideRealArcSecondsPerSec;

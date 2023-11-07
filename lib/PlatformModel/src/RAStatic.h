@@ -1,9 +1,8 @@
 #ifndef __RASTATIC_H__
 #define __RASTATIC_H__
 
-
-#include <cstdint>
 #include "MotorStatic.h"
+#include <cstdint>
 
 // Represents the static attributes of the platform.
 // Use to perform calculations using intrinsic platform attributes
@@ -13,7 +12,7 @@
 
 class RAStatic : public MotorStatic {
 public:
-   RAStatic();
+  RAStatic();
 
   /**
    * Sets a multiple of guide sidreal rate to be used when
@@ -22,12 +21,12 @@ public:
   void setGuideRateMultiplier(double d);
   double getGuideRateMultiplier();
 
-   /**
+  /**
    * When running to end, platform stops some distance from end
    * to allow some runtime (eg for polar alignment).
    * This returns the stepper position of that point.
    */
-  int32_t getEndStandOffPosition();
+  int32_t getGotoEndPosition() override;
 
   /** Convenience method to calculate motor sidereal tracking */
   uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition);
@@ -48,15 +47,11 @@ public:
   // Calculates runtime to end based on sidreal rate
   double calculateTimeToEndOfRunInSeconds(int32_t stepperCurrentPosition);
 
-  
   double getTrackingRateArcsSecondsSec();
   double getTrackingRateDegreesSec();
-
-
 
 private:
   double guideRateMultiplier;
 };
-
 
 #endif // __RASTATIC_H__

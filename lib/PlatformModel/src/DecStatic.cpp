@@ -14,3 +14,5 @@ DecStatic::DecStatic()  : MotorStatic() {
   stepsPerMM = (stepperStepsPerRevolution * microsteps) / (threadedRodPitch);
   rodStepperRatio = 1;
 }
+
+int32_t DecStatic::getGotoEndPosition() { return 0; }

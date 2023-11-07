@@ -11,8 +11,9 @@
 class MotorStatic {
 public:
   MotorStatic();
-  virtual int32_t getEndStandOffPosition() = 0;
-  
+
+  virtual int32_t getGotoEndPosition() = 0;
+
   /**
    * Sets distance in mm from limit switch to center.
    * As limit switch is physically fixed, this
@@ -70,8 +71,8 @@ public:
 protected:
   double screwToPivotInMM;
   double rodStepperRatio;
-  
-   double baseGuideRateInArcSecondsSecond;
+
+  double baseGuideRateInArcSecondsSecond;
   int nunchukMultipler;
   int32_t limitSwitchToEndDistance; // from bottom to top
   int32_t limitSwitchToMiddleDistance;
@@ -92,6 +93,7 @@ protected:
 
   // how far back from limt switch to slow down in mm
   int limitSwitchSafetyStandoffMM;
+
 };
 
 #endif // __MOTORSTATIC_H__

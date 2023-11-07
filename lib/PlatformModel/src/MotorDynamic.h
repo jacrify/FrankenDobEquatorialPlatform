@@ -1,7 +1,6 @@
 #ifndef __MOTORDYNAMIC_H__
 #define __MOTORDYNAMIC_H__
 
-
 #include "MotorStatic.h"
 #include "StepperWrapper.h"
 #include <cstdint>
@@ -23,6 +22,29 @@
 class MotorDynamic {
 public:
   MotorDynamic(MotorStatic &m);
+
+  /**
+   * Queue a pulseguide.
+   * Direction is either  2 = guideEast, 3 = guideWest
+   *    */
+  virtual void pulseGuide(int direction, long pulseDurationInMilliseconds) = 0;
+
+  /**
+   * Queue a moveaxis.  degreesPerSecond can be positive or negative.
+   */
+  virtual void moveAxis(double degreesPerSecond) = 0;
+
+  /**
+   * Queue a movement based on a percentage (-100 to 100)
+   * This is a percentage of nunChukMultiplier * sidereal tracking rate
+   */
+  virtual void moveAxisPercentage(int percentage) = 0;
+
+  /**
+   * Called from main loop. Should either stop or resume tracking.
+   */
+  virtual void stopOrTrack(int32_t pos) = 0;
+
   // Input
   // Is Limit switch pushed
   void setLimitSwitchState(bool state);
@@ -35,7 +57,6 @@ public:
    * so as not to stress the physical fixing.
    */
   void setSafetyMode(bool b);
-
 
   bool isSlewing();
 
@@ -55,12 +76,6 @@ public:
   // Extneral commands
 
   /**
-   * Queue a pulseguide.
-   * Direction is either  2 = guideEast, 3 = guideWest
-   *    */
-  virtual void pulseGuide(int direction, long pulseDurationInMilliseconds) = 0;
-
-  /**
    * Resume tracking. Called from isr so needs to be fast
    */
   void stopPulse();
@@ -69,55 +84,42 @@ public:
    * Slew forward or back on ra axis by a number of degrees
    */
   void slewByDegrees(double degreesToSlew);
-  /**
-   * Queue a moveaxis.  degreesPerSecond can be positive or negative.
-   */
-  virtual void moveAxis(double degreesPerSecond) = 0;
 
-  /**
-   * Queue a movement based on a percentage (-100 to 100)
-   * This is a percentage of nunChukMultiplier * sidereal tracking rate
-   */
-   virtual void moveAxisPercentage(int percentage) = 0;
+  void stop();
+  void gotoMiddle();
 
-   void stop();
-   void gotoMiddle();
+  // Goto a position just short of end
+  void gotoEndish();
 
-   // Goto a position just short of end
-   void gotoEndish();
+  // Find limit switch
+  void gotoStart();
 
-   // Find limit switch
-   void gotoStart();
+  void setStepperWrapper(StepperWrapper *wrapper);
 
-   void setStepperWrapper(StepperWrapper *wrapper);
+  int32_t getTargetPosition();
+  uint32_t getTargetSpeedInMilliHz();
 
-   int32_t getTargetPosition();
-   uint32_t getTargetSpeedInMilliHz();
+  // Output
 
-   virtual void stopOrTrack(int32_t pos) = 0;
+protected:
+  bool limitSwitchState;
+  int32_t currentPosition;
 
-   // Output
+  int32_t targetPosition;
+  uint32_t targetSpeedInMilliHz;
 
- protected:
-   bool limitSwitchState;
-   int32_t currentPosition;
+  StepperWrapper *stepperWrapper;
+  MotorStatic &model;
 
-   int32_t targetPosition;
-   uint32_t targetSpeedInMilliHz;
+  bool isExecutingMove;
+  bool isPulseGuiding;
+  bool isMoveQueued;
+  bool stopMove;
+  bool safetyMode;
 
-   StepperWrapper *stepperWrapper;
-   MotorStatic &model;
+  long pulseGuideDurationMillis;
 
-   bool isExecutingMove;
-   bool isPulseGuiding;
-   bool isMoveQueued;
-   bool stopMove;
-   bool safetyMode;
-
-   long pulseGuideDurationMillis;
-
-   uint32_t speedBeforePulseMHz;
+  uint32_t speedBeforePulseMHz;
 };
-
 
 #endif // __MOTORDYNAMIC_H__
