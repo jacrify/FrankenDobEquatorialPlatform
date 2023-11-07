@@ -2,18 +2,9 @@
 #include "Logging.h"
 #include <cmath>
 
-DecDynamic::DecDynamic(DecStatic &m) : MotorDynamic(m), model(m) {
-  isMoveQueued = false;
-  isExecutingMove = false;
-
-  stopMove = false;
-  pulseGuideDurationMillis = 0;
-  isPulseGuiding = false;
-}
+DecDynamic::DecDynamic(DecStatic &m) : MotorDynamic(m), model(m) {}
 
 void DecDynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
-  // TODO rewrite.
-
   // Direction is either  0 = guideNorth, 1 = guideSouth.
   // As wedge angle increases, platform tilts north
   // Motor position 0 is at top?, so
@@ -22,42 +13,41 @@ void DecDynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
 
   double targetSpeedInArcSecsSec;
 
-  log("Target guide rate arc seconds %lf ;", targetSpeedInArcSecsSec);
-
   // NOTE: this assumes target speed will be positive
   if (direction == 0) { // north: go up {}
     targetSpeedInArcSecsSec = model.getGuideRateArcSecondsSecond();
     log("N guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+  } else {
+    if (direction == 2) { // east: go slower
+      targetSpeedInArcSecsSec = -model.getGuideRateArcSecondsSecond();
+      log("S guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+    } else {
+      log("Error: unexpected direction passed %d", direction);
+      return;
+    }
   }
-  if (direction == 2) { // east: go slower
-    targetSpeedInArcSecsSec = -model.getGuideRateArcSecondsSecond();
-    log("S guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
-  }
-  targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
+
+  targetSpeedInMilliHz = model.calculateSpeedInMilliHz(
       stepperWrapper->getPosition(), targetSpeedInArcSecsSec);
 
   pulseGuideDurationMillis = pulseDurationInMilliseconds;
   speedBeforePulseMHz = stepperWrapper->getStepperSpeed();
   log("Pulseguiding %s for %ld ms at speed %lu",
-      direction == 3 ? "West" : "East", pulseDurationInMilliseconds,
+      direction == 0 ? "North" : "South", pulseDurationInMilliseconds,
       targetSpeedInMilliHz);
 }
 
 void DecDynamic::moveAxis(double degreesPerSecond) {
-
   log("Incoming movexis command speed %lf", degreesPerSecond);
   if (degreesPerSecond == 0) {
     log("Move axis target is 0 ");
     isExecutingMove = false; // loop should perform stop / resume track
     return;
   }
-  // If we are currently tracking, add the tracking speed.
-  // If we don't do this, if rate from client is 1x sidereal and they move
-  // 1x sidereal forward, stars stay stationary.
+  // TODO check signs
+  double speedInArcSecsPerSec = 3600.0 * fabs(degreesPerSecond);
 
-  // positive is east, away from tracking direction (arbitary?)
-  // TODO
-  targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
+  targetSpeedInMilliHz = model.calculateSpeedInMilliHz(
       stepperWrapper->getPosition(), 3600.0 * fabs(degreesPerSecond));
   log("Move axis target speed millihz %lu", targetSpeedInMilliHz);
 
@@ -89,3 +79,5 @@ void DecDynamic::moveAxisPercentage(int percentage) {
 
   moveAxis(degreesPerSecond);
 };
+
+void DecDynamic::stopOrTrack(int32_t pos) { stepperWrapper->stop(); }

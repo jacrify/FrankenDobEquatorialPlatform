@@ -115,8 +115,8 @@ void MotorStatic::setScrewToPivotInMM(double d) { screwToPivotInMM = d; }
 double MotorStatic::getScrewToPivotInMM() { return screwToPivotInMM; }
 
 uint32_t
-MotorStatic::calculateFowardSpeedInMilliHz(int stepperCurrentPosition,
-                                           double desiredArcSecondsPerSecond) {
+MotorStatic::calculateSpeedInMilliHz(int stepperCurrentPosition,
+                                     double desiredArcSecondsPerSecond) {
 
   int middle = getMiddlePosition();
   double stepsFromMiddle = (double)(middle - stepperCurrentPosition);

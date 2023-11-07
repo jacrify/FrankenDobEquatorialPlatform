@@ -10,7 +10,7 @@ void RADynamic::stopOrTrack(int32_t pos) {
   if (trackingOn) {
     if (pos > 0) {
       targetPosition = 0;
-      targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(pos);
+      targetSpeedInMilliHz = model.calculateTrackingSpeedInMilliHz(pos);
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
     } else {
       stepperWrapper->stop();
@@ -43,7 +43,7 @@ void RADynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
       targetSpeedInArcSecsSec -= model.getGuideRateArcSecondsSecond();
       log("Adjusted E guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
     }
-    targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
+    targetSpeedInMilliHz = model.calculateSpeedInMilliHz(
         stepperWrapper->getPosition(), targetSpeedInArcSecsSec);
 
     pulseGuideDurationMillis = pulseDurationInMilliseconds;
@@ -70,7 +70,7 @@ void RADynamic::moveAxis(double degreesPerSecond) {
   if (trackingOn) {
     degreesPerSecond -= model.getTrackingRateDegreesSec();
   }
-  targetSpeedInMilliHz = model.calculateFowardSpeedInMilliHz(
+  targetSpeedInMilliHz = model.calculateSpeedInMilliHz(
       stepperWrapper->getPosition(), 3600.0 * fabs(degreesPerSecond));
   log("Move axis target speed millihz %lu", targetSpeedInMilliHz);
 
@@ -111,4 +111,3 @@ double RADynamic::getTimeToCenterInSeconds() {
 double RADynamic::getTimeToEndOfRunInSeconds() {
   return model.calculateTimeToEndOfRunInSeconds(stepperWrapper->getPosition());
 }
-

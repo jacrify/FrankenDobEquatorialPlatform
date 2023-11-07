@@ -65,8 +65,8 @@ public:
   void setScrewToPivotInMM(double d);
   double getScrewToPivotInMM();
 
-  uint32_t calculateFowardSpeedInMilliHz(int stepperCurrentPosition,
-                                         double desiredArcSecondsPerSecond);
+  uint32_t calculateSpeedInMilliHz(int stepperCurrentPosition,
+                                   double desiredArcSecondsPerSecond);
 
 protected:
   double screwToPivotInMM;
@@ -93,7 +93,6 @@ protected:
 
   // how far back from limt switch to slow down in mm
   int limitSwitchSafetyStandoffMM;
-
 };
 
 #endif // __MOTORSTATIC_H__

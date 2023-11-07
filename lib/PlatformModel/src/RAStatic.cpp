@@ -28,8 +28,6 @@ const double fullRotation =
     2 * M_PI; // M_PI is the value for pi from the cmath library
 const double fullRotationTimeInSeconds = 24 * 60 * 60;
 
-
-
 // double raGuideRateInArcSecondsSecond;
 // double raGuideRateMultiplier;
 // double raGuideRateDegreesSec;
@@ -55,7 +53,7 @@ double
 RAStatic::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
   int middle = getMiddlePosition();
   // note this calculation is the other way around from
-  // calculateFowardSpeedInMilliHz:
+  // calculateSpeedInMilliHz:
   double stepsFromMiddle = (double)(stepperCurrentPosition - middle);
   double stepsPerMM = getStepsPerMM();
   double distanceFromCenterInMM = stepsFromMiddle / stepsPerMM;
@@ -72,14 +70,13 @@ RAStatic::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
   return secondsMoved;
 }
 
-uint32_t RAStatic::calculateFowardSpeedInMilliHz(int stepperCurrentPosition) {
-  return calculateFowardSpeedInMilliHz(stepperCurrentPosition,
-                                       sideRealArcSecondsPerSec);
+uint32_t RAStatic::calculateTrackingSpeedInMilliHz(int stepperCurrentPosition) {
+  return calculateSpeedInMilliHz(stepperCurrentPosition,
+                                 sideRealArcSecondsPerSec);
 }
 
-uint32_t
-RAStatic::calculateFowardSpeedInMilliHz(int stepperCurrentPosition,
-                                        double desiredArcSecondsPerSecond) {
+uint32_t RAStatic::calculateSpeedInMilliHz(int stepperCurrentPosition,
+                                           double desiredArcSecondsPerSecond) {
 
   int middle = getMiddlePosition();
   double stepsFromMiddle = (double)(middle - stepperCurrentPosition);
@@ -122,7 +119,7 @@ void RAStatic::setGuideRateMultiplier(double d) {
       guideRateInArcSecondsSecond, guideRateMultiplier);
 }
 
-int32_t RAStatic::getGotoEndPosition()  { return stepsPerMM * END_STANDOFF_MM; }
+int32_t RAStatic::getGotoEndPosition() { return stepsPerMM * END_STANDOFF_MM; }
 
 double RAStatic::getTrackingRateArcsSecondsSec() {
   return sideRealArcSecondsPerSec;

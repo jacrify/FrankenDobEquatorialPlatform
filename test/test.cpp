@@ -63,7 +63,7 @@ void test_speed_calc(void) {
 
   log("====test_speed_calc====");
   uint32_t speedInMilliHz =
-      model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
+      model.calculateTrackingSpeedInMilliHz(stepPositionOfMiddle);
 
   // we expect to go abut 1 turn per minute
   // one turn is 2mm
@@ -77,19 +77,19 @@ void test_speed_calc(void) {
   TEST_ASSERT_EQUAL_INT_MESSAGE(117606, speedInMilliHz,
                                 "Speed in middle wrong");
 
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
+  speedInMilliHz = model.calculateTrackingSpeedInMilliHz(stepPositionOfLimit);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(119857, speedInMilliHz,
                                 "Should be faster at limit: approx 1.8%");
 
   model.setScrewToPivotInMM(447);
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
+  speedInMilliHz = model.calculateTrackingSpeedInMilliHz(stepPositionOfMiddle);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(117344, speedInMilliHz,
                                 "Smaller great circle should be slower speed");
 
   model.setScrewToPivotInMM(449);
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfMiddle);
+  speedInMilliHz = model.calculateTrackingSpeedInMilliHz(stepPositionOfMiddle);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(117869, speedInMilliHz,
                                 "Larger great circle should be faster speed");
@@ -97,7 +97,7 @@ void test_speed_calc(void) {
   model.setScrewToPivotInMM(448);
   model.setLimitSwitchToMiddleDistance(61); // smaller so closer to middle
 
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
+  speedInMilliHz = model.calculateTrackingSpeedInMilliHz(stepPositionOfLimit);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(
       119785, speedInMilliHz,
@@ -105,7 +105,7 @@ void test_speed_calc(void) {
       "than 62mm value of 119461");
 
   model.setLimitSwitchToMiddleDistance(63);
-  speedInMilliHz = model.calculateFowardSpeedInMilliHz(stepPositionOfLimit);
+  speedInMilliHz = model.calculateTrackingSpeedInMilliHz(stepPositionOfLimit);
 
   TEST_ASSERT_EQUAL_INT_MESSAGE(
       119931, speedInMilliHz,
