@@ -1,5 +1,7 @@
-#ifndef PLATFORM_MODEL_H
-#define PLATFORM_MODEL_H
+#ifndef __RASTATIC_H__
+#define __RASTATIC_H__
+
+
 #include <cstdint>
 #include "MotorStatic.h"
 
@@ -56,4 +58,5 @@ private:
   double guideRateMultiplier;
 };
 
-#endif
+
+#endif // __RASTATIC_H__

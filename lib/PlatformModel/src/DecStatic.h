@@ -1,5 +1,7 @@
-#ifndef PLATFORM_MODEL_H
-#define PLATFORM_MODEL_H
+#ifndef __DECSTATIC_H__
+#define __DECSTATIC_H__
+
+
 #include "MotorStatic.h"
 #include <cstdint>
 
@@ -16,4 +18,5 @@ private:
 
 };
 
-#endif
+
+#endif // __DECSTATIC_H__
