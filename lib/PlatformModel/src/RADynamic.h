@@ -1,5 +1,6 @@
 #ifndef ___RADynamic_H__
 #define ___RADynamic_H__
+#include "MotorDynamic.h"
 #include "RAStatic.h"
 #include "StepperWrapper.h"
 #include <cstdint>
@@ -18,111 +19,29 @@
  * Uses StepperWrapper to send commands to motor.
  *
  */
-class RADynamic {
+class RADynamic : public MotorDynamic {
 public:
   RADynamic(RAStatic &m);
-  // Input
-  // Is Limit switch pushed
-  void setLimitSwitchState(bool state);
-
   void setTrackingOnOff(bool tracking);
-
-  /**
-   * When limit switch position is not saved in preferences,
-   * we want to run slower when running towards limit switch,
-   * so as not to stress the physical fixing.
-   */
-  void setSafetyMode(bool b);
-
   bool isTrackingOn();
-  bool isSlewing();
+  void stopOrTrack(int32_t pos);
+  // Get run time until platform is centered
+  double getTimeToCenterInSeconds();
+  void moveAxisPercentage(int percentage);
 
-  // Called from loop
-  // Returns either 0, or a number of milliseconds.
-  // If non zero, called should pause for this
-  // number of millis then call again.
-  // This allows for exact implementation of pulseguides.
-  // IE a queued pulseguide will set the pulseguide speed,
-  // then client will delay, then speed will be set back
-  // to tracking speed.
-  // Note there will be a delay in pulseguide start of
-  // on average half the main loop delay
-  // However pulseguide duration should be accurate.
-  long calculateOutput();
-
-  // Extneral commands
+       void moveAxis(double degreesPerSecond);
 
   /**
    * Queue a pulseguide.
    * Direction is either  2 = guideEast, 3 = guideWest
    *    */
   void pulseGuide(int direction, long pulseDurationInMilliseconds);
-
-  /**
-   * Resume tracking. Called from isr so needs to be fast
-   */
-  void stopPulse();
-
-  /**
-   * Slew forward or back on ra axis by a number of degrees
-   */
-  void slewByDegrees(double degreesToSlew);
-  /**
-   * Queue a moveaxis.  degreesPerSecond can be positive or negative.
-   */
-  void moveAxis(double degreesPerSecond);
-
-  /**
-   * Queue a movement based on a percentage (-100 to 100)
-   * This is a percentage of nunChukMultiplier * sidereal tracking rate
-   */
-  void moveAxisPercentage(int percentage);
-
-  void stop();
-  void gotoMiddle();
-
-  // Goto a position just short of end
-  void gotoEndish();
-
-  // Find limit switch
-  void gotoStart();
-
-  // Get run time until platform is centered
-  double getTimeToCenterInSeconds();
-
   // Get time left to run
   double getTimeToEndOfRunInSeconds();
 
-  void setStepperWrapper(StepperWrapper *wrapper);
-
-  int32_t getTargetPosition();
-  uint32_t getTargetSpeedInMilliHz();
-
-  // Output
-
 private:
-  bool limitSwitchState;
-  int32_t currentPosition;
-
   bool trackingOn;
-
-  int32_t targetPosition;
-  uint32_t targetSpeedInMilliHz;
-
-  StepperWrapper *stepperWrapper;
   RAStatic &model;
-
-  bool isExecutingMove;
-  bool isPulseGuiding;
-  bool isMoveQueued;
-  bool stopMove;
-  bool safetyMode;
-
-  long pulseGuideDurationMillis;
-
-  double startMoveTimeOffset;
-
-  uint32_t speedBeforePulseMHz;
 };
 
 #endif // __PlatformStatic_H__

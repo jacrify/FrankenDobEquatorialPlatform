@@ -1,82 +1,12 @@
 #include "RADynamic.h"
 #include "Logging.h"
 #include <cmath>
-void RADynamic::setLimitSwitchState(bool state) { limitSwitchState = state; }
-
-void RADynamic::setSafetyMode(bool s) { safetyMode = s; }
 
 void RADynamic::setTrackingOnOff(bool t) { trackingOn = t; }
 
 bool RADynamic::isTrackingOn() { return trackingOn; }
 
-long RADynamic::calculateOutput() {
-
-  // If pulse guide is in progress, then exit.
-  if (isPulseGuiding) {
-    return 0;
-  }
-
-  // Pulseguide command has been queued. Apply new motor
-  // speed, and ask client to call back after pulseguide milliseconds.
-  // Second call should fall through and resume tracking speed.
-  if (pulseGuideDurationMillis > 0) {
-    stepperWrapper->setStepperSpeed(targetSpeedInMilliHz);
-    long delay = pulseGuideDurationMillis;
-    pulseGuideDurationMillis = 0;
-    isPulseGuiding = true;
-    return delay; // caller will call back right after delay.
-  }
-
-  // handle limit switch
-  if (limitSwitchState) {
-    int32_t limitPos = model.getLimitPosition();
-    stepperWrapper->resetPosition(limitPos);
-    safetyMode = false;
-    if (targetPosition > limitPos ||
-        targetPosition == model.getLimitSwitchSafetyStandoffPosition()) {
-      if (isExecutingMove) {
-        // move target is past limit switch. Stop unless tracking on
-        isExecutingMove = false;
-        isMoveQueued = false;
-        stopMove = true;
-      }
-    }
-  }
-
-  int32_t pos = stepperWrapper->getPosition();
-
-  if (isMoveQueued) {
-    if (pos != targetPosition) {
-      log("Moving");
-      stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
-      isMoveQueued = false;
-      // store how many seconds from center we are at start of move
-      startMoveTimeOffset = model.calculateTimeToCenterInSeconds(pos);
-    }
-  }
-  // check for move end
-  if (isExecutingMove) {
-    // are we there yet? If not just return
-    if (pos != targetPosition)
-      return 0;
-    // if we have arrived at the limit switch safety standoff position,
-    // assume the move is a move towards the safety.
-    // Set new position and much lower speed
-    if (pos == model.getLimitSwitchSafetyStandoffPosition()) {
-      targetPosition = INT32_MAX;
-      targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / 5;
-      stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
-      return 0;
-    }
-    // we've arrived. Move gets stopped below.
-    isExecutingMove = false;
-    isMoveQueued = false;
-    stopMove = true;
-  }
-
-  if (stopMove) {
-    stopMove = false;
-  }
+void RADynamic::stopOrTrack(int32_t pos) {
   if (trackingOn) {
     if (pos > 0) {
       targetPosition = 0;
@@ -89,57 +19,12 @@ long RADynamic::calculateOutput() {
   } else {
     stepperWrapper->stop();
   }
-  return 0;
 }
 
-void RADynamic::gotoMiddle() {
-  targetPosition = model.getMiddlePosition();
-  targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
-  isExecutingMove = true;
-  isMoveQueued = true;
-}
-
-void RADynamic::gotoEndish() {
-  targetPosition = model.getEndStandOffPosition();
-  targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
-  isExecutingMove = true;
-  isMoveQueued = true;
-}
-
-void RADynamic::gotoStart() {
-  // should run until limit switch hit
-  targetPosition = model.getLimitSwitchSafetyStandoffPosition();
-  int32_t limitPos = model.getLimitPosition();
-  // when limit not known, find it slowly
-  if (safetyMode)
-    targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / 3;
-  else
-    targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
-  isExecutingMove = true;
-  isMoveQueued = true;
-}
-
-int32_t RADynamic::getTargetPosition() { return targetPosition; }
-
-uint32_t RADynamic::getTargetSpeedInMilliHz() { return targetSpeedInMilliHz; }
-
-void RADynamic::setStepperWrapper(StepperWrapper *wrapper) {
-  stepperWrapper = wrapper;
-}
-
-RADynamic::RADynamic(RAStatic &m) : model(m) {
-  isMoveQueued = false;
-  isExecutingMove = false;
+RADynamic::RADynamic(RAStatic &m) : MotorDynamic(m), model(m) {
   trackingOn = false;
-  stopMove = false;
-  pulseGuideDurationMillis = 0;
-  isPulseGuiding = false;
 }
 
-void RADynamic::stopPulse() {
-  stepperWrapper->setStepperSpeed(speedBeforePulseMHz);
-  isPulseGuiding = false;
-}
 void RADynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
   // if not tracking, do nothing
   if (trackingOn) {
@@ -166,49 +51,7 @@ void RADynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
     log("Pulseguiding %s for %ld ms at speed %lu",
         direction == 3 ? "West" : "East", pulseDurationInMilliseconds,
         targetSpeedInMilliHz);
-
-    // // divide by 1000 to get hz, then 1000 to get seconds.
-    // // Ie if speed in millihz is 1000 (ie 1 hz, or one step per second)
-    // // and we move for 1000 millis (is one second)
-    // // then we move 1,000,000 / 1,000,000 = 1 step
-    // int32_t stepsToMove =
-    //     (stepperCurrentPosition * pulseDurationInMilliseconds) / 1000000;
-
-    // if (direction == 2) // east.Positive step change ie towards limit
-    // switch
-    //   targetPosition += stepsToMove;
-
-    // if (direction == 3) // west. negative step change
-    //   targetPosition -= stepsToMove;
-
-    // // make sure we don't run off end
-    // targetPosition = (targetPosition < 0) ? 0 : targetPosition;
-
-    // log("Pulse guiding %d for %ld ms to position %ld at speed (millihz)
-    // %lf",
-    //     direction, pulseDurationInMilliseconds, targetPosition);
-
-    // isExecutingMove = true;
-    // stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
   }
-}
-
-void RADynamic::stop() {
-  isExecutingMove = false;
-  stopMove = true;
-}
-/**
- * Slew by degrees.
- * Caclulates target position
- * */
-void RADynamic::slewByDegrees(double degreesToSlew) {
-  log("Incoming slewByDegrees command, degrees to slew is  %lf", degreesToSlew);
-
-  targetPosition = model.calculatePositionByDegreeShift(
-      degreesToSlew, stepperWrapper->getPosition());
-  isExecutingMove = true;
-  isMoveQueued = true;
-  targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
 }
 
 void RADynamic::moveAxis(double degreesPerSecond) {
@@ -261,11 +104,11 @@ void RADynamic::moveAxisPercentage(int percentage) {
 };
 
 double RADynamic::getTimeToCenterInSeconds() {
-  return model.calculateTimeToCenterInSeconds(stepperWrapper->getPosition());
+  return (dynamic_cast<RAStatic &>(model))
+      .calculateTimeToCenterInSeconds(stepperWrapper->getPosition());
 }
 
 double RADynamic::getTimeToEndOfRunInSeconds() {
   return model.calculateTimeToEndOfRunInSeconds(stepperWrapper->getPosition());
 }
 
-bool RADynamic::isSlewing() { return isExecutingMove; }

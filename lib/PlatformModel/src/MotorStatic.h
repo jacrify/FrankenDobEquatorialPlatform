@@ -11,7 +11,8 @@
 class MotorStatic {
 public:
   MotorStatic();
-
+  virtual int32_t getEndStandOffPosition() = 0;
+  
   /**
    * Sets distance in mm from limit switch to center.
    * As limit switch is physically fixed, this
