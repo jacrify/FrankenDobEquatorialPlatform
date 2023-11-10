@@ -9,7 +9,6 @@
 // the motor
 
 #define sideRealArcSecondsPerSec 15.041
-
 class MotorStatic {
 public:
   /**
@@ -60,6 +59,7 @@ public:
   double getStepsPerMM();
   double getMaxAxisMoveRateDegreesSec();
   double getMinAxisMoveRateDegreesSec();
+  
   double getGuideRateDegreesSec();
   double getGuideRateArcSecondsSecond();
 
@@ -104,6 +104,7 @@ protected:
   int32_t limitSwitchToMiddleDistance;
 
   double guideRateInArcSecondsSecond;
+
 
   // speed in hz
   long rewindFastFowardSpeed;

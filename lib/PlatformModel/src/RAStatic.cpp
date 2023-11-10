@@ -66,8 +66,8 @@ RAStatic::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
 }
 
 uint32_t RAStatic::calculateTrackingSpeedInMilliHz(int stepperCurrentPosition) {
-  return calculateSpeedInMilliHz(stepperCurrentPosition,
-                                 sideRealArcSecondsPerSec);
+  return calculateSpeedInMilliHz(stepperCurrentPosition,getTrackingRateArcsSecondsSec()
+                                 );
 }
 
 

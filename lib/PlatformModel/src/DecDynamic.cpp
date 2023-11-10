@@ -73,7 +73,7 @@ void DecDynamic::moveAxisPercentage(int percentage) {
     return;
   }
   double degreesPerSecond =
-      model.getNunChukMultiplier() * sideRealArcSecondsPerSec * (double)percentage / 100.0;
+      model.getNunChukMultiplier() * model.getGuideRateDegreesSec() * (double)percentage / 100.0;
   log("Moving axis with %lf degrees sec", degreesPerSecond);
 
   moveAxis(degreesPerSecond);

@@ -5,6 +5,8 @@
 // #include <sstream>
 using namespace std;
 
+
+
 MotorStatic::MotorStatic() {
   // how far back from limt switch to slow down in mm
   limitSwitchSafetyStandoffMM = 2;
