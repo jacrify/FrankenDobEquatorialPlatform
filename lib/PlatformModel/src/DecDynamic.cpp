@@ -72,9 +72,8 @@ void DecDynamic::moveAxisPercentage(int percentage) {
     moveAxis(0);
     return;
   }
-  // TODO fix hardcoded degrees sec here
   double degreesPerSecond =
-      model.getNunChukMultiplier() * 15 * (double)percentage / 100.0;
+      model.getNunChukMultiplier() * sideRealArcSecondsPerSec * (double)percentage / 100.0;
   log("Moving axis with %lf degrees sec", degreesPerSecond);
 
   moveAxis(degreesPerSecond);
