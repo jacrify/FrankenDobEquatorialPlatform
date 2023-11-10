@@ -13,6 +13,7 @@ class DecStatic : public MotorStatic {
 public:
   DecStatic();
   int32_t getGotoEndPosition();
+
 };
 
 #endif // __DECSTATIC_H__

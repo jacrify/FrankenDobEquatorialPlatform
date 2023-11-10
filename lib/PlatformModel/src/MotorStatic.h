@@ -10,6 +10,16 @@
 
 class MotorStatic {
 public:
+  /**
+   * Subclasses need to set in constructor:
+   * - rodStepperRatio
+   * - stepperStepsPerRevolution;
+   * - microsteps;
+   * - threadedRodPitch; // mm
+   * - stepsPerMM
+   * - limitSwitchToEndDistance
+   */
+
   MotorStatic();
 
   virtual int32_t getGotoEndPosition() = 0;

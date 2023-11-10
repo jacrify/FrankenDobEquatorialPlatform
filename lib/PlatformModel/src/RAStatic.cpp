@@ -24,12 +24,16 @@ const double fullRotationTimeInSeconds = 24 * 60 * 60;
 // double raGuideRateDegreesSec;
 
 RAStatic::RAStatic() : MotorStatic() {
-
   limitSwitchToEndDistance = 130;
-  stepsPerMM = (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
-               (teethOnStepperPulley * threadedRodPitch);
+  stepperStepsPerRevolution = 200;
+  microsteps = 16;
+  threadedRodPitch = 2;
+  stepsPerMM = ((double)(stepperStepsPerRevolution * microsteps * teethOnRodPulley)) /
+              ((double)(teethOnStepperPulley * threadedRodPitch));
   rodStepperRatio = (double)teethOnRodPulley / (double)teethOnStepperPulley;
 }
+
+
 
 double
 RAStatic::calculateTimeToEndOfRunInSeconds(int32_t stepperCurrentPosition) {

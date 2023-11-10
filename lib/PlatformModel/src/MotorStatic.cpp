@@ -6,9 +6,6 @@
 using namespace std;
 
 MotorStatic::MotorStatic() {
-  stepperStepsPerRevolution = 200;
-  microsteps = 16;
-  threadedRodPitch = 2;
   // how far back from limt switch to slow down in mm
   limitSwitchSafetyStandoffMM = 2;
 }
@@ -81,8 +78,7 @@ void MotorStatic::setRewindFastFowardSpeedInHz(long speedInHz) {
   rewindFastFowardSpeed = speedInHz;
 
   // Calculate speed in degrees/sec for alpaca based on the passed speed
-  // Calculate speed in degrees/sec for alpaca based on the passed speed
-
+  
   double rodTurnsPerSec =
       speedInHz / (rodStepperRatio * stepperStepsPerRevolution * microsteps);
   double distancePerSec = rodTurnsPerSec * threadedRodPitch;
