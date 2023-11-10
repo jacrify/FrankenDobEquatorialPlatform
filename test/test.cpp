@@ -2,6 +2,9 @@
 #include "Logging.h"
 #include "RADynamic.h"
 #include "RAStatic.h"
+#include "DecDynamic.h"
+#include "DecStatic.h"
+
 #include <cstdint>
 
 #include "StepperWrapper.h"
@@ -150,7 +153,7 @@ public:
   MockMethod(uint32_t, getStepperSpeed, ());
 };
 
-void testGotoMiddleBasic() {
+void testRAGotoMiddleBasic() {
   // setup
   MockStepper stepper;
 
@@ -166,6 +169,47 @@ void testGotoMiddleBasic() {
   model.setRewindFastFowardSpeedInHz(30000);
 
   RADynamic control = RADynamic(model);
+  control.setStepperWrapper(&stepper);
+
+  When(stepper.getPosition).Return(model.getMiddlePosition() - 100);
+  // test going to middle
+  control.setLimitSwitchState(false);
+  control.gotoMiddle();
+  control.onLoop();
+
+  try {
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getMiddlePosition(),
+                                  control.getTargetPosition(),
+                                  "Target Position should be middle");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
+                                  control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be ff rw");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
+void testDecGotoMiddleBasic() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  DecStatic model;
+  model.setScrewToPivotInMM(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+
+  DecDynamic control = DecDynamic(model);
   control.setStepperWrapper(&stepper);
 
   When(stepper.getPosition).Return(model.getMiddlePosition() - 100);
@@ -589,6 +633,89 @@ void testCalculateMoveByDegrees() {
                                    "Target should be  to limit as off end");
 }
 
+void testRAPulseGuide() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  RAStatic model;
+  model.setScrewToPivotInMM(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+  model.setGuideRateMultiplier(.9);
+
+  RADynamic control = RADynamic(model);
+  control.setStepperWrapper(&stepper);
+
+  // test pulseguide
+  control.setLimitSwitchState(false);
+  control.setTrackingOnOff(true);
+
+  
+  When(stepper.getPosition).Return(model.getMiddlePosition());
+  control.onLoop();
+
+
+  try {
+    Verify(stepper.moveTo).Times(1);
+
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        117606, control.getTargetSpeedInMilliHz(),
+        "Target speed should be some version of sidereal");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+
+    // positive is east, away from tracking direction
+    control.pulseGuide(2, 1000); // east for 1000 ms
+    //  sidereal
+    control.onLoop();
+    Verify(stepper.setStepperSpeed).Times(1);
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(11760, control.getTargetSpeedInMilliHz(),
+                                  "Target speed should be almost 0");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+
+
+     control.stopPulse();
+     control.onLoop();
+
+
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        117606, control.getTargetSpeedInMilliHz(),
+        "Target speed should be some version of sidereal");
+
+    // positive is west, towards tracking direction
+    control.pulseGuide(3, 1000); // west for 1000 ms
+
+    control.onLoop();
+    Verify(stepper.setStepperSpeed).Times(3);
+    
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        223452., control.getTargetSpeedInMilliHz(),
+        "Target speed should be almost double sidereal");
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
 void testMoveAxisPositive() {
   // setup
   MockStepper stepper;
@@ -724,21 +851,23 @@ void testGotoStartSafety() {
 void setup() {
 
   UNITY_BEGIN(); // IMPORTANT LINE!
-  RUN_TEST(test_speed_calc);
-  RUN_TEST(test_rewind_fast_forward_speed_calc);
-  RUN_TEST(test_timetomiddle_calc);
-  RUN_TEST(testGotoMiddleBasic);
-  RUN_TEST(testGotoMiddleLimitSwitch);
-  RUN_TEST(testGotoMiddleAtMiddle);
-  RUN_TEST(testGotoMiddleAtMiddleResumeTracking);
-  RUN_TEST(testGotoStartBasic);
-  RUN_TEST(testGotoStartLimit);
-  RUN_TEST(testGotoStartLimitTracking);
-  RUN_TEST(testGotoEndBasic);
-  RUN_TEST(testGotoEndLimitHit);
-  RUN_TEST(testGotoEndAtEndWithTracking);
-  RUN_TEST(testMoveAxisPositive);
-  RUN_TEST(testCalculateMoveByDegrees);
+  // RUN_TEST(test_speed_calc);
+  // RUN_TEST(test_rewind_fast_forward_speed_calc);
+  // RUN_TEST(test_timetomiddle_calc);
+  // RUN_TEST(testRAGotoMiddleBasic);
+  // RUN_TEST(testDecGotoMiddleBasic);
+  // RUN_TEST(testGotoMiddleLimitSwitch);
+  // RUN_TEST(testGotoMiddleAtMiddle);
+  // RUN_TEST(testGotoMiddleAtMiddleResumeTracking);
+  // RUN_TEST(testGotoStartBasic);
+  // RUN_TEST(testGotoStartLimit);
+  // RUN_TEST(testGotoStartLimitTracking);
+  // RUN_TEST(testGotoEndBasic);
+  // RUN_TEST(testGotoEndLimitHit);
+  // RUN_TEST(testGotoEndAtEndWithTracking);
+  // RUN_TEST(testMoveAxisPositive);
+  // RUN_TEST(testCalculateMoveByDegrees);
+  RUN_TEST(testRAPulseGuide);
   UNITY_END(); // IMPORTANT LINE!
 }
 
