@@ -78,7 +78,7 @@ void MotorStatic::setRewindFastFowardSpeedInHz(long speedInHz) {
   rewindFastFowardSpeed = speedInHz;
 
   // Calculate speed in degrees/sec for alpaca based on the passed speed
-  
+
   double rodTurnsPerSec =
       speedInHz / (rodStepperRatio * stepperStepsPerRevolution * microsteps);
   double distancePerSec = rodTurnsPerSec * threadedRodPitch;
@@ -147,3 +147,12 @@ MotorStatic::calculateSpeedInMilliHz(int stepperCurrentPosition,
   uint32_t stepperSpeedInMilliHertz = stepperSpeedInHertz * 1000;
   return stepperSpeedInMilliHertz;
 }
+
+void MotorStatic::setGuideRateMultiplier(double d) {
+  guideRateMultiplier = d;
+  guideRateInArcSecondsSecond = sideRealArcSecondsPerSec * d;
+  log("guide rate set: %lf arc secs per sec, or %lf x sidereal",
+      guideRateInArcSecondsSecond, guideRateMultiplier);
+}
+
+double MotorStatic::getGuideRateMultiplier() { return guideRateMultiplier; }

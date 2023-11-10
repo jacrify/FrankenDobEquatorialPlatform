@@ -6,7 +6,7 @@
 using namespace std;
 // double coneRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 
-#define sideRealArcSecondsPerSec 15.041
+
 
 #define teethOnStepperPulley 16
 #define teethOnRodPulley 36
@@ -70,12 +70,6 @@ uint32_t RAStatic::calculateTrackingSpeedInMilliHz(int stepperCurrentPosition) {
                                  sideRealArcSecondsPerSec);
 }
 
-void RAStatic::setGuideRateMultiplier(double d) {
-  guideRateMultiplier = d;
-  guideRateInArcSecondsSecond = sideRealArcSecondsPerSec * d;
-  log("guide rate set: %lf arc secs per sec, or %lf x sidereal",
-      guideRateInArcSecondsSecond, guideRateMultiplier);
-}
 
 int32_t RAStatic::getGotoEndPosition() { return stepsPerMM * END_STANDOFF_MM; }
 
@@ -86,5 +80,3 @@ double RAStatic::getTrackingRateArcsSecondsSec() {
 double RAStatic::getTrackingRateDegreesSec() {
   return sideRealArcSecondsPerSec / 3600.0;
 }
-
-double RAStatic::getGuideRateMultiplier() { return guideRateMultiplier; }

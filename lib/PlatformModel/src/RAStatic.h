@@ -14,12 +14,7 @@ class RAStatic : public MotorStatic {
 public:
   RAStatic();
 
-  /**
-   * Sets a multiple of guide sidreal rate to be used when
-   * pulseguiding (eg 0.5)
-   */
-  void setGuideRateMultiplier(double d);
-  double getGuideRateMultiplier();
+
 
   /**
    * When running to end, platform stops some distance from end

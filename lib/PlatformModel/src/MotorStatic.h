@@ -8,6 +8,8 @@
 // Does not hold dynamic state of the platform, ie position, as that comes from
 // the motor
 
+#define sideRealArcSecondsPerSec 15.041
+
 class MotorStatic {
 public:
   /**
@@ -63,6 +65,13 @@ public:
 
   void setBaseGuideRateInArcSecondsSecond(double d);
 
+  /**
+   * Sets a multiple of guide sidreal rate to be used when
+   * pulseguiding (eg 0.5)
+   */
+  void setGuideRateMultiplier(double d);
+  double getGuideRateMultiplier();
+
   // get position of limit, in steps
   int32_t getLimitPosition();
 
@@ -85,6 +94,7 @@ public:
                                    double desiredArcSecondsPerSecond);
 
 protected:
+ double guideRateMultiplier;
   double screwToPivotInMM;
   double rodStepperRatio;
 
