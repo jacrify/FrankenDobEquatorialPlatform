@@ -17,7 +17,9 @@ long MotorDynamic::onLoop() {
   // Second call should fall through and resume tracking speed.
   if (pulseGuideDurationMillis > 0) {
     stepperWrapper->setStepperSpeed(targetSpeedInMilliHz);
-    long delay = pulseGuideDurationMillis;
+    stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
+    long delay =
+        pulseGuideDurationMillis;
     pulseGuideDurationMillis = 0;
     isPulseGuiding = true;
     return delay; // caller will call back right after delay.
@@ -71,6 +73,7 @@ long MotorDynamic::onLoop() {
   if (stopMove) {
     stopMove = false;
   }
+  log("Stop or track fallthrough");
   //either stop, or resume tracking (delegeated to subclass)
   stopOrTrack(pos);
 
@@ -123,6 +126,7 @@ MotorDynamic::MotorDynamic(MotorStatic &m) : model(m) {
 }
 
 void MotorDynamic::stopPulse() {
+  log("Setting speed to %ld", speedBeforePulseMHz);
   stepperWrapper->setStepperSpeed(speedBeforePulseMHz);
   isPulseGuiding = false;
 }

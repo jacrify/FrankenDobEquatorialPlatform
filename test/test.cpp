@@ -633,6 +633,84 @@ void testCalculateMoveByDegrees() {
                                    "Target should be  to limit as off end");
 }
 
+void testDecPulseGuide() {
+  // setup
+  MockStepper stepper;
+
+  int runTotal = 130;                         // mm
+  int limitToMiddle = 62;                     // mm
+  int middleToEnd = runTotal - limitToMiddle; // mm
+
+  int stepPositionOfMiddle = middleToEnd * 3600;
+  int stepPositionOfLimit = runTotal * 3600;
+  DecStatic model;
+  model.setScrewToPivotInMM(448);
+  model.setLimitSwitchToMiddleDistance(limitToMiddle);
+  model.setRewindFastFowardSpeedInHz(30000);
+  model.setGuideRateMultiplier(.9);
+
+  DecDynamic control = DecDynamic(model);
+  control.setStepperWrapper(&stepper);
+
+  // test pulseguide
+  control.setLimitSwitchState(false);
+  
+  When(stepper.getPosition).Return(model.getMiddlePosition());
+  control.onLoop();
+
+  try {
+    Verify(stepper.moveTo).Times(0);
+
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        0, control.getTargetSpeedInMilliHz(),
+        "Target speed should be  0");
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(1);
+
+    // positive is north, away from tracking direction
+    control.pulseGuide(0, 1000); // north for 1000 ms
+    //  sidereal
+    control.onLoop();
+    Verify(stepper.setStepperSpeed).Times(1);
+    Verify(stepper.moveTo).Times(1);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        47042, control.getTargetSpeedInMilliHz(),
+        "Target speed should be almost some verson of sidereal?");
+
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(1); //from first time
+
+    control.stopPulse();
+    control.onLoop();
+
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        0, control.getTargetSpeedInMilliHz(),
+        "Target speed should be some version of 0");
+
+    Verify(stepper.stop).Times(2); // should stop
+    // positive is west, towards tracking direction
+    control.pulseGuide(1, 1000); // south for 1000 ms
+
+    control.onLoop();
+
+
+    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getLimitPosition(), control.getTargetPosition(),
+                                  "Target Position should be end");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(
+        47042, control.getTargetSpeedInMilliHz(),
+        "Target speed should be almost double sidereal");
+
+  } catch (std::runtime_error e) {
+    TEST_FAIL_MESSAGE(e.what());
+  }
+}
+
 void testRAPulseGuide() {
   // setup
   MockStepper stepper;
@@ -867,7 +945,8 @@ void setup() {
   // RUN_TEST(testGotoEndAtEndWithTracking);
   // RUN_TEST(testMoveAxisPositive);
   // RUN_TEST(testCalculateMoveByDegrees);
-  RUN_TEST(testRAPulseGuide);
+  // RUN_TEST(testRAPulseGuide);
+  RUN_TEST(testDecPulseGuide);
   UNITY_END(); // IMPORTANT LINE!
 }
 

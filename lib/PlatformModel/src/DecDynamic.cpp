@@ -17,8 +17,10 @@ void DecDynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
   if (direction == 0) { // north: go up {}
     targetSpeedInArcSecsSec = model.getGuideRateArcSecondsSecond();
     log("N guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+    targetPosition = 0;
   } else {
-    if (direction == 2) { // east: go slower
+    if (direction == 1) { // south: go down
+      targetPosition = model.getLimitPosition();
       targetSpeedInArcSecsSec = -model.getGuideRateArcSecondsSecond();
       log("S guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
     } else {
@@ -28,7 +30,7 @@ void DecDynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
   }
 
   targetSpeedInMilliHz = model.calculateSpeedInMilliHz(
-      stepperWrapper->getPosition(), targetSpeedInArcSecsSec);
+      stepperWrapper->getPosition(),abs( targetSpeedInArcSecsSec));
 
   pulseGuideDurationMillis = pulseDurationInMilliseconds;
   speedBeforePulseMHz = stepperWrapper->getStepperSpeed();
@@ -72,11 +74,15 @@ void DecDynamic::moveAxisPercentage(int percentage) {
     moveAxis(0);
     return;
   }
-  double degreesPerSecond =
-      model.getNunChukMultiplier() * model.getGuideRateDegreesSec() * (double)percentage / 100.0;
+  double degreesPerSecond = model.getNunChukMultiplier() *
+                            model.getGuideRateDegreesSec() *
+                            (double)percentage / 100.0;
   log("Moving axis with %lf degrees sec", degreesPerSecond);
 
   moveAxis(degreesPerSecond);
 };
 
-void DecDynamic::stopOrTrack(int32_t pos) { stepperWrapper->stop(); }
+void DecDynamic::stopOrTrack(int32_t pos) {
+  targetSpeedInMilliHz = 0;
+  stepperWrapper->stop();
+}
