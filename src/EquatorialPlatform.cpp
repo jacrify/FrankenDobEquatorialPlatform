@@ -8,6 +8,8 @@
 // #include "OTA.h"
 #include "RADynamic.h"
 #include "RAStatic.h"
+#include "DecDynamic.h"
+#include "DecStatic.h"
 #include "UDPListener.h"
 #include "UDPSender.h"
 #include <ESPAsyncWebServer.h>
@@ -19,10 +21,12 @@
 #define MAINLOOPTIME 25 // ms
 
 RAStatic raStatic;
+DecStatic decStatic;
 Preferences prefs;
 
 RADynamic raDynamic(raStatic);
-MotorUnit motorUnit(raStatic, raDynamic, prefs);
+DecDynamic decDynamic(decStatic);
+MotorUnit motorUnit(raStatic, raDynamic, decStatic,decDynamic, prefs);
 
 void setup() {
   Serial.begin(115200);
