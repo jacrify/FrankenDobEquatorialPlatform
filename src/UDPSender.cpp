@@ -12,8 +12,8 @@ unsigned long lastIPBroadcastTime;
 // and how many seconds it will take to reach center.
 //(can be negative is center passed)
 // AxixMoveRate is max speed in degrees per second
-void broadcastStatus(MotorUnit &motorUnit, RAStatic &model,
-                     RADynamic &control) {
+void broadcastStatus(MotorUnit &motorUnit, RAStatic &raStatic,
+                     RADynamic &raDynamic) {
 
   long now = millis();
   if ((now - lastIPBroadcastTime) > IPBROADCASTPERIOD) {
@@ -31,14 +31,14 @@ void broadcastStatus(MotorUnit &motorUnit, RAStatic &model,
 
       DynamicJsonDocument doc(capacity);
       // Populate the JSON object
-      doc["timeToCenter"] = control.getTimeToEndOfRunInSeconds();
-      doc["timeToEnd"] = control.getTimeToEndOfRunInSeconds();
-      doc["isTracking"] = control.isTrackingOn();
-      doc["slewing"] = control.isSlewing();
-      doc["guideMoveRate"] = model.getGuideRateDegreesSec();
-      doc["trackingRate"] = model.getTrackingRateArcsSecondsSec();
-      doc["axisMoveRateMax"] = model.getMaxAxisMoveRateDegreesSec();
-      doc["axisMoveRateMin"] = model.getMinAxisMoveRateDegreesSec();
+      doc["timeToCenter"] = raDynamic.getTimeToEndOfRunInSeconds();
+      doc["timeToEnd"] = raDynamic.getTimeToEndOfRunInSeconds();
+      doc["isTracking"] = raDynamic.isTrackingOn();
+      doc["slewing"] = raDynamic.isSlewing();
+      doc["guideMoveRate"] = raStatic.getGuideRateDegreesSec();
+      doc["trackingRate"] = raStatic.getTrackingRateArcsSecondsSec();
+      doc["axisMoveRateMax"] = raStatic.getMaxAxisMoveRateDegreesSec();
+      doc["axisMoveRateMin"] = raStatic.getMinAxisMoveRateDegreesSec();
 
       String json;
       serializeJson(doc, json);

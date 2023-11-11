@@ -9,14 +9,14 @@
 #include <Preferences.h>
 #include <TMCStepper.h>
 
-#define dirPinStepper 19
-#define stepPinStepper 18
+#define raDirPinStepper 19
+#define raStepPinStepper 18
 
 #define fastForwardSwitchPin 22
 #define rewindSwitchPin 23
 #define playSwitchPin 27
 
-#define limitSwitchPin 21
+#define raLimitSwitchPin 21
 
 // How often we run the button check and calculation.
 // Half of this timen is the average delay to starrt a pulseguide
@@ -37,32 +37,33 @@ const long SERIAL_BAUD_RATE = 19200;
 
 const int RX_PIN = 16;
 const int TX_PIN = 17;
-const uint8_t DRIVER_ADDRESS = 0; // Assuming address 0. Adjust if necessary.
+const uint8_t RA_DRIVER_ADDRESS = 0; // Assuming address 0. Adjust if necessary.
 
 const float R_SENSE = 0.11; // Check your board's documentation. Typically it's
                             // 0.11 or 0.22 for TMC2209 modules.
 const float HOLD_MULTIPLIER =
     0.5; // Specifies the hold current as a fraction of the run current
-const uint16_t MICROSTEPS = 16; // 1/16th microstepping
+const uint16_t RA_MICROSTEPS = 16; // 1/16th microstepping
 
 // Initialize the driver instance
-TMC2209Stepper stepper_driver =
-    TMC2209Stepper(&serial_stream, R_SENSE, DRIVER_ADDRESS);
+TMC2209Stepper ra_stepper_driver =
+    TMC2209Stepper(&serial_stream, R_SENSE, RA_DRIVER_ADDRESS);
 
 long lastCheckTime = 0;
 
 FastAccelStepperEngine engine = FastAccelStepperEngine();
-FastAccelStepper *stepper = NULL;
+FastAccelStepper *rastepper = NULL;
 Preferences preferences;
 Bounce bounceFastForward = Bounce();
 Bounce bounceRewind = Bounce();
 Bounce bouncePlay = Bounce();
 Bounce bounceLimit = Bounce();
 
-MotorUnit::MotorUnit(RAStatic &m, RADynamic &c, Preferences &p)
-    : model(m), control(c), preferences(p) {
-
-  // control = PlatformStatic(ConcreteStepperWrapper(stepper), model);
+MotorUnit::MotorUnit(RAStatic &rs, RADynamic &rd, DecStatic &ds, DecDynamic &dd,
+                     Preferences &p)
+    : raStatic(rs), raDynamic(rd), decStatic(ds), decDynamic(dd),
+      preferences(p) {
+  // raDynamic = PlatformStatic(ConcreteStepperWrapper(stepper), raStatic);
 }
 
 void MotorUnit::setupMotor() {
@@ -72,7 +73,7 @@ void MotorUnit::setupMotor() {
   bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
   bouncePlay.attach(playSwitchPin, INPUT_PULLUP);
 
-  bounceLimit.attach(limitSwitchPin, INPUT_PULLUP);
+  bounceLimit.attach(raLimitSwitchPin, INPUT_PULLUP);
 
   // DEBOUNCE INTERVAL IN MILLISECONDS
   bounceFastForward.interval(100); // interval in ms
@@ -82,28 +83,29 @@ void MotorUnit::setupMotor() {
   bounceLimit.interval(10); // interval in ms
 
   serial_stream.begin(SERIAL_BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
-  stepper_driver.begin();
+  ra_stepper_driver.begin();
 
   // Set motor current
 
-  stepper_driver.microsteps(MICROSTEPS);
+  ra_stepper_driver.microsteps(RA_MICROSTEPS);
 
   // StealthChop configuration
-  stepper_driver.toff(5);
-  stepper_driver.intpol(true);
-  stepper_driver.rms_current(1700, 0.1);
-  stepper_driver.en_spreadCycle(false); // This enables StealthChop
-  stepper_driver.pwm_autograd(1);  // This enables automatic gradient adaptation
-  stepper_driver.pwm_autoscale(1); // This enables automatic current scaling
+  ra_stepper_driver.toff(5);
+  ra_stepper_driver.intpol(true);
+  ra_stepper_driver.rms_current(1700, 0.1);
+  ra_stepper_driver.en_spreadCycle(false); // This enables StealthChop
+  ra_stepper_driver.pwm_autograd(
+      1);                          // This enables automatic gradient adaptation
+  ra_stepper_driver.pwm_autoscale(1); // This enables automatic current scaling
 
   engine.init();
-  stepper = engine.stepperConnectToPin(stepPinStepper);
-  if (stepper) {
-    stepper->setDirectionPin(dirPinStepper);
-    stepper->setAutoEnable(true);
+  rastepper = engine.stepperConnectToPin(raStepPinStepper);
+  if (rastepper) {
+    rastepper->setDirectionPin(raDirPinStepper);
+    rastepper->setAutoEnable(true);
 
     // stepper->setSpeedInHz(5000);
-    stepper->setAcceleration(acceleration); // 100 steps/s²
+    rastepper->setAcceleration(acceleration); // 100 steps/s²
     // stepper->setAcceleration(100000); // 100 steps/s²
 
     // preferences = p;
@@ -111,9 +113,9 @@ void MotorUnit::setupMotor() {
     log("Loaded saved position %d", savedPosition);
     // when current position is not know, go slowly.
     if (savedPosition == INT32_MAX) {
-      control.setSafetyMode(true);
+      raDynamic.setSafetyMode(true);
     }
-    stepper->setCurrentPosition(savedPosition);
+    rastepper->setCurrentPosition(savedPosition);
     // delay(3000);
     // stepper->setSpeedInHz(5000);
     // delay(1000);
@@ -122,8 +124,8 @@ void MotorUnit::setupMotor() {
     // log("Moved");
   }
   ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper(preferences);
-  wrapper->setStepper(stepper);
-  control.setStepperWrapper(wrapper);
+  wrapper->setStepper(rastepper);
+  raDynamic.setStepperWrapper(wrapper);
 }
 
 bool isFastForwardJustPushed() {
@@ -165,7 +167,7 @@ void MotorUnit::onLoop() {
     if (now > pulseGuideUntil) {
       // stops the pulse and resets back to original speed
       // we do this here to minise time overrun
-      control.stopPulse();
+      raDynamic.stopPulse();
       pulseGuideUntil = 0;
       log("Pulse guide ended. Delta in milliseconds from requested duration "
           "was %ld",
@@ -184,36 +186,36 @@ void MotorUnit::onLoop() {
     bouncePlay.update();
     bounceLimit.update();
 
-    control.setLimitSwitchState(isLimitSwitchHit());
+    raDynamic.setLimitSwitchState(isLimitSwitchHit());
 
-    int32_t pos = stepper->getCurrentPosition();
+    int32_t pos = rastepper->getCurrentPosition();
 
     if (isFastForwardJustPushed()) {
-      if (pos <= model.getMiddlePosition())
-        control.gotoEndish();
+      if (pos <= raStatic.getMiddlePosition())
+        raDynamic.gotoEndish();
       else
-        control.gotoMiddle();
+        raDynamic.gotoMiddle();
     }
     if (isFastForwardJustReleased()) {
-      control.stop();
+      raDynamic.stop();
     }
     if (isRewindJustPushed()) {
-      if (pos >= model.getMiddlePosition())
-        control.gotoStart();
+      if (pos >= raStatic.getMiddlePosition())
+        raDynamic.gotoStart();
       else
-        control.gotoMiddle();
+        raDynamic.gotoMiddle();
     }
     if (isRewindJustReleased()) {
-      control.stop();
+      raDynamic.stop();
     }
     if (isPlayJustPushed()) {
-      control.setTrackingOnOff(true);
+      raDynamic.setTrackingOnOff(true);
     }
     if (isPlayJustReleased()) {
-      control.setTrackingOnOff(false);
+      raDynamic.setTrackingOnOff(false);
     }
 
-    long d = control.onLoop();
+    long d = raDynamic.onLoop();
 
     // handle pulseguide delay
     if (d > 0) {
@@ -223,9 +225,9 @@ void MotorUnit::onLoop() {
 }
 
 double MotorUnit::getVelocityInMMPerMinute() {
-  double speedInMHz = (double)stepper->getCurrentSpeedInMilliHz();
+  double speedInMHz = (double)rastepper->getCurrentSpeedInMilliHz();
   double speedInHz = speedInMHz / 1000.0;
-  double speedInMMPerSecond = speedInHz / model.getStepsPerMM();
+  double speedInMMPerSecond = speedInHz / raStatic.getStepsPerMM();
   double speedInMMPerMinute = speedInMMPerSecond * 60.0;
   return speedInMMPerMinute;
 }
@@ -234,10 +236,10 @@ unsigned long MotorUnit::getAcceleration() { return acceleration; }
 
 void MotorUnit::setAcceleration(unsigned long a) {
   acceleration = a;
-  if (stepper != NULL) {
-    stepper->setAcceleration(a);
+  if (rastepper != NULL) {
+    rastepper->setAcceleration(a);
   }
 }
 double MotorUnit::getPositionInMM() {
-  return ((double)stepper->getCurrentPosition()) / model.getStepsPerMM();
+  return ((double)rastepper->getCurrentPosition()) / raStatic.getStepsPerMM();
 }

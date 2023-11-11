@@ -4,6 +4,7 @@
 #include "MotorUnit.h"
 #include "RADynamic.h"
 #include "RAStatic.h"
-void broadcastStatus(MotorUnit &motorUnit, RAStatic &model, RADynamic &control);
+void broadcastStatus(MotorUnit &motorUnit, RAStatic &raStatic,
+                     RADynamic &raDynamic);
 
 #endif

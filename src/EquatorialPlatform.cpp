@@ -18,11 +18,11 @@
 // Half of this time is the average pulsetime end error
 #define MAINLOOPTIME 25 // ms
 
-RAStatic model;
+RAStatic raStatic;
 Preferences prefs;
 
-RADynamic control(model);
-MotorUnit motorUnit(model, control, prefs);
+RADynamic raDynamic(raStatic);
+MotorUnit motorUnit(raStatic, raDynamic, prefs);
 
 void setup() {
   Serial.begin(115200);
@@ -32,21 +32,21 @@ void setup() {
   prefs.begin("Platform", false);
   setupWifi(prefs);
 
-  // model.setupModel();
+  // raStatic.setupModel();
 
   delay(500);
   // order of setup matters here. Web server loads prefs
-  setupWebServer(motorUnit, model, control, prefs);
+  setupWebServer(motorUnit, raStatic, raDynamic, prefs);
 
   motorUnit.setupMotor();
 
-  setupUDPListener(motorUnit, control);
+  setupUDPListener(motorUnit, raDynamic);
 }
 
 void loop() {
   delay(MAINLOOPTIME);
   // send status to dsc via udp (contains a timer to stop spamming each loop)
-  broadcastStatus(motorUnit, model, control);
-  // motor control loop
+  broadcastStatus(motorUnit, raStatic, raDynamic);
+  // motor raDynamic loop
   motorUnit.onLoop();
 }

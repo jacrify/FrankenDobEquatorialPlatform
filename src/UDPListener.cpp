@@ -9,10 +9,10 @@ AsyncUDP dscUDP;
  * Listen for UDP broadcasts from Digital Setting Circles.
  * This is used for alpaca commands passed from DSC.
  */
-void setupUDPListener(MotorUnit &motor, RADynamic &control) {
+void setupUDPListener(MotorUnit &motor, RADynamic &raDynamic) {
   if (dscUDP.listen(IPBROADCASTPORT)) {
     log("Listening for dsc platform broadcasts");
-    dscUDP.onPacket([&motor, &control](AsyncUDPPacket packet) {
+    dscUDP.onPacket([&motor, &raDynamic](AsyncUDPPacket packet) {
       unsigned long now = millis();
       String start = packet.readStringUntil(':');
       // log("UDP Broadcast received: %s", msg.c_str());
@@ -42,33 +42,33 @@ void setupUDPListener(MotorUnit &motor, RADynamic &control) {
           double parameter2 = doc["parameter2"];
 
           if (command == "home") {
-            control.gotoStart();
+            raDynamic.gotoStart();
             return;
           }
           if (command == "park") {
-            control.gotoEndish();
+            raDynamic.gotoEndish();
             return;
           }
           if (command == "track") {
-            control.setTrackingOnOff(parameter1 > 0 ? true : false);
+            raDynamic.setTrackingOnOff(parameter1 > 0 ? true : false);
             return;
           }
           if (command == "moveaxis") {
-            control.moveAxis(parameter1);
+            raDynamic.moveAxis(parameter1);
             return;
           }
 
           if (command == "slewbydegrees") {
-            control.slewByDegrees(parameter1);
+            raDynamic.slewByDegrees(parameter1);
             return;
           }
 
           if (command == "moveaxispercentage") {
-            control.moveAxisPercentage(parameter1);
+            raDynamic.moveAxisPercentage(parameter1);
             return;
           }
           if (command == "pulseguide") {
-            control.pulseGuide(parameter1, parameter2);
+            raDynamic.pulseGuide(parameter1, parameter2);
             return;
           }
 

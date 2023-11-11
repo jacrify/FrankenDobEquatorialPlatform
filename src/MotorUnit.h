@@ -1,13 +1,16 @@
 #ifndef MOTORUNIT_H
 #define MOTORUNIT_H
 
+#include "DecDynamic.h"
+#include "DecStatic.h"
 #include "RADynamic.h"
 #include "RAStatic.h"
 #include <Preferences.h>
 
 class MotorUnit {
 public:
-  MotorUnit(RAStatic &model, RADynamic &c, Preferences &p);
+  MotorUnit(RAStatic &rastatic, RADynamic &radynamic, DecStatic &decstatic,
+            DecDynamic &decdynamic, Preferences &p);
 
   void setupMotor();
   void onLoop();
@@ -18,8 +21,10 @@ public:
   void setAcceleration(unsigned long a);
 
 private:
-  RAStatic &model;
-  RADynamic &control;
+  RAStatic &raStatic;
+  RADynamic &raDynamic;
+  DecStatic &decStatic;
+  DecDynamic &decDynamic;
   Preferences &preferences;
   unsigned long acceleration;
 };
