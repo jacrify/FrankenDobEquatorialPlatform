@@ -1,5 +1,5 @@
 #include "MotorUnit.h"
-#include "ConcreteStepperWrapper.h"
+
 #include "Logging.h"
 #include "RADynamic.h"
 #include "RAStatic.h"
@@ -7,10 +7,14 @@
 #include <Bounce2.h>
 #include <FastAccelStepper.h>
 #include <Preferences.h>
-#include <TMCStepper.h>
+
 
 #define raDirPinStepper 19
 #define raStepPinStepper 18
+
+// TODO define dec pins
+#define decDirPinStepper 99
+#define decStepPinStepper 99
 
 #define fastForwardSwitchPin 22
 #define rewindSwitchPin 23
@@ -22,7 +26,8 @@
 // Half of this timen is the average delay to starrt a pulseguide
 #define BUTTONANDRECALCPERIOD 250
 
-#define PREF_SAVED_POS_KEY "SavedPosition"
+#define RA_PREF_SAVED_POS_KEY "RASavedPosition"
+#define DEC_PREF_SAVED_POS_KEY "DecSavedPosition"
 
 unsigned long lastButtonAndSpeedCalc;
 
@@ -37,22 +42,29 @@ const long SERIAL_BAUD_RATE = 19200;
 
 const int RX_PIN = 16;
 const int TX_PIN = 17;
+
+// TODO define driver addresses
 const uint8_t RA_DRIVER_ADDRESS = 0; // Assuming address 0. Adjust if necessary.
+const uint8_t DEC_DRIVER_ADDRESS = 0;
 
 const float R_SENSE = 0.11; // Check your board's documentation. Typically it's
                             // 0.11 or 0.22 for TMC2209 modules.
 const float HOLD_MULTIPLIER =
     0.5; // Specifies the hold current as a fraction of the run current
 const uint16_t RA_MICROSTEPS = 16; // 1/16th microstepping
+const uint16_t DEC_MICROSTEPS = 16;
 
 // Initialize the driver instance
 TMC2209Stepper ra_stepper_driver =
     TMC2209Stepper(&serial_stream, R_SENSE, RA_DRIVER_ADDRESS);
+TMC2209Stepper dec_stepper_driver =
+    TMC2209Stepper(&serial_stream, R_SENSE, DEC_DRIVER_ADDRESS);
 
 long lastCheckTime = 0;
 
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *rastepper = NULL;
+FastAccelStepper *decstepper = NULL;
 Preferences preferences;
 Bounce bounceFastForward = Bounce();
 Bounce bounceRewind = Bounce();
@@ -66,8 +78,7 @@ MotorUnit::MotorUnit(RAStatic &rs, RADynamic &rd, DecStatic &ds, DecDynamic &dd,
   // raDynamic = PlatformStatic(ConcreteStepperWrapper(stepper), raStatic);
 }
 
-void MotorUnit::setupMotor() {
-  pulseGuideUntil = 0;
+void MotorUnit::setupButtons() {
   lastButtonAndSpeedCalc = 0;
   bounceFastForward.attach(fastForwardSwitchPin, INPUT_PULLUP);
   bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
@@ -81,51 +92,69 @@ void MotorUnit::setupMotor() {
   bouncePlay.interval(100);        // interval in ms
 
   bounceLimit.interval(10); // interval in ms
+}
 
-  serial_stream.begin(SERIAL_BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
-  ra_stepper_driver.begin();
-
+void MotorUnit::setUpTMCDriver(TMC2209Stepper driver,int microsteps) {
+  driver.begin();
   // Set motor current
-
-  ra_stepper_driver.microsteps(RA_MICROSTEPS);
+  driver.microsteps(microsteps);
 
   // StealthChop configuration
-  ra_stepper_driver.toff(5);
-  ra_stepper_driver.intpol(true);
-  ra_stepper_driver.rms_current(1700, 0.1);
-  ra_stepper_driver.en_spreadCycle(false); // This enables StealthChop
-  ra_stepper_driver.pwm_autograd(
-      1);                          // This enables automatic gradient adaptation
-  ra_stepper_driver.pwm_autoscale(1); // This enables automatic current scaling
+  driver.toff(5);
+  driver.intpol(true);
+  driver.rms_current(1700, 0.1);
+  driver.en_spreadCycle(false); // This enables StealthChop
+  driver.pwm_autograd(1);       // This enables automatic gradient adaptation
+  driver.pwm_autoscale(1); // This enables automatic current scaling
+}
+ConcreteStepperWrapper *MotorUnit::setUpFastAccelStepper(int32_t savedPosition,
+                                                         int stepPin,
+                                                         int dirPin) {
+  FastAccelStepper *stepper = engine.stepperConnectToPin(stepPin);
+  if (stepper) {
+    stepper->setDirectionPin(dirPin);
+    stepper->setAutoEnable(true);
+    stepper->setAcceleration(acceleration); // 100 steps/s²
+    stepper->setCurrentPosition(savedPosition);
+    ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper(preferences);
+    wrapper->setStepper(stepper);
+    return wrapper;
+
+  } else {
+    log("Error: stepper not initalised (step pin: %d dir pin: %d)",stepPin,dirPin);
+    return nullptr;
+  }
+}
+void MotorUnit::setupMotors() {
+  pulseGuideUntil = 0;
+
+  setupButtons();
+
+  serial_stream.begin(SERIAL_BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
+  setUpTMCDriver(ra_stepper_driver,RA_MICROSTEPS);
+  setUpTMCDriver(dec_stepper_driver, DEC_MICROSTEPS);
 
   engine.init();
-  rastepper = engine.stepperConnectToPin(raStepPinStepper);
-  if (rastepper) {
-    rastepper->setDirectionPin(raDirPinStepper);
-    rastepper->setAutoEnable(true);
 
-    // stepper->setSpeedInHz(5000);
-    rastepper->setAcceleration(acceleration); // 100 steps/s²
-    // stepper->setAcceleration(100000); // 100 steps/s²
-
-    // preferences = p;
-    int32_t savedPosition = preferences.getInt(PREF_SAVED_POS_KEY, INT32_MAX);
-    log("Loaded saved position %d", savedPosition);
-    // when current position is not know, go slowly.
-    if (savedPosition == INT32_MAX) {
-      raDynamic.setSafetyMode(true);
-    }
-    rastepper->setCurrentPosition(savedPosition);
-    // delay(3000);
-    // stepper->setSpeedInHz(5000);
-    // delay(1000);
-    // stepper->moveTo(0);
-    // delay(3000);
-    // log("Moved");
+  int32_t raSavedPosition =
+      preferences.getInt(RA_PREF_SAVED_POS_KEY, INT32_MAX);
+  log("Loaded saved ra position %d", raSavedPosition);
+  if (raSavedPosition == INT32_MAX) {
+    raDynamic.setSafetyMode(true);
   }
-  ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper(preferences);
-  wrapper->setStepper(rastepper);
-  raDynamic.setStepperWrapper(wrapper);
+  ConcreteStepperWrapper *rawrapper = setUpFastAccelStepper(
+      raSavedPosition, raStepPinStepper, raDirPinStepper);
+  raDynamic.setStepperWrapper(rawrapper);
+
+  int32_t decSavedPosition =
+      preferences.getInt(DEC_PREF_SAVED_POS_KEY, INT32_MAX);
+  log("Loaded saved dec position %d", decSavedPosition);
+  if (decSavedPosition == INT32_MAX) {
+    decDynamic.setSafetyMode(true);
+  }
+  ConcreteStepperWrapper *decwrapper = setUpFastAccelStepper(
+      decSavedPosition, decStepPinStepper, decDirPinStepper);
+  decDynamic.setStepperWrapper(decwrapper);
 }
 
 bool isFastForwardJustPushed() {

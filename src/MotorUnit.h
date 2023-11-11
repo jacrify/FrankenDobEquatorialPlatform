@@ -4,15 +4,17 @@
 #include "DecDynamic.h"
 #include "DecStatic.h"
 #include "RADynamic.h"
-#include "RAStatic.h"
+#include "RAStatic.h" 
+#include "ConcreteStepperWrapper.h"
 #include <Preferences.h>
+#include <TMCStepper.h>
 
 class MotorUnit {
 public:
   MotorUnit(RAStatic &rastatic, RADynamic &radynamic, DecStatic &decstatic,
             DecDynamic &decdynamic, Preferences &p);
 
-  void setupMotor();
+  void setupMotors();
   void onLoop();
 
   double getPositionInMM();
@@ -27,6 +29,12 @@ private:
   DecDynamic &decDynamic;
   Preferences &preferences;
   unsigned long acceleration;
+
+  void setupButtons();
+
+  void setUpTMCDriver(TMC2209Stepper driver, int microsteps);
+  ConcreteStepperWrapper *setUpFastAccelStepper(int32_t savedPosition,
+                                                int stepPin, int dirPin);
 };
 
 #endif

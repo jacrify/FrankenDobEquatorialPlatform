@@ -42,7 +42,7 @@ void setup() {
   // order of setup matters here. Web server loads prefs
   setupWebServer(motorUnit, raStatic, raDynamic, prefs);
 
-  motorUnit.setupMotor();
+  motorUnit.setupMotors();
 
   setupUDPListener(motorUnit, raDynamic);
 }
