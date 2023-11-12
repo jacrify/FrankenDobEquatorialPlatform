@@ -204,9 +204,6 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
   String json;
   serializeJson(doc, json);
 
-  // String json = "{\"timestamp\":" + String(times.get()) + ",\"position\":"
-  // + String(positions.get()) + ",\"velocity\":" + String(velocities.get()) +
-  // "}";
   request->send(200, "application/json", json);
 }
 

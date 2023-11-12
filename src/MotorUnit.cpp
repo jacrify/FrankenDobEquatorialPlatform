@@ -12,7 +12,7 @@
 #define raDirPinStepper 19
 #define raStepPinStepper 18
 
-// TODO define dec pins
+
 #define decDirPinStepper 33
 #define decStepPinStepper 32
 
@@ -45,7 +45,7 @@ const long SERIAL_BAUD_RATE = 19200;
 const int RX_PIN = 16;
 const int TX_PIN = 17;
 
-// TODO define driver addresses
+
 const uint8_t RA_DRIVER_ADDRESS = 0; // Assuming address 0. Adjust if necessary.
 const uint8_t DEC_DRIVER_ADDRESS = 1;
 
