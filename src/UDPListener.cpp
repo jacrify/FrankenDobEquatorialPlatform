@@ -9,10 +9,11 @@ AsyncUDP dscUDP;
  * Listen for UDP broadcasts from Digital Setting Circles.
  * This is used for alpaca commands passed from DSC.
  */
-void setupUDPListener(MotorUnit &motor, RADynamic &raDynamic) {
+void setupUDPListener(MotorUnit &motor, RADynamic &raDynamic,
+                      DecDynamic &decDynamic) {
   if (dscUDP.listen(IPBROADCASTPORT)) {
     log("Listening for dsc platform broadcasts");
-    dscUDP.onPacket([&motor, &raDynamic](AsyncUDPPacket packet) {
+    dscUDP.onPacket([&motor, &raDynamic, &decDynamic](AsyncUDPPacket packet) {
       unsigned long now = millis();
       String start = packet.readStringUntil(':');
       // log("UDP Broadcast received: %s", msg.c_str());
@@ -43,10 +44,12 @@ void setupUDPListener(MotorUnit &motor, RADynamic &raDynamic) {
 
           if (command == "home") {
             raDynamic.gotoStart();
+            decDynamic.gotoMiddle();
             return;
           }
           if (command == "park") {
             raDynamic.gotoEndish();
+            decDynamic.gotoMiddle();
             return;
           }
           if (command == "track") {
@@ -54,31 +57,51 @@ void setupUDPListener(MotorUnit &motor, RADynamic &raDynamic) {
             return;
           }
           if (command == "moveaxis") {
-            raDynamic.moveAxis(parameter1);
+            int axis = parameter1;
+            double degreesPerSecond = parameter2;
+            if (axis == 0)
+              raDynamic.moveAxis(degreesPerSecond);
+            if (axis == 1)
+              decDynamic.moveAxis(degreesPerSecond);
             return;
           }
 
           if (command == "slewbydegrees") {
-            raDynamic.slewByDegrees(parameter1);
+            int axis = parameter1;
+            double degreesToSlew = parameter2;
+            if (axis == 0)
+              raDynamic.slewByDegrees(degreesToSlew);
+            if (axis == 1)
+              decDynamic.slewByDegrees(degreesToSlew);
             return;
           }
 
           if (command == "moveaxispercentage") {
-            raDynamic.moveAxisPercentage(parameter1);
+            int axis = parameter1;
+            double percentageOfSpeed = parameter2;
+            if (axis == 0)
+              raDynamic.moveAxisPercentage(percentageOfSpeed);
+            if (axis == 1)
+              decDynamic.moveAxisPercentage(percentageOfSpeed);
             return;
           }
           if (command == "pulseguide") {
-            raDynamic.pulseGuide(parameter1, parameter2);
+            int direction = parameter1;
+            long duration = parameter2;
+
+            if (direction == 2 || direction == 3) {
+              raDynamic.pulseGuide(direction, duration);
+              return;
+            } else if (direction == 0 || direction == 1) {
+              decDynamic.pulseGuide(direction, duration);
+              return;
+            }
+            log("Unknown pulseguide direction %d", direction);
             return;
           }
 
           log("Unknown command %s", command.c_str());
           return;
-
-          // IPAddress remoteIp = packet.remoteIP();
-
-          // // Convert the IP address to a string
-          // eqPlatformIP = remoteIp.toString();
 
         } else {
           log("Payload missing required fields.");

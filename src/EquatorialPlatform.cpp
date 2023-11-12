@@ -44,7 +44,7 @@ void setup() {
 
   motorUnit.setupMotors();
 
-  setupUDPListener(motorUnit, raDynamic);
+  setupUDPListener(motorUnit, raDynamic,decDynamic);
 }
 
 void loop() {
