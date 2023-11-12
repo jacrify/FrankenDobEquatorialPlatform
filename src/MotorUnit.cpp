@@ -13,14 +13,15 @@
 #define raStepPinStepper 18
 
 // TODO define dec pins
-#define decDirPinStepper 99
-#define decStepPinStepper 99
+#define decDirPinStepper 33
+#define decStepPinStepper 32
 
 #define fastForwardSwitchPin 22
 #define rewindSwitchPin 23
 #define playSwitchPin 27
 
 #define raLimitSwitchPin 21
+#define decLimitSwitchPin 13
 
 // How often we run the button check and calculation.
 // Half of this timen is the average delay to starrt a pulseguide
@@ -45,7 +46,7 @@ const int TX_PIN = 17;
 
 // TODO define driver addresses
 const uint8_t RA_DRIVER_ADDRESS = 0; // Assuming address 0. Adjust if necessary.
-const uint8_t DEC_DRIVER_ADDRESS = 0;
+const uint8_t DEC_DRIVER_ADDRESS = 1;
 
 const float R_SENSE = 0.11; // Check your board's documentation. Typically it's
                             // 0.11 or 0.22 for TMC2209 modules.
@@ -69,7 +70,8 @@ Preferences preferences;
 Bounce bounceFastForward = Bounce();
 Bounce bounceRewind = Bounce();
 Bounce bouncePlay = Bounce();
-Bounce bounceLimit = Bounce();
+Bounce bounceLimitRa = Bounce();
+Bounce bounceLimitDec = Bounce();
 
 MotorUnit::MotorUnit(RAStatic &rs, RADynamic &rd, DecStatic &ds, DecDynamic &dd,
                      Preferences &p)
@@ -84,14 +86,16 @@ void MotorUnit::setupButtons() {
   bounceRewind.attach(rewindSwitchPin, INPUT_PULLUP);
   bouncePlay.attach(playSwitchPin, INPUT_PULLUP);
 
-  bounceLimit.attach(raLimitSwitchPin, INPUT_PULLUP);
+  bounceLimitRa.attach(raLimitSwitchPin, INPUT_PULLUP);
+  bounceLimitDec.attach(decLimitSwitchPin, INPUT_PULLUP);
 
   // DEBOUNCE INTERVAL IN MILLISECONDS
   bounceFastForward.interval(100); // interval in ms
   bounceRewind.interval(100);      // interval in ms
   bouncePlay.interval(100);        // interval in ms
 
-  bounceLimit.interval(10); // interval in ms
+  bounceLimitRa.interval(10); // interval in ms
+  bounceLimitDec.interval(10); // interval in ms
 }
 
 void MotorUnit::setUpTMCDriver(TMC2209Stepper driver,int microsteps) {
@@ -184,7 +188,8 @@ bool isPlayJustReleased() {
   return bouncePlay.changed() && bouncePlay.read() != LOW;
 }
 
-bool isLimitSwitchHit() { return bounceLimit.read() == LOW; }
+bool isRaLimitSwitchHit() { return bounceLimitRa.read() == LOW; }
+bool isDecLimitSwitchHit() { return bounceLimitDec.read() == LOW; }
 
 // double degreesPerSecondToArcSecondsPerSecond(double degreesPerSecond) {
 //   return degreesPerSecond * 3600.0;
@@ -213,9 +218,11 @@ void MotorUnit::onLoop() {
     bounceFastForward.update();
     bounceRewind.update();
     bouncePlay.update();
-    bounceLimit.update();
+    bounceLimitRa.update();
+    bounceLimitDec.update();
 
-    raDynamic.setLimitSwitchState(isLimitSwitchHit());
+    raDynamic.setLimitSwitchState(isRaLimitSwitchHit());
+    decDynamic.setLimitSwitchState(isDecLimitSwitchHit());
 
     int32_t pos = rastepper->getCurrentPosition();
 
