@@ -267,8 +267,13 @@ void MotorUnit::setAcceleration(unsigned long a) {
   acceleration = a;
   if (rastepper != NULL) {
     rastepper->setAcceleration(a);
+    decstepper->setAcceleration(a);
   }
 }
-double MotorUnit::getPositionInMM() {
+double MotorUnit::getRaPositionInMM() {
   return ((double)rastepper->getCurrentPosition()) / raStatic.getStepsPerMM();
+}
+
+double MotorUnit::getDecPositionInMM() {
+  return ((double)decstepper->getCurrentPosition()) / decStatic.getStepsPerMM();
 }

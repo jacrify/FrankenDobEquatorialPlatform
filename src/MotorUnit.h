@@ -17,7 +17,8 @@ public:
   void setupMotors();
   void onLoop();
 
-  double getPositionInMM();
+  double getRaPositionInMM();
+  double getDecPositionInMM();
   double getVelocityInMMPerMinute();
   unsigned long getAcceleration();
   void setAcceleration(unsigned long a);

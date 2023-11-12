@@ -10,11 +10,11 @@
     <label for="runbackSpeed">RunBack Speed (hz)</label>
     <input type="number" id="runbackSpeed"><br />
 
-    <label for="coneRadius">Cone Radius At Attachment Point (mm) - increase to go faster</label>
-    <input type="number" id="coneRadius"><br />
+    <label for="raLeadToPivotDistance">RA Lead Screw To Pivot (mm) - increase to track faster</label>
+    <input type="number" id="raLeadToPivotDistance"><br />
 
-    <label for="limitToMiddleDistance">Limit To Middle Distance (mm)</label>
-    <input type="number" id="limitToMiddleDistance"><br />
+    <label for="raLimitToMiddleDistance">RA Limit To Middle Distance (mm)</label>
+    <input type="number" id="raLimitToMiddleDistance"><br />
 
 
     <label for="raGuideRate">RA Guide Sidereal Multiplier</label>
@@ -26,13 +26,24 @@
     <label for="nunChukMultiplier">NunChuk Sidereal Multiplier</label>
     <input type="number" id="nunChukMultiplier"><br />
 
-    <label for="position">Position (mm):</label>
-    <span id="position">0</span><br />
+    <label for="raPosition">Ra Position (mm):</label>
+    <span id="raPosition">0</span><br />
+
+    <label for="decPosition">Dec Position (mm):</label>
+    <span id="decPosition">0</span><br />
+
     <label for="velocity">Velocity (mm/minute):</label>
     <span id="velocity">0</span><br />
-    <button id="home">Home</button>
-    <button id="center">Center</button>
-    <button id="park">Park (end-5m)</button>
+
+    <button id="homera">HomeRA</button>
+    <button id="centerra">CenterRA</button>
+    <button id="parkra">ParkRA (end-5m)</button>
+
+
+    <br>
+    <button id="homedec">HomeDec</button>
+    <button id="centerdec">CenterDec</button>
+    <button id="parkdec">ParkDec</button>
     <br>
     <a href="/chart.htm">Speed vs position chart</a>
 
@@ -48,12 +59,12 @@
                     console.log("Update runback");
                     $("#runbackSpeed").val(data.runbackSpeed);
                 }
-                if (!$("#limitToMiddleDistance").is(":focus")) {
-                    $("#limitToMiddleDistance").val(data.limitToMiddleDistance);
+                if (!$("#raLimitToMiddleDistance").is(":focus")) {
+                    $("#raLimitToMiddleDistance").val(data.raLimitToMiddleDistance);
                 }
 
-                if (!$("#coneRadius").is(":focus")) {
-                    $("#coneRadius").val(data.coneRadius);
+                if (!$("#raLeadToPivotDistance").is(":focus")) {
+                    $("#raLeadToPivotDistance").val(data.raLeadToPivotDistance);
                 }
 
                 if (!$("#raGuideRate").is(":focus")) {
@@ -68,21 +79,32 @@
                     $("#nunChukMultiplier").val(data.nunChukMultiplier);
                 }
 
-                $("#position").text(data.position);
+                $("#raPosition").text(data.raPosition);
+                $("#decPosition").text(data.raPosition);
                 $("#velocity").text(data.velocity);
 
             }).fail(function (jqxhr, textStatus, error) {
                 console.log("Request Failed: " + textStatus + ", " + error);
             });;
         }
-        $("#home").click(function () {
-            $.post("/home");
+        $("#homera").click(function () {
+            $.post("/homera");
         });
-        $("#center").click(function () {
-            $.post("/center");
+        $("#centerra").click(function () {
+            $.post("/centerra");
         });
-        $("#park").click(function () {
-            $.post("/park");
+        $("#parkra").click(function () {
+            $.post("/parkra");
+        });
+
+        $("#homedec").click(function () {
+            $.post("/homedec");
+        });
+        $("#centerdec").click(function () {
+            $.post("/centerdec");
+        });
+        $("#parkdec").click(function () {
+            $.post("/parkdec");
         });
         $("#resetButton").click(function () {
             chartData.labels = [];

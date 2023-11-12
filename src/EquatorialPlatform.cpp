@@ -40,7 +40,7 @@ void setup() {
 
   delay(500);
   // order of setup matters here. Web server loads prefs
-  setupWebServer(motorUnit, raStatic, raDynamic, prefs);
+  setupWebServer(motorUnit, raStatic, raDynamic, decStatic, decDynamic, prefs);
 
   motorUnit.setupMotors();
 
