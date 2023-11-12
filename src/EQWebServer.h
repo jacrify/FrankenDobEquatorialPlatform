@@ -17,7 +17,8 @@
 #define DEC_LEAD_TO_PIVOT_KEY "declpk"
 
 #define PREF_SPEED_KEY "ff"
-
+#define RA_PREF_SPEED_KEY "raff"
+#define DEC_PREF_SPEED_KEY "decff"
 
 //TODO DELETE MID later once new value saved
 #define PREF_MIDDLE_KEY "mid"

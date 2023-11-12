@@ -66,10 +66,10 @@ void setNunChukMultiplier(AsyncWebServerRequest *request, RAStatic &raStatic,
   log("No Nunchuk multiplier");
 }
 
-void setRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
+void setRARewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
                                   RAStatic &raStatic,
                                   Preferences &preferences) {
-  log("/setrunbackSpeed");
+  log("/setrarunbackSpeed");
   if (request->hasArg("value")) {
     String speed = request->arg("value");
     long speedValue = std::stoul(speed.c_str());
@@ -79,7 +79,26 @@ void setRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
       return;
     }
     raStatic.setRewindFastFowardSpeedInHz(speedValue);
-    preferences.putUInt(PREF_SPEED_KEY, speedValue);
+    preferences.putUInt(RA_PREF_SPEED_KEY, speedValue);
+    return;
+  }
+  log("No speed arg found");
+}
+
+void setDecRewindFastFowardSpeedInHz(AsyncWebServerRequest *request,
+                                    DecStatic &decStatic,
+                                    Preferences &preferences) {
+  log("/setdecrunbackSpeed");
+  if (request->hasArg("value")) {
+    String speed = request->arg("value");
+    long speedValue = std::stoul(speed.c_str());
+
+    if (speedValue == 0 && speed != "0") {
+      log("Could not parse speed");
+      return;
+    }
+    decStatic.setRewindFastFowardSpeedInHz(speedValue);
+    preferences.putUInt(DEC_PREF_SPEED_KEY, speedValue);
     return;
   }
   log("No speed arg found");
@@ -164,14 +183,15 @@ void setDecLeadToPivotDistance(AsyncWebServerRequest *request,
 }
 
 void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
-               RAStatic &raStatic) {
+               RAStatic &raStatic, DecStatic &decStatic) {
   // log("/getStatus");
 
   const size_t capacity = JSON_OBJECT_SIZE(15);
 
   DynamicJsonDocument doc(capacity);
   // Populate the JSON object
-  doc["runbackSpeed"] = raStatic.getRewindFastFowardSpeed();
+  doc["raRunbackSpeed"] = raStatic.getRewindFastFowardSpeed();
+  doc["decRunbackSpeed"] = decStatic.getRewindFastFowardSpeed();
   doc["raLeadToPivotDistance"] = raStatic.getScrewToPivotInMM();
   doc["raLimitToMiddleDistance"] = raStatic.getLimitSwitchToMiddleDistance();
   doc["raGuideRate"] = raStatic.getGuideRateMultiplier();
@@ -193,8 +213,14 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
 void setupWebServer(MotorUnit &motor, RAStatic &raStatic, RADynamic &raDynamic,
                     DecStatic &decStatic, DecDynamic &decDynamic,
                     Preferences &preferences) {
-  int rewindFastFowardSpeed =
+  // TODO switch key after one run
+  int raRewindFastFowardSpeed =
       preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
+
+  int decRewindFastFowardSpeed = raRewindFastFowardSpeed;
+
+  preferences.putUInt(RA_PREF_SPEED_KEY, raRewindFastFowardSpeed);
+  preferences.putUInt(DEC_PREF_SPEED_KEY, decRewindFastFowardSpeed);
 
   // TODO switch key once remove put after one run
   int raLimitSwitchToMiddleDistance =
@@ -211,8 +237,8 @@ void setupWebServer(MotorUnit &motor, RAStatic &raStatic, RADynamic &raDynamic,
 
   preferences.putDouble(RA_LEAD_TO_PIVOT_KEY, raLeadScrewToPivotMM);
 
-  double decLeadScrewToPivotMM =
-      preferences.getDouble(DEC_LEAD_TO_PIVOT_KEY, DEFAULT_DEC_LEAD_SCREW_TO_PIVOT);
+  double decLeadScrewToPivotMM = preferences.getDouble(
+      DEC_LEAD_TO_PIVOT_KEY, DEFAULT_DEC_LEAD_SCREW_TO_PIVOT);
 
   int nunChukMultiplier =
       preferences.getInt(NUNCHUK_MULIPLIER_KEY, DEFAULT_NUNCHUK_MULIPLIER);
@@ -220,36 +246,43 @@ void setupWebServer(MotorUnit &motor, RAStatic &raStatic, RADynamic &raDynamic,
       preferences.getDouble(RA_GUIDE_KEY, DEFAULT_RA_GUIDE);
   unsigned long acceleration = preferences.getULong(ACCEL_KEY, DEFAULT_ACCEL);
 
-  log("Preferences loaded for raStatic rewindspeed: %d limitToMiddle %d "
+  log("Preferences loaded : rarewindspeed: %d decrewindspeed: %d limitToMiddle "
+      "%d "
       "radius "
       "%f NunChuk multiplier %f RA Guide multiplier %f Accel: %d",
-      rewindFastFowardSpeed, raLimitSwitchToMiddleDistance,
+      raRewindFastFowardSpeed,
+      decRewindFastFowardSpeed, raLimitSwitchToMiddleDistance,
       raLeadScrewToPivotMM, nunChukMultiplier, raGuideSpeedMultiplier,
       acceleration);
-  // order matters here: rewind fast forward speed uses previous sets for
-  // calcs
+  // order matters here: rewind fast forward speed uses previous sets
+  // for calcs
   raStatic.setNunChukMultiplier(nunChukMultiplier);
   raStatic.setGuideRateMultiplier(raGuideSpeedMultiplier);
   raStatic.setLimitSwitchToMiddleDistance(raLimitSwitchToMiddleDistance);
   raStatic.setScrewToPivotInMM(raLeadScrewToPivotMM);
-  raStatic.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
+  raStatic.setRewindFastFowardSpeedInHz(raRewindFastFowardSpeed);
 
   decStatic.setNunChukMultiplier(nunChukMultiplier);
   decStatic.setGuideRateMultiplier(raGuideSpeedMultiplier);
   decStatic.setLimitSwitchToMiddleDistance(decLimitSwitchToMiddleDistance);
   decStatic.setScrewToPivotInMM(decLeadScrewToPivotMM);
-  decStatic.setRewindFastFowardSpeedInHz(rewindFastFowardSpeed);
+  decStatic.setRewindFastFowardSpeedInHz(decRewindFastFowardSpeed);
 
   motor.setAcceleration(acceleration);
 
   server.on("/getStatus", HTTP_GET,
-            [&motor, &raStatic](AsyncWebServerRequest *request) {
-              getStatus(request, motor, raStatic);
+            [&motor, &raStatic,&decStatic](AsyncWebServerRequest *request) {
+              getStatus(request, motor, raStatic,decStatic);
             });
 
-  server.on("/runbackSpeed", HTTP_POST,
+  server.on("/rarunbackSpeed", HTTP_POST,
             [&raStatic, &preferences](AsyncWebServerRequest *request) {
-              setRewindFastFowardSpeedInHz(request, raStatic, preferences);
+              setRARewindFastFowardSpeedInHz(request, raStatic, preferences);
+            });
+
+  server.on("/decrunbackSpeed", HTTP_POST,
+            [&decStatic, &preferences](AsyncWebServerRequest *request) {
+              setDecRewindFastFowardSpeedInHz(request, decStatic, preferences);
             });
 
   server.on("/raLeadToPivotDistance", HTTP_POST,
