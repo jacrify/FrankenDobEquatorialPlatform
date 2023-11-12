@@ -35,7 +35,7 @@ private:
 
   void setUpTMCDriver(TMC2209Stepper driver, int microsteps);
   ConcreteStepperWrapper *setUpFastAccelStepper(int32_t savedPosition,
-                                                int stepPin, int dirPin);
+                                                int stepPin, int dirPin,char* prefsKey);
 };
 
 #endif

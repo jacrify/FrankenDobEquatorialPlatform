@@ -1,8 +1,9 @@
 #include "ConcreteStepperWrapper.h"
 #include "Logging.h"
-#define PREF_SAVED_POS_KEY "SavedPosition"
+// #define PREF_SAVED_POS_KEY "SavedPosition"
 #define STEPPER_MIN_SPEED_HZ 300
-ConcreteStepperWrapper::ConcreteStepperWrapper(Preferences &p) : prefs(p) {}
+ConcreteStepperWrapper::ConcreteStepperWrapper(Preferences &p, char* &pk)
+    : prefs(p), prefsKey(pk) {}
 
 void ConcreteStepperWrapper::setStepper(FastAccelStepper *s) { stepper = s; }
 
@@ -17,7 +18,7 @@ void ConcreteStepperWrapper::stop() {
     int32_t currentPos = stepper->getCurrentPosition();
     if (lastSavedPos != currentPos) {
       log("Saving position %ld", currentPos);
-      prefs.putInt(PREF_SAVED_POS_KEY, currentPos);
+      prefs.putInt(prefsKey, currentPos);
       lastSavedPos = currentPos;
     }
   }

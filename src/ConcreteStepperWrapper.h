@@ -12,7 +12,7 @@
 class ConcreteStepperWrapper : public StepperWrapper {
 
 public:
-  ConcreteStepperWrapper(Preferences &prefs);
+  ConcreteStepperWrapper(Preferences &prefs, char* &pk);
   void setStepper(FastAccelStepper *stepper);
   void moveTo(int32_t position, uint32_t speedInMillihz) override;
   void resetPosition(int32_t position) override;
@@ -25,6 +25,7 @@ private:
   FastAccelStepper* stepper;
   Preferences &prefs;
   int32_t lastSavedPos;
+  char* prefsKey;
 };
 
 #endif // __CONCRETESTEPPERWRAPPER_H__

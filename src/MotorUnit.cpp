@@ -27,8 +27,9 @@
 // Half of this timen is the average delay to starrt a pulseguide
 #define BUTTONANDRECALCPERIOD 250
 
-#define RA_PREF_SAVED_POS_KEY "RASavedPosition"
-#define DEC_PREF_SAVED_POS_KEY "DecSavedPosition"
+#define RA_PREF_SAVED_POS_KEY (char*)"RASavedPosition"
+
+#define DEC_PREF_SAVED_POS_KEY (char*)"DecSavedPosition"
 
 unsigned long lastButtonAndSpeedCalc;
 
@@ -113,14 +114,16 @@ void MotorUnit::setUpTMCDriver(TMC2209Stepper driver,int microsteps) {
 }
 ConcreteStepperWrapper *MotorUnit::setUpFastAccelStepper(int32_t savedPosition,
                                                          int stepPin,
-                                                         int dirPin) {
+                                                         int dirPin
+                                                         ,char* prefsKey) {
   FastAccelStepper *stepper = engine.stepperConnectToPin(stepPin);
   if (stepper) {
     stepper->setDirectionPin(dirPin);
     stepper->setAutoEnable(true);
     stepper->setAcceleration(acceleration); // 100 steps/s²
     stepper->setCurrentPosition(savedPosition);
-    ConcreteStepperWrapper *wrapper = new ConcreteStepperWrapper(preferences);
+    ConcreteStepperWrapper *wrapper =
+        new ConcreteStepperWrapper(preferences, prefsKey);
     wrapper->setStepper(stepper);
     return wrapper;
 
@@ -146,8 +149,9 @@ void MotorUnit::setupMotors() {
   if (raSavedPosition == INT32_MAX) {
     raDynamic.setSafetyMode(true);
   }
-  ConcreteStepperWrapper *rawrapper = setUpFastAccelStepper(
-      raSavedPosition, raStepPinStepper, raDirPinStepper);
+  ConcreteStepperWrapper *rawrapper =
+      setUpFastAccelStepper(raSavedPosition, raStepPinStepper, raDirPinStepper,
+                            RA_PREF_SAVED_POS_KEY);
   raDynamic.setStepperWrapper(rawrapper);
 
   int32_t decSavedPosition =
@@ -156,8 +160,9 @@ void MotorUnit::setupMotors() {
   if (decSavedPosition == INT32_MAX) {
     decDynamic.setSafetyMode(true);
   }
-  ConcreteStepperWrapper *decwrapper = setUpFastAccelStepper(
-      decSavedPosition, decStepPinStepper, decDirPinStepper);
+  ConcreteStepperWrapper *decwrapper =
+      setUpFastAccelStepper(decSavedPosition, decStepPinStepper,
+                            decDirPinStepper, DEC_PREF_SAVED_POS_KEY);
   decDynamic.setStepperWrapper(decwrapper);
 }
 
