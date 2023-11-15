@@ -151,6 +151,7 @@ public:
   MockMethod(int32_t, getPosition, ());
   MockMethod(void, setStepperSpeed, (uint32_t));
   MockMethod(uint32_t, getStepperSpeed, ());
+  MockMethod(void, setAcceleration, (unsigned long));
 };
 
 void testRAGotoMiddleBasic() {

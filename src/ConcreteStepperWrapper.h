@@ -20,6 +20,7 @@ public:
   int32_t getPosition() override;
   void setStepperSpeed(uint32_t speedInMillihz) override;
   uint32_t getStepperSpeed() override;
+  void setAcceleration(unsigned long a);
 
 private:
   FastAccelStepper* stepper;

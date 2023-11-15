@@ -50,3 +50,7 @@ void ConcreteStepperWrapper::moveTo(int32_t position, uint32_t speedInMillihz) {
     stepper->moveTo(position);
   }
 }
+
+void ConcreteStepperWrapper::setAcceleration(unsigned long a) {
+  stepper->setAcceleration(a);
+}

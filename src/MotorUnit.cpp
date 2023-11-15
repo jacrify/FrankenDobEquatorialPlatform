@@ -8,10 +8,8 @@
 #include <FastAccelStepper.h>
 #include <Preferences.h>
 
-
 #define raDirPinStepper 19
 #define raStepPinStepper 18
-
 
 #define decDirPinStepper 33
 #define decStepPinStepper 32
@@ -27,13 +25,14 @@
 // Half of this timen is the average delay to starrt a pulseguide
 #define BUTTONANDRECALCPERIOD 250
 
-#define RA_PREF_SAVED_POS_KEY (char*)"RASavedPosition"
+#define RA_PREF_SAVED_POS_KEY (char *)"RASavedPosition"
 
-#define DEC_PREF_SAVED_POS_KEY (char*)"DecSavedPosition"
+#define DEC_PREF_SAVED_POS_KEY (char *)"DecSavedPosition"
 
 unsigned long lastButtonAndSpeedCalc;
 
-unsigned long pulseGuideUntil; // absolute time in millis to pulseguide until
+unsigned long raPulseGuideUntil; // absolute time in millis to pulseguide until
+unsigned long decPulseGuideUntil; // absolute time in millis to pulseguide until
 
 // See
 // https://github.com/gin66/FastAccelStepper/blob/master/extras/doc/FastAccelStepper_API.md
@@ -44,7 +43,6 @@ const long SERIAL_BAUD_RATE = 19200;
 
 const int RX_PIN = 16;
 const int TX_PIN = 17;
-
 
 const uint8_t RA_DRIVER_ADDRESS = 0; // Assuming address 0. Adjust if necessary.
 const uint8_t DEC_DRIVER_ADDRESS = 1;
@@ -65,8 +63,10 @@ TMC2209Stepper dec_stepper_driver =
 long lastCheckTime = 0;
 
 FastAccelStepperEngine engine = FastAccelStepperEngine();
-FastAccelStepper *rastepper = NULL;
-FastAccelStepper *decstepper = NULL;
+ConcreteStepperWrapper *rawrapper;
+ConcreteStepperWrapper *decwrapper;
+// FastAccelStepper *rastepper = NULL;
+// FastAccelStepper *decstepper = NULL;
 Preferences preferences;
 Bounce bounceFastForward = Bounce();
 Bounce bounceRewind = Bounce();
@@ -95,11 +95,11 @@ void MotorUnit::setupButtons() {
   bounceRewind.interval(100);      // interval in ms
   bouncePlay.interval(100);        // interval in ms
 
-  bounceLimitRa.interval(10); // interval in ms
+  bounceLimitRa.interval(10);  // interval in ms
   bounceLimitDec.interval(10); // interval in ms
 }
 
-void MotorUnit::setUpTMCDriver(TMC2209Stepper driver,int microsteps) {
+void MotorUnit::setUpTMCDriver(TMC2209Stepper driver, int microsteps) {
   driver.begin();
   // Set motor current
   driver.microsteps(microsteps);
@@ -110,12 +110,12 @@ void MotorUnit::setUpTMCDriver(TMC2209Stepper driver,int microsteps) {
   driver.rms_current(1700, 0.1);
   driver.en_spreadCycle(false); // This enables StealthChop
   driver.pwm_autograd(1);       // This enables automatic gradient adaptation
-  driver.pwm_autoscale(1); // This enables automatic current scaling
+  driver.pwm_autoscale(1);      // This enables automatic current scaling
 }
 ConcreteStepperWrapper *MotorUnit::setUpFastAccelStepper(int32_t savedPosition,
                                                          int stepPin,
-                                                         int dirPin
-                                                         ,char* prefsKey) {
+                                                         int dirPin,
+                                                         char *prefsKey) {
   FastAccelStepper *stepper = engine.stepperConnectToPin(stepPin);
   if (stepper) {
     stepper->setDirectionPin(dirPin);
@@ -128,17 +128,19 @@ ConcreteStepperWrapper *MotorUnit::setUpFastAccelStepper(int32_t savedPosition,
     return wrapper;
 
   } else {
-    log("Error: stepper not initalised (step pin: %d dir pin: %d)",stepPin,dirPin);
+    log("Error: stepper not initalised (step pin: %d dir pin: %d)", stepPin,
+        dirPin);
     return nullptr;
   }
 }
 void MotorUnit::setupMotors() {
-  pulseGuideUntil = 0;
+  raPulseGuideUntil = 0;
+  decPulseGuideUntil = 0;
 
   setupButtons();
 
   serial_stream.begin(SERIAL_BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
-  setUpTMCDriver(ra_stepper_driver,RA_MICROSTEPS);
+  setUpTMCDriver(ra_stepper_driver, RA_MICROSTEPS);
   setUpTMCDriver(dec_stepper_driver, DEC_MICROSTEPS);
 
   engine.init();
@@ -149,9 +151,8 @@ void MotorUnit::setupMotors() {
   if (raSavedPosition == INT32_MAX) {
     raDynamic.setSafetyMode(true);
   }
-  ConcreteStepperWrapper *rawrapper =
-      setUpFastAccelStepper(raSavedPosition, raStepPinStepper, raDirPinStepper,
-                            RA_PREF_SAVED_POS_KEY);
+  rawrapper = setUpFastAccelStepper(raSavedPosition, raStepPinStepper,
+                                    raDirPinStepper, RA_PREF_SAVED_POS_KEY);
   raDynamic.setStepperWrapper(rawrapper);
 
   int32_t decSavedPosition =
@@ -160,9 +161,8 @@ void MotorUnit::setupMotors() {
   if (decSavedPosition == INT32_MAX) {
     decDynamic.setSafetyMode(true);
   }
-  ConcreteStepperWrapper *decwrapper =
-      setUpFastAccelStepper(decSavedPosition, decStepPinStepper,
-                            decDirPinStepper, DEC_PREF_SAVED_POS_KEY);
+  decwrapper = setUpFastAccelStepper(decSavedPosition, decStepPinStepper,
+                                     decDirPinStepper, DEC_PREF_SAVED_POS_KEY);
   decDynamic.setStepperWrapper(decwrapper);
 }
 
@@ -201,22 +201,39 @@ bool isDecLimitSwitchHit() { return bounceLimitDec.read() == LOW; }
 // }
 
 void MotorUnit::onLoop() {
+  log("1");
   unsigned long now = millis();
-  if (pulseGuideUntil != 0) {
-    if (now > pulseGuideUntil) {
+  if (raPulseGuideUntil != 0) {
+    if (now > raPulseGuideUntil) {
       // stops the pulse and resets back to original speed
       // we do this here to minise time overrun
       raDynamic.stopPulse();
-      pulseGuideUntil = 0;
-      log("Pulse guide ended. Delta in milliseconds from requested duration "
+      raPulseGuideUntil = 0;
+      log("RA Pulse guide ended. Delta in milliseconds from requested duration "
           "was %ld",
-          now - pulseGuideUntil);
+          now - raPulseGuideUntil);
       lastButtonAndSpeedCalc = 0; // force recalc below
     } else {
       return;
     }
   }
 
+  if (decPulseGuideUntil != 0) {
+    if (now > raPulseGuideUntil) {
+      // stops the pulse and resets back to original speed
+      // we do this here to minise time overrun
+      decDynamic.stopPulse();
+      decPulseGuideUntil = 0;
+      log("Dec Pulse guide ended. Delta in milliseconds from requested duration "
+          "was %ld",
+          now - decPulseGuideUntil);
+      lastButtonAndSpeedCalc = 0; // force recalc below
+    } else {
+      return;
+    }
+  }
+
+  log("2");
   if ((now - lastButtonAndSpeedCalc) > BUTTONANDRECALCPERIOD) {
     lastButtonAndSpeedCalc = now;
 
@@ -227,10 +244,11 @@ void MotorUnit::onLoop() {
     bounceLimitDec.update();
 
     raDynamic.setLimitSwitchState(isRaLimitSwitchHit());
-    decDynamic.setLimitSwitchState(isDecLimitSwitchHit());
-
-    int32_t pos = rastepper->getCurrentPosition();
-
+    // TODO uncomment
+    //  decDynamic.setLimitSwitchState(isDecLimitSwitchHit());
+    log("3");
+    int32_t pos = rawrapper->getPosition();
+    log("4");
     if (isFastForwardJustPushed()) {
       if (pos <= raStatic.getMiddlePosition())
         raDynamic.gotoEndish();
@@ -240,6 +258,7 @@ void MotorUnit::onLoop() {
     if (isFastForwardJustReleased()) {
       raDynamic.stop();
     }
+
     if (isRewindJustPushed()) {
       if (pos >= raStatic.getMiddlePosition())
         raDynamic.gotoStart();
@@ -255,18 +274,28 @@ void MotorUnit::onLoop() {
     if (isPlayJustReleased()) {
       raDynamic.setTrackingOnOff(false);
     }
+    log("5");
+    // TODO handle decDynamic loop and pulseguide
 
     long d = raDynamic.onLoop();
 
     // handle pulseguide delay
     if (d > 0) {
-      pulseGuideUntil = millis() + d;
+      raPulseGuideUntil = millis() + d;
+    }
+
+     d = decDynamic.onLoop();
+
+    // handle pulseguide delay
+    if (d > 0) {
+      decPulseGuideUntil = millis() + d;
     }
   }
+  log("6");
 }
 
 double MotorUnit::getVelocityInMMPerMinute() {
-  double speedInMHz = (double)rastepper->getCurrentSpeedInMilliHz();
+  double speedInMHz = (double)rawrapper->getStepperSpeed();//  rastepper->getCurrentSpeedInMilliHz();
   double speedInHz = speedInMHz / 1000.0;
   double speedInMMPerSecond = speedInHz / raStatic.getStepsPerMM();
   double speedInMMPerMinute = speedInMMPerSecond * 60.0;
@@ -277,15 +306,15 @@ unsigned long MotorUnit::getAcceleration() { return acceleration; }
 
 void MotorUnit::setAcceleration(unsigned long a) {
   acceleration = a;
-  if (rastepper != NULL) {
-    rastepper->setAcceleration(a);
-    decstepper->setAcceleration(a);
+  if ( rawrapper != NULL) {
+    rawrapper->setAcceleration(a);
+    decwrapper->setAcceleration(a);
   }
 }
 double MotorUnit::getRaPositionInMM() {
-  return ((double)rastepper->getCurrentPosition()) / raStatic.getStepsPerMM();
+  return ((double) rawrapper->getPosition() ) / raStatic.getStepsPerMM();
 }
 
 double MotorUnit::getDecPositionInMM() {
-  return ((double)decstepper->getCurrentPosition()) / decStatic.getStepsPerMM();
+  return ((double)rawrapper->getPosition()) / decStatic.getStepsPerMM();
 }
