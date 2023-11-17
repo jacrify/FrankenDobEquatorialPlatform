@@ -262,7 +262,8 @@ void MotorUnit::onLoop() {
     }
 
     if (isRewindJustPushed()) {
-      if (decDynamic.isSafetyModeOn() || pos >= raStatic.getMiddlePosition())
+
+      if (raDynamic.isSafetyModeOn() || pos  >= raStatic.getMiddlePosition())
         raDynamic.gotoStart();
       else
         raDynamic.gotoMiddle();
@@ -286,12 +287,12 @@ void MotorUnit::onLoop() {
       raPulseGuideUntil = millis() + d;
     }
 
-    // d = decDynamic.onLoop();
+    d = decDynamic.onLoop();
 
     // handle pulseguide delay
-    // if (d > 0) {
-    //   decPulseGuideUntil = millis() + d;
-    // }
+    if (d > 0) {
+      decPulseGuideUntil = millis() + d;
+    }
   }
 }
 

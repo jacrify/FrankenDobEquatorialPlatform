@@ -26,9 +26,13 @@ RAStatic::RAStatic() : MotorStatic() {
   stepperStepsPerRevolution = 200;
   microsteps = 16;
   threadedRodPitch = 2;
-  stepsPerMM =
-      ((double)(stepperStepsPerRevolution * microsteps * teethOnRodPulley)) /
-      ((double)(teethOnStepperPulley * threadedRodPitch));
+  // stepsPerMM =
+  //     ((double)(stepperStepsPerRevolution * microsteps * teethOnRodPulley)) /
+  //     ((double)(teethOnStepperPulley * threadedRodPitch));
+
+   stepsPerMM =
+      (stepperStepsPerRevolution * microsteps * teethOnRodPulley) /
+      (teethOnStepperPulley * threadedRodPitch);
   log("RA  steps per MM: %lf", stepsPerMM);
   rodStepperRatio = (double)teethOnRodPulley / (double)teethOnStepperPulley;
   log("RA rod stepper ratio: %lf", rodStepperRatio);
