@@ -4,6 +4,7 @@
 void MotorDynamic::setLimitSwitchState(bool state) { limitSwitchState = state; }
 
 void MotorDynamic::setSafetyMode(bool s) { safetyMode = s; }
+bool MotorDynamic::isSafetyModeOn() { return safetyMode; }
 
 long MotorDynamic::onLoop() {
 
@@ -73,7 +74,7 @@ long MotorDynamic::onLoop() {
   if (stopMove) {
     stopMove = false;
   }
-  log("Stop or track fallthrough");
+  // log("Stop or track fallthrough");
   //either stop, or resume tracking (delegeated to subclass)
   stopOrTrack(pos);
 
@@ -81,14 +82,19 @@ long MotorDynamic::onLoop() {
 }
 
 void MotorDynamic::gotoMiddle() {
+
   targetPosition = model.getMiddlePosition();
-  targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
+  log("goto middle: target %ld ",targetPosition);
+   targetSpeedInMilliHz =
+      model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
 }
 
 void MotorDynamic::gotoEndish() {
+
   targetPosition = model.getGotoEndPosition();
+  log("goto end: target %ld ", targetPosition);
   targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
@@ -97,6 +103,7 @@ void MotorDynamic::gotoEndish() {
 void MotorDynamic::gotoStart() {
   // should run until limit switch hit
   targetPosition = model.getLimitSwitchSafetyStandoffPosition();
+  log("goto start: target %ld ", targetPosition);
   int32_t limitPos = model.getLimitPosition();
   // when limit not known, find it slowly
   if (safetyMode)

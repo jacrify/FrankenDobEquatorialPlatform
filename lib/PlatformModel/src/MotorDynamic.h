@@ -56,6 +56,7 @@ public:
    * so as not to stress the physical fixing.
    */
   void setSafetyMode(bool b);
+  bool isSafetyModeOn();
 
   bool isSlewing();
 

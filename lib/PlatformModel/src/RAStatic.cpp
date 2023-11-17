@@ -6,8 +6,6 @@
 using namespace std;
 // double coneRadiansPerMinute = M_PI * 2 / 24.0 / 60.0;
 
-
-
 #define teethOnStepperPulley 16
 #define teethOnRodPulley 36
 
@@ -28,12 +26,13 @@ RAStatic::RAStatic() : MotorStatic() {
   stepperStepsPerRevolution = 200;
   microsteps = 16;
   threadedRodPitch = 2;
-  stepsPerMM = ((double)(stepperStepsPerRevolution * microsteps * teethOnRodPulley)) /
-              ((double)(teethOnStepperPulley * threadedRodPitch));
+  stepsPerMM =
+      ((double)(stepperStepsPerRevolution * microsteps * teethOnRodPulley)) /
+      ((double)(teethOnStepperPulley * threadedRodPitch));
+  log("RA  steps per MM: %lf", stepsPerMM);
   rodStepperRatio = (double)teethOnRodPulley / (double)teethOnStepperPulley;
+  log("RA rod stepper ratio: %lf", rodStepperRatio);
 }
-
-
 
 double
 RAStatic::calculateTimeToEndOfRunInSeconds(int32_t stepperCurrentPosition) {
@@ -66,10 +65,9 @@ RAStatic::calculateTimeToCenterInSeconds(int32_t stepperCurrentPosition) {
 }
 
 uint32_t RAStatic::calculateTrackingSpeedInMilliHz(int stepperCurrentPosition) {
-  return calculateSpeedInMilliHz(stepperCurrentPosition,getTrackingRateArcsSecondsSec()
-                                 );
+  return calculateSpeedInMilliHz(stepperCurrentPosition,
+                                 getTrackingRateArcsSecondsSec());
 }
-
 
 int32_t RAStatic::getGotoEndPosition() { return stepsPerMM * END_STANDOFF_MM; }
 

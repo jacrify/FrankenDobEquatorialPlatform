@@ -930,23 +930,23 @@ void testGotoStartSafety() {
 void setup() {
 
   UNITY_BEGIN(); // IMPORTANT LINE!
-  // RUN_TEST(test_speed_calc);
-  // RUN_TEST(test_rewind_fast_forward_speed_calc);
-  // RUN_TEST(test_timetomiddle_calc);
-  // RUN_TEST(testRAGotoMiddleBasic);
-  // RUN_TEST(testDecGotoMiddleBasic);
-  // RUN_TEST(testGotoMiddleLimitSwitch);
-  // RUN_TEST(testGotoMiddleAtMiddle);
-  // RUN_TEST(testGotoMiddleAtMiddleResumeTracking);
-  // RUN_TEST(testGotoStartBasic);
-  // RUN_TEST(testGotoStartLimit);
-  // RUN_TEST(testGotoStartLimitTracking);
-  // RUN_TEST(testGotoEndBasic);
-  // RUN_TEST(testGotoEndLimitHit);
-  // RUN_TEST(testGotoEndAtEndWithTracking);
-  // RUN_TEST(testMoveAxisPositive);
-  // RUN_TEST(testCalculateMoveByDegrees);
-  // RUN_TEST(testRAPulseGuide);
+  RUN_TEST(test_speed_calc);
+  RUN_TEST(test_rewind_fast_forward_speed_calc);
+  RUN_TEST(test_timetomiddle_calc);
+  RUN_TEST(testRAGotoMiddleBasic);
+  RUN_TEST(testDecGotoMiddleBasic);
+  RUN_TEST(testGotoMiddleLimitSwitch);
+  RUN_TEST(testGotoMiddleAtMiddle);
+  RUN_TEST(testGotoMiddleAtMiddleResumeTracking);
+  RUN_TEST(testGotoStartBasic);
+  RUN_TEST(testGotoStartLimit);
+  RUN_TEST(testGotoStartLimitTracking);
+  RUN_TEST(testGotoEndBasic);
+  RUN_TEST(testGotoEndLimitHit);
+  RUN_TEST(testGotoEndAtEndWithTracking);
+  RUN_TEST(testMoveAxisPositive);
+  RUN_TEST(testCalculateMoveByDegrees);
+  RUN_TEST(testRAPulseGuide);
   RUN_TEST(testDecPulseGuide);
   UNITY_END(); // IMPORTANT LINE!
 }

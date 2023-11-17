@@ -27,11 +27,11 @@
 
 #define RA_PREF_SAVED_POS_KEY (char *)"RASavedPosition"
 
-#define DEC_PREF_SAVED_POS_KEY (char *)"DecSavedPosition"
+#define DEC_PREF_SAVED_POS_KEY (char *)"DCSavedPosition"
 
 unsigned long lastButtonAndSpeedCalc;
 
-unsigned long raPulseGuideUntil; // absolute time in millis to pulseguide until
+unsigned long raPulseGuideUntil;  // absolute time in millis to pulseguide until
 unsigned long decPulseGuideUntil; // absolute time in millis to pulseguide until
 
 // See
@@ -148,8 +148,9 @@ void MotorUnit::setupMotors() {
   int32_t raSavedPosition =
       preferences.getInt(RA_PREF_SAVED_POS_KEY, INT32_MAX);
   log("Loaded saved ra position %d", raSavedPosition);
-  if (raSavedPosition == INT32_MAX) {
+  if (raSavedPosition > raStatic.getLimitPosition()) {
     raDynamic.setSafetyMode(true);
+    raSavedPosition=0;
   }
   rawrapper = setUpFastAccelStepper(raSavedPosition, raStepPinStepper,
                                     raDirPinStepper, RA_PREF_SAVED_POS_KEY);
@@ -158,8 +159,9 @@ void MotorUnit::setupMotors() {
   int32_t decSavedPosition =
       preferences.getInt(DEC_PREF_SAVED_POS_KEY, INT32_MAX);
   log("Loaded saved dec position %d", decSavedPosition);
-  if (decSavedPosition == INT32_MAX) {
+  if (decSavedPosition> decStatic.getLimitPosition()) {
     decDynamic.setSafetyMode(true);
+    decSavedPosition=0;
   }
   decwrapper = setUpFastAccelStepper(decSavedPosition, decStepPinStepper,
                                      decDirPinStepper, DEC_PREF_SAVED_POS_KEY);
@@ -201,7 +203,7 @@ bool isDecLimitSwitchHit() { return bounceLimitDec.read() == LOW; }
 // }
 
 void MotorUnit::onLoop() {
-  log("1");
+
   unsigned long now = millis();
   if (raPulseGuideUntil != 0) {
     if (now > raPulseGuideUntil) {
@@ -224,7 +226,8 @@ void MotorUnit::onLoop() {
       // we do this here to minise time overrun
       decDynamic.stopPulse();
       decPulseGuideUntil = 0;
-      log("Dec Pulse guide ended. Delta in milliseconds from requested duration "
+      log("Dec Pulse guide ended. Delta in milliseconds from requested "
+          "duration "
           "was %ld",
           now - decPulseGuideUntil);
       lastButtonAndSpeedCalc = 0; // force recalc below
@@ -233,7 +236,6 @@ void MotorUnit::onLoop() {
     }
   }
 
-  log("2");
   if ((now - lastButtonAndSpeedCalc) > BUTTONANDRECALCPERIOD) {
     lastButtonAndSpeedCalc = now;
 
@@ -246,9 +248,9 @@ void MotorUnit::onLoop() {
     raDynamic.setLimitSwitchState(isRaLimitSwitchHit());
     // TODO uncomment
     //  decDynamic.setLimitSwitchState(isDecLimitSwitchHit());
-    log("3");
+
     int32_t pos = rawrapper->getPosition();
-    log("4");
+
     if (isFastForwardJustPushed()) {
       if (pos <= raStatic.getMiddlePosition())
         raDynamic.gotoEndish();
@@ -260,7 +262,7 @@ void MotorUnit::onLoop() {
     }
 
     if (isRewindJustPushed()) {
-      if (pos >= raStatic.getMiddlePosition())
+      if (decDynamic.isSafetyModeOn() || pos >= raStatic.getMiddlePosition())
         raDynamic.gotoStart();
       else
         raDynamic.gotoMiddle();
@@ -274,7 +276,7 @@ void MotorUnit::onLoop() {
     if (isPlayJustReleased()) {
       raDynamic.setTrackingOnOff(false);
     }
-    log("5");
+
     // TODO handle decDynamic loop and pulseguide
 
     long d = raDynamic.onLoop();
@@ -284,18 +286,19 @@ void MotorUnit::onLoop() {
       raPulseGuideUntil = millis() + d;
     }
 
-     d = decDynamic.onLoop();
+    // d = decDynamic.onLoop();
 
     // handle pulseguide delay
-    if (d > 0) {
-      decPulseGuideUntil = millis() + d;
-    }
+    // if (d > 0) {
+    //   decPulseGuideUntil = millis() + d;
+    // }
   }
-  log("6");
 }
 
 double MotorUnit::getVelocityInMMPerMinute() {
-  double speedInMHz = (double)rawrapper->getStepperSpeed();//  rastepper->getCurrentSpeedInMilliHz();
+  double speedInMHz =
+      (double)rawrapper
+          ->getStepperSpeed(); //  rastepper->getCurrentSpeedInMilliHz();
   double speedInHz = speedInMHz / 1000.0;
   double speedInMMPerSecond = speedInHz / raStatic.getStepsPerMM();
   double speedInMMPerMinute = speedInMMPerSecond * 60.0;
@@ -306,13 +309,13 @@ unsigned long MotorUnit::getAcceleration() { return acceleration; }
 
 void MotorUnit::setAcceleration(unsigned long a) {
   acceleration = a;
-  if ( rawrapper != NULL) {
+  if (rawrapper != NULL) {
     rawrapper->setAcceleration(a);
     decwrapper->setAcceleration(a);
   }
 }
 double MotorUnit::getRaPositionInMM() {
-  return ((double) rawrapper->getPosition() ) / raStatic.getStepsPerMM();
+  return ((double)rawrapper->getPosition()) / raStatic.getStepsPerMM();
 }
 
 double MotorUnit::getDecPositionInMM() {
