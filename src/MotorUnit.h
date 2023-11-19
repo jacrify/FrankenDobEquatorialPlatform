@@ -33,7 +33,7 @@ private:
 
   void setupButtons();
 
-  void setUpTMCDriver(TMC2209Stepper driver, int microsteps);
+  void setUpTMCDriver(TMC2209Stepper &driver, int microsteps);
   ConcreteStepperWrapper *setUpFastAccelStepper(int32_t savedPosition,
                                                 int stepPin, int dirPin,char* prefsKey);
 };

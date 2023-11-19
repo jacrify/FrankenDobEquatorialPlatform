@@ -66,8 +66,8 @@ const float R_SENSE = 0.11; // Check your board's documentation. Typically it's
                             // 0.11 or 0.22 for TMC2209 modules.
 const float HOLD_MULTIPLIER =
     0.5; // Specifies the hold current as a fraction of the run current
-const uint16_t RA_MICROSTEPS = 16; // 1/16th microstepping
-const uint16_t DEC_MICROSTEPS = 16;
+const int RA_MICROSTEPS = 16; // 1/16th microstepping
+const int DEC_MICROSTEPS = 16;
 
 // Initialize the driver instance
 TMC2209Stepper ra_stepper_driver =
@@ -114,7 +114,7 @@ void MotorUnit::setupButtons() {
   bounceLimitDec.interval(10); // interval in ms
 }
 
-void MotorUnit::setUpTMCDriver(TMC2209Stepper driver, int microsteps) {
+void MotorUnit::setUpTMCDriver(TMC2209Stepper &driver, int microsteps) {
   driver.begin();
   // Set motor current
   driver.microsteps(microsteps);

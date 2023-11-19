@@ -5,6 +5,9 @@
 #include "StepperWrapper.h"
 #include <cstdint>
 
+//run at half speed when looking for limit
+#define SAFETY_RATIO 2
+
 /** Responsible for the dynamic state of the platform.
  * Handles the following:
  * - what to do when external commands (webui/network) received

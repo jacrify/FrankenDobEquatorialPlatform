@@ -20,6 +20,13 @@
     <input type="number" id="raLimitToMiddleDistance"><br />
 
 
+    <label for="decLeadToPivotDistance">Dec Lead Screw To Pivot (mm) </label>
+    <input type="number" id="decLeadToPivotDistance"><br />
+
+    <label for="decLimitToMiddleDistance">Dec Limit To Middle Distance (mm)</label>
+    <input type="number" id="decLimitToMiddleDistance"><br />
+
+
     <label for="raGuideRate">RA Guide Sidereal Multiplier</label>
     <input type="number" id="raGuideRate"><br />
 
@@ -72,8 +79,16 @@
                     $("#raLimitToMiddleDistance").val(data.raLimitToMiddleDistance);
                 }
 
+                if (!$("#decLimitToMiddleDistance").is(":focus")) {
+                    $("#decLimitToMiddleDistance").val(data.decLimitToMiddleDistance);
+                }
+
                 if (!$("#raLeadToPivotDistance").is(":focus")) {
                     $("#raLeadToPivotDistance").val(data.raLeadToPivotDistance);
+                }
+
+                if (!$("#decLeadToPivotDistance").is(":focus")) {
+                    $("#decLeadToPivotDistance").val(data.decLeadToPivotDistance);
                 }
 
                 if (!$("#raGuideRate").is(":focus")) {
@@ -89,7 +104,7 @@
                 }
 
                 $("#raPosition").text(data.raPosition);
-                $("#decPosition").text(data.raPosition);
+                $("#decPosition").text(data.decPosition);
                 $("#velocity").text(data.velocity);
 
             }).fail(function (jqxhr, textStatus, error) {
@@ -121,7 +136,7 @@
             chart.update();
         });
 
-        $("#rarunbackSpeed, #decrunbackSpeed, #limitToMiddleDistance, #coneRadius,#raGuideRate, #acceleration, #nunChukMultiplier").change(function () {
+        $("#rarunbackSpeed, #decrunbackSpeed, #raLimitToMiddleDistance,#raLeadToPivotDistance, #decLimitToMiddleDistance, #decLeadToPivotDistance,#raGuideRate, #acceleration, #nunChukMultiplier").change(function () {
             $.post("/" + $(this).attr('id'), { value: $(this).val() });
         });
         setInterval(update, 1000);

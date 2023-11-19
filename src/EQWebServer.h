@@ -11,17 +11,17 @@
 
 
 //TODO delete this key once new value saved
-#define PREF_CIRCLE_KEY "cr"
+// #define PREF_CIRCLE_KEY "cr"
 
 #define RA_LEAD_TO_PIVOT_KEY "ralpk"
 #define DEC_LEAD_TO_PIVOT_KEY "declpk"
 
-#define PREF_SPEED_KEY "ff"
+// #define PREF_SPEED_KEY "ff"
 #define RA_PREF_SPEED_KEY "raff"
 #define DEC_PREF_SPEED_KEY "decff"
 
 //TODO DELETE MID later once new value saved
-#define PREF_MIDDLE_KEY "mid"
+// #define PREF_MIDDLE_KEY "mid"
 
 #define RA_PREF_MIDDLE_KEY "ramid"
 #define DEC_PREF_MIDDLE_KEY "decmid"
@@ -41,11 +41,12 @@
 
 // This value is the tuned value
 #define DEFAULT_RA_LEAD_SCREW_TO_PIVOT 448.0
+// 482.5; // And this is the value by design in 3d model
 
 #define DEFAULT_DEC_MIDDLE_DISTANCE 32
-//TODO Measure
-#define DEFAULT_DEC_LEAD_SCREW_TO_PIVOT 600 
-// 482.5; // And this is the value by design in 3d model
+// TODO Measure
+#define DEFAULT_DEC_LEAD_SCREW_TO_PIVOT 605 
+
 
 void setupWebServer(MotorUnit &motor, RAStatic &raStatic, RADynamic &raDynamic,
                     DecStatic &decStatic, DecDynamic &decDynamic,

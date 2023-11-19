@@ -41,7 +41,7 @@ void ConcreteStepperWrapper::setStepperSpeed(uint32_t speedInMillihz) {
 
 void ConcreteStepperWrapper::moveTo(int32_t position, uint32_t speedInMillihz) {
   log("Move called with target %ld  at speed %u for %s", position,
-      position,prefsKey);
+      speedInMillihz, prefsKey);
   // Stepper does weird stuff at very slow speeds. Treat these as stops
   if (speedInMillihz < STEPPER_MIN_SPEED_HZ) {
     stepper->stopMove();

@@ -47,7 +47,7 @@ long MotorDynamic::onLoop() {
   int32_t pos = stepperWrapper->getPosition();
 
   if (isMoveQueued) {
-    log("In loop, and move is queued. Pos it %d and target is %d",pos,targetPosition );
+    log("In loop, and move is queued. Pos is %ld and target is %ld",pos,targetPosition );
     if (pos != targetPosition) {
       log("Pushing queued move to motor");
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
@@ -110,7 +110,7 @@ void MotorDynamic::gotoStart() {
   int32_t limitPos = model.getLimitPosition();
   // when limit not known, find it slowly
   if (safetyMode)
-    targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / 3;
+    targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / SAFETY_RATIO;
   else
     targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;

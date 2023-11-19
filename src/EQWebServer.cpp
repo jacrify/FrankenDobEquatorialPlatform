@@ -141,7 +141,7 @@ void setRAGuideRate(AsyncWebServerRequest *request, RAStatic &raStatic,
     log("Saved new RA guide rate");
     return;
   }
-  log("No speed arg found");
+  log("No guide rate found");
 }
 
 void setRaLeadToPivotDistance(AsyncWebServerRequest *request,
@@ -160,13 +160,13 @@ void setRaLeadToPivotDistance(AsyncWebServerRequest *request,
     preferences.putDouble(RA_LEAD_TO_PIVOT_KEY, radValue);
     return;
   }
-  log("No speed arg found");
+  log("No pivot distance found");
 }
 
 void setDecLeadToPivotDistance(AsyncWebServerRequest *request,
                                DecStatic &decStatic, Preferences &preferences) {
 
-  log("/setRaLeadToPivotDistance");
+  log("/setDecLeadToPivotDistance");
   if (request->hasArg("value")) {
     String radius = request->arg("value");
 
@@ -179,7 +179,7 @@ void setDecLeadToPivotDistance(AsyncWebServerRequest *request,
     preferences.putDouble(DEC_LEAD_TO_PIVOT_KEY, radValue);
     return;
   }
-  log("No speed arg found");
+  log("No pivot distance found");
 }
 
 void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
@@ -194,12 +194,19 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
   doc["decRunbackSpeed"] = decStatic.getRewindFastFowardSpeed();
   doc["raLeadToPivotDistance"] = raStatic.getScrewToPivotInMM();
   doc["raLimitToMiddleDistance"] = raStatic.getLimitSwitchToMiddleDistance();
+
+  doc["decLeadToPivotDistance"] = decStatic.getScrewToPivotInMM();
+  doc["decLimitToMiddleDistance"] = decStatic.getLimitSwitchToMiddleDistance();
+
   doc["raGuideRate"] = raStatic.getGuideRateMultiplier();
   doc["raPosition"] = motor.getRaPositionInMM();
   doc["decPosition"] = motor.getDecPositionInMM();
   doc["velocity"] = motor.getVelocityInMMPerMinute();
   doc["acceleration"] = motor.getAcceleration();
   doc["nunChukMultiplier"] = raStatic.getNunChukMultiplier();
+
+  doc["raStepsMM"] = raStatic.getStepsPerMM();
+  doc["decStepsMM"] = decStatic.getStepsPerMM();
 
   String json;
   serializeJson(doc, json);
@@ -210,29 +217,22 @@ void getStatus(AsyncWebServerRequest *request, MotorUnit &motor,
 void setupWebServer(MotorUnit &motor, RAStatic &raStatic, RADynamic &raDynamic,
                     DecStatic &decStatic, DecDynamic &decDynamic,
                     Preferences &preferences) {
-  // TODO switch key after one run
+
   int raRewindFastFowardSpeed =
-      preferences.getUInt(PREF_SPEED_KEY, DEFAULT_SPEED);
+      preferences.getUInt(RA_PREF_SPEED_KEY, DEFAULT_SPEED);
 
-  int decRewindFastFowardSpeed = raRewindFastFowardSpeed;
+  int decRewindFastFowardSpeed =
+      preferences.getUInt(DEC_PREF_SPEED_KEY, DEFAULT_SPEED);
 
-  preferences.putUInt(RA_PREF_SPEED_KEY, raRewindFastFowardSpeed);
-  preferences.putUInt(DEC_PREF_SPEED_KEY, decRewindFastFowardSpeed);
-
-  // TODO switch key once remove put after one run
+  
   int raLimitSwitchToMiddleDistance =
-      preferences.getUInt(PREF_MIDDLE_KEY, DEFAULT_RA_MIDDLE_DISTANCE);
-
-  preferences.putUInt(RA_PREF_MIDDLE_KEY, raLimitSwitchToMiddleDistance);
+      preferences.getUInt(RA_PREF_MIDDLE_KEY, DEFAULT_RA_MIDDLE_DISTANCE);
 
   int decLimitSwitchToMiddleDistance =
       preferences.getUInt(DEC_PREF_MIDDLE_KEY, DEFAULT_DEC_MIDDLE_DISTANCE);
 
-  // TODO switch key once remove put after one run
-  double raLeadScrewToPivotMM =
-      preferences.getDouble(PREF_CIRCLE_KEY, DEFAULT_RA_LEAD_SCREW_TO_PIVOT);
-
-  preferences.putDouble(RA_LEAD_TO_PIVOT_KEY, raLeadScrewToPivotMM);
+  double raLeadScrewToPivotMM = preferences.getDouble(
+      RA_LEAD_TO_PIVOT_KEY, DEFAULT_RA_LEAD_SCREW_TO_PIVOT);
 
   double decLeadScrewToPivotMM = preferences.getDouble(
       DEC_LEAD_TO_PIVOT_KEY, DEFAULT_DEC_LEAD_SCREW_TO_PIVOT);
@@ -289,6 +289,10 @@ void setupWebServer(MotorUnit &motor, RAStatic &raStatic, RADynamic &raDynamic,
   server.on("/raLimitToMiddleDistance", HTTP_POST,
             [&raStatic, &preferences](AsyncWebServerRequest *request) {
               setRaLimitToMiddleDistance(request, raStatic, preferences);
+            });
+  server.on("/decLeadToPivotDistance", HTTP_POST,
+            [&decStatic, &preferences](AsyncWebServerRequest *request) {
+              setDecLeadToPivotDistance(request, decStatic, preferences);
             });
   server.on("/decLimitToMiddleDistance", HTTP_POST,
             [&decStatic, &preferences](AsyncWebServerRequest *request) {
