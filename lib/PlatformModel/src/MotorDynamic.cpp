@@ -64,7 +64,7 @@ long MotorDynamic::onLoop() {
     // Set new position and much lower speed
     if (pos == model.getLimitSwitchSafetyStandoffPosition()) {
       targetPosition = INT32_MAX;
-      targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / 5;
+      targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / SAFETY_RATIO;
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
       return 0;
     }
@@ -107,7 +107,7 @@ void MotorDynamic::gotoStart() {
   // should run until limit switch hit
   targetPosition = model.getLimitSwitchSafetyStandoffPosition();
   log("goto start: target %ld ", targetPosition);
-  int32_t limitPos = model.getLimitPosition();
+  // int32_t limitPos = model.getLimitPosition();
   // when limit not known, find it slowly
   if (safetyMode)
     targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / SAFETY_RATIO;
