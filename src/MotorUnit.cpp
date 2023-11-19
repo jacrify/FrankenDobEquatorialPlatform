@@ -10,15 +10,20 @@
 
 #define raDirPinStepper 19
 #define raStepPinStepper 18
-
 #define decDirPinStepper 33
 #define decStepPinStepper 32
+
+// #define raDirPinStepper 33
+// #define raStepPinStepper 32
+// #define decDirPinStepper 19
+// #define decStepPinStepper 18
 
 #define fastForwardSwitchPin 22
 #define rewindSwitchPin 23
 #define playSwitchPin 27
 
 #define raLimitSwitchPin 21
+//TODO change
 #define decLimitSwitchPin 13
 
 // How often we run the button check and calculation.
@@ -37,15 +42,25 @@ unsigned long decPulseGuideUntil; // absolute time in millis to pulseguide until
 // See
 // https://github.com/gin66/FastAccelStepper/blob/master/extras/doc/FastAccelStepper_API.md
 
-HardwareSerial &serial_stream = Serial1;
+HardwareSerial &ra_serial_stream = Serial1;
+HardwareSerial &dec_serial_stream = Serial2;
 // const long SERIAL_BAUD_RATE = 115200;
 const long SERIAL_BAUD_RATE = 19200;
 
-const int RX_PIN = 16;
-const int TX_PIN = 17;
+const int RA_RX_PIN = 16; // not actually used
+const int RA_TX_PIN = 17;
 
-const uint8_t RA_DRIVER_ADDRESS = 0; // Assuming address 0. Adjust if necessary.
-const uint8_t DEC_DRIVER_ADDRESS = 1;
+const int DEC_RX_PIN = 39;//not actually used
+const int DEC_TX_PIN = 4;
+
+// const int RA_RX_PIN = 39; // not actually used
+// const int RA_TX_PIN = 4;
+
+// const int DEC_RX_PIN =  16;// not actually used
+// const int DEC_TX_PIN = 17;
+
+const uint8_t RA_DRIVER_ADDRESS = 0; 
+const uint8_t DEC_DRIVER_ADDRESS = 0;
 
 const float R_SENSE = 0.11; // Check your board's documentation. Typically it's
                             // 0.11 or 0.22 for TMC2209 modules.
@@ -56,9 +71,9 @@ const uint16_t DEC_MICROSTEPS = 16;
 
 // Initialize the driver instance
 TMC2209Stepper ra_stepper_driver =
-    TMC2209Stepper(&serial_stream, R_SENSE, RA_DRIVER_ADDRESS);
+    TMC2209Stepper(&ra_serial_stream, R_SENSE, RA_DRIVER_ADDRESS);
 TMC2209Stepper dec_stepper_driver =
-    TMC2209Stepper(&serial_stream, R_SENSE, DEC_DRIVER_ADDRESS);
+    TMC2209Stepper(&dec_serial_stream, R_SENSE, DEC_DRIVER_ADDRESS);
 
 long lastCheckTime = 0;
 
@@ -139,7 +154,8 @@ void MotorUnit::setupMotors() {
 
   setupButtons();
 
-  serial_stream.begin(SERIAL_BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
+  ra_serial_stream.begin(SERIAL_BAUD_RATE, SERIAL_8N1, RA_RX_PIN, RA_TX_PIN);
+  dec_serial_stream.begin(SERIAL_BAUD_RATE, SERIAL_8N1, DEC_RX_PIN, DEC_TX_PIN);
   setUpTMCDriver(ra_stepper_driver, RA_MICROSTEPS);
   setUpTMCDriver(dec_stepper_driver, DEC_MICROSTEPS);
 
@@ -221,7 +237,7 @@ void MotorUnit::onLoop() {
   }
 
   if (decPulseGuideUntil != 0) {
-    if (now > raPulseGuideUntil) {
+    if (now > decPulseGuideUntil) {
       // stops the pulse and resets back to original speed
       // we do this here to minise time overrun
       decDynamic.stopPulse();
@@ -246,30 +262,37 @@ void MotorUnit::onLoop() {
     bounceLimitDec.update();
 
     raDynamic.setLimitSwitchState(isRaLimitSwitchHit());
-    // TODO uncomment
-    //  decDynamic.setLimitSwitchState(isDecLimitSwitchHit());
+    decDynamic.setLimitSwitchState(isDecLimitSwitchHit());
 
     int32_t pos = rawrapper->getPosition();
 
     if (isFastForwardJustPushed()) {
-      if (pos <= raStatic.getMiddlePosition())
+      if (pos <= raStatic.getMiddlePosition()) {
         raDynamic.gotoEndish();
+        decDynamic.gotoMiddle();}
       else
-        raDynamic.gotoMiddle();
+        {raDynamic.gotoMiddle();
+        decDynamic.gotoMiddle();
+      }
     }
     if (isFastForwardJustReleased()) {
       raDynamic.stop();
+      decDynamic.stop();
     }
 
     if (isRewindJustPushed()) {
 
       if (raDynamic.isSafetyModeOn() || pos  >= raStatic.getMiddlePosition())
-        raDynamic.gotoStart();
-      else
+       { raDynamic.gotoStart();
+        decDynamic.gotoMiddle();
+      } else {
         raDynamic.gotoMiddle();
+        decDynamic.gotoMiddle();
+      }
     }
     if (isRewindJustReleased()) {
       raDynamic.stop();
+      decDynamic.stop();
     }
     if (isPlayJustPushed()) {
       raDynamic.setTrackingOnOff(true);
@@ -320,5 +343,5 @@ double MotorUnit::getRaPositionInMM() {
 }
 
 double MotorUnit::getDecPositionInMM() {
-  return ((double)rawrapper->getPosition()) / decStatic.getStepsPerMM();
+  return ((double)decwrapper->getPosition()) / decStatic.getStepsPerMM();
 }

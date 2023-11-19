@@ -23,11 +23,13 @@ long MotorDynamic::onLoop() {
         pulseGuideDurationMillis;
     pulseGuideDurationMillis = 0;
     isPulseGuiding = true;
+    log("Returning after pulse");
     return delay; // caller will call back right after delay.
   }
 
   // handle limit switch
   if (limitSwitchState) {
+    log("Limit is hit");
     int32_t limitPos = model.getLimitPosition();
     stepperWrapper->resetPosition(limitPos);
     safetyMode = false;
@@ -45,8 +47,9 @@ long MotorDynamic::onLoop() {
   int32_t pos = stepperWrapper->getPosition();
 
   if (isMoveQueued) {
+    log("In loop, and move is queued. Pos it %d and target is %d",pos,targetPosition );
     if (pos != targetPosition) {
-      log("Moving");
+      log("Pushing queued move to motor");
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
       isMoveQueued = false;
     }

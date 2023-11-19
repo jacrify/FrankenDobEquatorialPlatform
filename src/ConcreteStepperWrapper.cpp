@@ -2,7 +2,7 @@
 #include "Logging.h"
 // #define PREF_SAVED_POS_KEY "SavedPosition"
 #define STEPPER_MIN_SPEED_HZ 300
-ConcreteStepperWrapper::ConcreteStepperWrapper(Preferences &p, char* &pk)
+ConcreteStepperWrapper::ConcreteStepperWrapper(Preferences &p, char *&pk)
     : prefs(p), prefsKey(pk) {}
 
 void ConcreteStepperWrapper::setStepper(FastAccelStepper *s) { stepper = s; }
@@ -40,9 +40,12 @@ void ConcreteStepperWrapper::setStepperSpeed(uint32_t speedInMillihz) {
 }
 
 void ConcreteStepperWrapper::moveTo(int32_t position, uint32_t speedInMillihz) {
+  log("Move called with target %ld  at speed %u for %s", position,
+      position,prefsKey);
   // Stepper does weird stuff at very slow speeds. Treat these as stops
   if (speedInMillihz < STEPPER_MIN_SPEED_HZ) {
     stepper->stopMove();
+    log("Speed below minimum speed for %s",prefsKey);
   } else {
     stepper->setSpeedInMilliHz(speedInMillihz);
     // stepper->setSpeedInHz(5000);
