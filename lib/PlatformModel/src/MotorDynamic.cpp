@@ -19,8 +19,7 @@ long MotorDynamic::onLoop() {
   if (pulseGuideDurationMillis > 0) {
     stepperWrapper->setStepperSpeed(targetSpeedInMilliHz);
     stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
-    long delay =
-        pulseGuideDurationMillis;
+    long delay = pulseGuideDurationMillis;
     pulseGuideDurationMillis = 0;
     isPulseGuiding = true;
     log("Returning after pulse");
@@ -33,6 +32,11 @@ long MotorDynamic::onLoop() {
     int32_t limitPos = model.getLimitPosition();
     stepperWrapper->resetPosition(limitPos);
     safetyMode = false;
+    // If we were moving towards limit switch, we should stop.
+    // If we are not moving or moving away from limit, no further action.
+    // SO to tell if we are moving towards limit: one of two things is true:
+    // the target was max_int, ie > than limit position, or
+    // the target was the standoff position and we've hit the limit early
     if (targetPosition > limitPos ||
         targetPosition == model.getLimitSwitchSafetyStandoffPosition()) {
       if (isExecutingMove) {
@@ -47,7 +51,8 @@ long MotorDynamic::onLoop() {
   int32_t pos = stepperWrapper->getPosition();
 
   if (isMoveQueued) {
-    log("In loop, and move is queued. Pos is %ld and target is %ld",pos,targetPosition );
+    log("In loop, and move is queued. Pos is %ld and target is %ld", pos,
+        targetPosition);
     if (pos != targetPosition) {
       log("Pushing queued move to motor");
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
@@ -63,8 +68,10 @@ long MotorDynamic::onLoop() {
     // assume the move is a move towards the safety.
     // Set new position and much lower speed
     if (pos == model.getLimitSwitchSafetyStandoffPosition()) {
+      log("Standoff position (%ld) reached. Slowing down to find limit", pos);
       targetPosition = INT32_MAX;
-      targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / SAFETY_RATIO;
+      targetSpeedInMilliHz =
+          model.getRewindFastFowardSpeedInMilliHz() / SAFETY_RATIO;
       stepperWrapper->moveTo(targetPosition, targetSpeedInMilliHz);
       return 0;
     }
@@ -78,7 +85,7 @@ long MotorDynamic::onLoop() {
     stopMove = false;
   }
   // log("Stop or track fallthrough");
-  //either stop, or resume tracking (delegeated to subclass)
+  // either stop, or resume tracking (delegeated to subclass)
   stopOrTrack(pos);
 
   return 0;
@@ -87,9 +94,8 @@ long MotorDynamic::onLoop() {
 void MotorDynamic::gotoMiddle() {
 
   targetPosition = model.getMiddlePosition();
-  log("goto middle: target %ld ",targetPosition);
-   targetSpeedInMilliHz =
-      model.getRewindFastFowardSpeedInMilliHz();
+  log("goto middle: target %ld ", targetPosition);
+  targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;
   isMoveQueued = true;
 }
@@ -110,7 +116,8 @@ void MotorDynamic::gotoStart() {
   // int32_t limitPos = model.getLimitPosition();
   // when limit not known, find it slowly
   if (safetyMode)
-    targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz() / SAFETY_RATIO;
+    targetSpeedInMilliHz =
+        model.getRewindFastFowardSpeedInMilliHz() / SAFETY_RATIO;
   else
     targetSpeedInMilliHz = model.getRewindFastFowardSpeedInMilliHz();
   isExecutingMove = true;

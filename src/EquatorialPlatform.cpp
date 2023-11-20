@@ -50,14 +50,19 @@ void setup() {
 void loop() {
   try {
     delay(MAINLOOPTIME);
+    // long now=millis();
     // send status to dsc via udp (contains a timer to stop spamming each loop)
     broadcastStatus(motorUnit, raStatic, raDynamic);
+    // long broadcast=millis();
     // motor raDynamic loop
     motorUnit.onLoop();
+    // long loop=millis();
+    // log("Main loop processing: broadcast time %ld, loop time %ld",broadcast-now,loop-broadcast);
   }
 
   catch (const std::exception &ex) {
     log(ex.what());
   } catch (const std::string &ex) {
+    log("Unhandled error %s",ex);
   }
 }
