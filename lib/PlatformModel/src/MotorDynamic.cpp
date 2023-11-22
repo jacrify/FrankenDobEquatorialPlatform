@@ -79,8 +79,8 @@ long MotorDynamic::onLoop() {
   // check for move end
   if (isExecutingMove) {
     // are we there yet? If not just return
-    log("Executing, pos id %ld, speed is %lu", pos,
-        stepperWrapper->getStepperSpeed());
+    // log("Executing, pos id %ld, speed is %lu", pos,
+    //     stepperWrapper->getStepperSpeed());
     if (pos != targetPosition)
       return 0;
     // if we have arrived at the limit switch safety standoff position,

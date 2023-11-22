@@ -87,6 +87,6 @@ void DecDynamic::moveAxisPercentage(int percentage) {
 
 void DecDynamic::stopOrTrack(int32_t pos) {
   targetSpeedInMilliHz = 0;
-  log("Stopping");
+  // log("Stopping");
   stepperWrapper->stop();
 }

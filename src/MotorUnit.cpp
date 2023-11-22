@@ -216,12 +216,12 @@ bool isRALimitJustPushed() {
 }
 
 bool isRALimitJustReleased() {
-  return bounceLimitDec.changed() && bounceLimitDec.read() != LOW;
+  return bounceLimitRa.changed() && bounceLimitRa.read() != LOW;
 }
 
-//Note dec switch is wired the other way as it was givng false positives.
+//Note dec switch is wired the other way (high=on) as it was givng false positives.
 bool isDecLimitJustReleased() {
-  return bounceLimitRa.changed() && bounceLimitRa.read() != HIGH;
+  return bounceLimitDec.changed() && bounceLimitDec.read() != HIGH;
 }
 
 //
@@ -286,7 +286,7 @@ void MotorUnit::onLoop() {
 
     if (isRALimitJustPushed()) {
       raDynamic.setLimitJustHit();
-    } else if (isDecLimitJustReleased()) {
+    } else if (isRALimitJustReleased()) {
       raDynamic.setLimitJustReleased();
     }
 

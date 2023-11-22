@@ -8,7 +8,8 @@ ConcreteStepperWrapper::ConcreteStepperWrapper(Preferences &p, char *&pk)
 void ConcreteStepperWrapper::setStepper(FastAccelStepper *s) { stepper = s; }
 
 void ConcreteStepperWrapper::resetPosition(int32_t position) {
-  stepper->setCurrentPosition(position);
+  stepper->forceStopAndNewPosition(position);
+  // stepper->setCurrentPosition(position);
 }
 // void ConcreteStepperWrapper::moveAndResetPosition(int32_t positionToMoveTo,
 //                                                   int32_t positionToResetTo) {
