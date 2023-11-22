@@ -23,7 +23,7 @@
 #define playSwitchPin 27
 
 #define raLimitSwitchPin 21
-//TODO change
+// TODO change
 #define decLimitSwitchPin 13
 
 // How often we run the button check and calculation.
@@ -50,7 +50,7 @@ const long SERIAL_BAUD_RATE = 19200;
 const int RA_RX_PIN = 16; // not actually used
 const int RA_TX_PIN = 17;
 
-const int DEC_RX_PIN = 39;//not actually used
+const int DEC_RX_PIN = 39; // not actually used
 const int DEC_TX_PIN = 4;
 
 // const int RA_RX_PIN = 39; // not actually used
@@ -59,7 +59,7 @@ const int DEC_TX_PIN = 4;
 // const int DEC_RX_PIN =  16;// not actually used
 // const int DEC_TX_PIN = 17;
 
-const uint8_t RA_DRIVER_ADDRESS = 0; 
+const uint8_t RA_DRIVER_ADDRESS = 0;
 const uint8_t DEC_DRIVER_ADDRESS = 0;
 
 const float R_SENSE = 0.11; // Check your board's documentation. Typically it's
@@ -110,7 +110,7 @@ void MotorUnit::setupButtons() {
   bounceRewind.interval(100);      // interval in ms
   bouncePlay.interval(100);        // interval in ms
 
-  bounceLimitRa.interval(10);  // interval in ms
+  bounceLimitRa.interval(10);   // interval in ms
   bounceLimitDec.interval(100); // interval in ms. Longer as we had ghost pushes
 }
 
@@ -166,7 +166,7 @@ void MotorUnit::setupMotors() {
   log("Loaded saved ra position %d", raSavedPosition);
   if (raSavedPosition > raStatic.getLimitPosition()) {
     raDynamic.setSafetyMode(true);
-    raSavedPosition=0;
+    raSavedPosition = 0;
   }
   rawrapper = setUpFastAccelStepper(raSavedPosition, raStepPinStepper,
                                     raDirPinStepper, RA_PREF_SAVED_POS_KEY);
@@ -175,9 +175,9 @@ void MotorUnit::setupMotors() {
   int32_t decSavedPosition =
       preferences.getInt(DEC_PREF_SAVED_POS_KEY, INT32_MAX);
   log("Loaded saved dec position %d", decSavedPosition);
-  if (decSavedPosition> decStatic.getLimitPosition()) {
+  if (decSavedPosition > decStatic.getLimitPosition()) {
     decDynamic.setSafetyMode(true);
-    decSavedPosition=0;
+    decSavedPosition = 0;
   }
   decwrapper = setUpFastAccelStepper(decSavedPosition, decStepPinStepper,
                                      decDirPinStepper, DEC_PREF_SAVED_POS_KEY);
@@ -219,7 +219,8 @@ bool isRALimitJustReleased() {
   return bounceLimitRa.changed() && bounceLimitRa.read() != LOW;
 }
 
-//Note dec switch is wired the other way (high=on) as it was givng false positives.
+// Note dec switch is wired the other way (high=on) as it was givng false
+// positives.
 bool isDecLimitJustReleased() {
   return bounceLimitDec.changed() && bounceLimitDec.read() != HIGH;
 }
@@ -228,8 +229,6 @@ bool isDecLimitJustReleased() {
 bool isDecLimitJustPushed() {
   return bounceLimitDec.changed() && bounceLimitDec.read() == HIGH;
 }
-
-
 
 // double degreesPerSecondToArcSecondsPerSecond(double degreesPerSecond) {
 //   return degreesPerSecond * 3600.0;
@@ -249,7 +248,9 @@ void MotorUnit::onLoop() {
           now - raPulseGuideUntil);
       lastButtonAndSpeedCalc = 0; // force recalc below
     } else {
-      return;
+      //need to check to stop dec pulse if both are running
+      if (decPulseGuideUntil == 0)
+        return;
     }
   }
 
@@ -280,7 +281,7 @@ void MotorUnit::onLoop() {
 
     if (isDecLimitJustPushed()) {
       decDynamic.setLimitJustHit();
-    } else if (isDecLimitJustReleased() ){
+    } else if (isDecLimitJustReleased()) {
       decDynamic.setLimitJustReleased();
     }
 
@@ -295,9 +296,9 @@ void MotorUnit::onLoop() {
     if (isFastForwardJustPushed()) {
       if (pos <= raStatic.getMiddlePosition()) {
         raDynamic.gotoEndish();
-        decDynamic.gotoMiddle();}
-      else
-        {raDynamic.gotoMiddle();
+        decDynamic.gotoMiddle();
+      } else {
+        raDynamic.gotoMiddle();
         decDynamic.gotoMiddle();
       }
     }
@@ -308,8 +309,8 @@ void MotorUnit::onLoop() {
 
     if (isRewindJustPushed()) {
 
-      if (raDynamic.isSafetyModeOn() || pos  >= raStatic.getMiddlePosition())
-       { raDynamic.gotoStart();
+      if (raDynamic.isSafetyModeOn() || pos >= raStatic.getMiddlePosition()) {
+        raDynamic.gotoStart();
         decDynamic.gotoMiddle();
       } else {
         raDynamic.gotoMiddle();
