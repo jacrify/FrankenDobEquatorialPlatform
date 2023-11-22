@@ -248,7 +248,7 @@ void MotorUnit::onLoop() {
           now - raPulseGuideUntil);
       lastButtonAndSpeedCalc = 0; // force recalc below
     } else {
-      //need to check to stop dec pulse if both are running
+      // need to check to stop dec pulse if both are running
       if (decPulseGuideUntil == 0)
         return;
     }
@@ -291,6 +291,8 @@ void MotorUnit::onLoop() {
       raDynamic.setLimitJustReleased();
     }
 
+    // when ff pushed, goto middle if we are less than halfway. Otherwise go to
+    // end
     int32_t pos = rawrapper->getPosition();
 
     if (isFastForwardJustPushed()) {
@@ -317,6 +319,7 @@ void MotorUnit::onLoop() {
         decDynamic.gotoMiddle();
       }
     }
+    //TODO bug here? If FF pushed in same cycle, it doesn't do anything?
     if (isRewindJustReleased()) {
       raDynamic.stop();
       decDynamic.stop();
@@ -328,20 +331,17 @@ void MotorUnit::onLoop() {
       raDynamic.setTrackingOnOff(false);
     }
 
-    // TODO handle decDynamic loop and pulseguide
 
-    long d = raDynamic.onLoop();
-
+    long rd = raDynamic.onLoop();
     // handle pulseguide delay
-    if (d > 0) {
-      raPulseGuideUntil = millis() + d;
+    if (rd > 0) {
+      raPulseGuideUntil = millis() + rd;
     }
 
-    d = decDynamic.onLoop();
-
+    long dd = decDynamic.onLoop();
     // handle pulseguide delay
-    if (d > 0) {
-      decPulseGuideUntil = millis() + d;
+    if (dd > 0) {
+      decPulseGuideUntil = millis() + dd;
     }
   }
 }
