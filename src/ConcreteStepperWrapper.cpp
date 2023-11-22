@@ -10,7 +10,11 @@ void ConcreteStepperWrapper::setStepper(FastAccelStepper *s) { stepper = s; }
 void ConcreteStepperWrapper::resetPosition(int32_t position) {
   stepper->setCurrentPosition(position);
 }
-
+// void ConcreteStepperWrapper::moveAndResetPosition(int32_t positionToMoveTo,
+//                                                   int32_t positionToResetTo) {
+//   stepper->moveTo(positionToMoveTo);
+//   stepper->setPositionAfterCommandsCompleted(positionToResetTo);
+// }
 void ConcreteStepperWrapper::stop() {
   stepper->stopMove();
   // stops flash getting hammered by braking. Assumes stop called every loop.
@@ -45,7 +49,7 @@ void ConcreteStepperWrapper::moveTo(int32_t position, uint32_t speedInMillihz) {
   // Stepper does weird stuff at very slow speeds. Treat these as stops
   if (speedInMillihz < STEPPER_MIN_SPEED_HZ) {
     stepper->stopMove();
-    log("Speed below minimum speed for %s",prefsKey);
+    log("Speed below minimum speed for %s", prefsKey);
   } else {
     stepper->setSpeedInMilliHz(speedInMillihz);
     // stepper->setSpeedInHz(5000);

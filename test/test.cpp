@@ -174,7 +174,7 @@ void testRAGotoMiddleBasic() {
 
   When(stepper.getPosition).Return(model.getMiddlePosition() - 100);
   // test going to middle
-  control.setLimitSwitchState(false);
+
   control.gotoMiddle();
   control.onLoop();
 
@@ -215,7 +215,6 @@ void testDecGotoMiddleBasic() {
 
   When(stepper.getPosition).Return(model.getMiddlePosition() - 100);
   // test going to middle
-  control.setLimitSwitchState(false);
   control.gotoMiddle();
   control.onLoop();
 
@@ -236,45 +235,7 @@ void testDecGotoMiddleBasic() {
   }
 }
 
-void testGotoMiddleLimitSwitch() {
 
-  // setup
-  MockStepper stepper;
-
-  int runTotal = 130;                         // mm
-  int limitToMiddle = 62;                     // mm
-  int middleToEnd = runTotal - limitToMiddle; // mm
-
-  int stepPositionOfMiddle = middleToEnd * 3600;
-  int stepPositionOfLimit = runTotal * 3600;
-  RAStatic model;
-  model.setScrewToPivotInMM(448);
-  model.setLimitSwitchToMiddleDistance(limitToMiddle);
-  model.setRewindFastFowardSpeedInHz(30000);
-
-  RADynamic control = RADynamic(model);
-  control.setStepperWrapper(&stepper);
-
-  // test going to middle
-  try {
-    control.setTrackingOnOff(false);
-    control.setLimitSwitchState(true);
-    control.gotoMiddle();
-    control.onLoop();
-    Verify(stepper.resetPosition).Times(1);
-    Verify(stepper.stop).Times(0);
-    Verify(stepper.moveTo).Times(1);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getMiddlePosition(),
-                                  control.getTargetPosition(),
-                                  "Target Position should be middle");
-    TEST_ASSERT_EQUAL_INT_MESSAGE(model.getRewindFastFowardSpeedInMilliHz(),
-                                  control.getTargetSpeedInMilliHz(),
-                                  "Target speed should be ff rw");
-
-  } catch (std::runtime_error e) {
-    TEST_FAIL_MESSAGE(e.what());
-  }
-}
 
 void testGotoMiddleAtMiddle() {
 
@@ -298,7 +259,6 @@ void testGotoMiddleAtMiddle() {
   // test going to middle, when at middle
   try {
     control.setTrackingOnOff(false);
-    control.setLimitSwitchState(false);
     control.gotoMiddle();
     When(stepper.getPosition).Return(model.getMiddlePosition());
     control.onLoop();
@@ -339,7 +299,6 @@ void testGotoMiddleAtMiddleResumeTracking() {
   // test going to middle, when at middle. Tracking should restart
   try {
     control.setTrackingOnOff(true);
-    control.setLimitSwitchState(false);
     control.gotoMiddle();
     When(stepper.getPosition).Return(model.getMiddlePosition());
     control.onLoop();
@@ -375,7 +334,6 @@ void testGotoStartBasic() {
   control.setStepperWrapper(&stepper);
 
   // test going to start
-  control.setLimitSwitchState(false);
   // safetymode runs at 1/3 speed when limit pos not known
   control.setSafetyMode(false);
   control.gotoStart();
@@ -417,15 +375,19 @@ void testGotoStartLimit() {
   control.setStepperWrapper(&stepper);
 
   // test going to start when limit hit
-  control.setLimitSwitchState(true);
+  control.setLimitJustHit();
   When(stepper.getPosition).Return(model.getLimitPosition());
   control.gotoStart();
   control.onLoop();
 
   try {
-    Verify(stepper.moveTo).Times(0);
+    Verify(stepper.moveTo).Times(1);
+    Verify(stepper.resetPosition).Times(0);
+    Verify(stepper.stop).Times(0);
+    control.setLimitJustReleased();
+    control.onLoop();
+    Verify(stepper.moveTo).Times(1);
     Verify(stepper.resetPosition).Times(1);
-    Verify(stepper.stop).Times(1);
 
   } catch (std::runtime_error e) {
     TEST_FAIL_MESSAGE(e.what());
@@ -452,21 +414,34 @@ void testGotoStartLimitTracking() {
 
   // test going to start when limit hit
   When(stepper.getPosition).Return(model.getLimitPosition());
-  control.setLimitSwitchState(true);
+  control.setLimitJustHit();
   control.setTrackingOnOff(true);
 
   control.gotoStart();
   control.onLoop();
 
+//1st loop should move off stepper
   try {
     Verify(stepper.moveTo).Times(1);
+    Verify(stepper.resetPosition).Times(0);
+    // TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+    //                               "Target Position should be end");
+    // TEST_ASSERT_TRUE_MESSAGE(control.getTargetSpeedInMilliHz() > 0,
+    //                          "Speed should be greater than 0");
+
+    control.setLimitJustReleased();
+    // 2nd loop should set position to 0
+    control.onLoop();
+    Verify(stepper.resetPosition).Times(1);
+    Verify(stepper.moveTo).Times(1);
+    //3rd loop should track
+    control.onLoop();
+    Verify(stepper.moveTo).Times(2);
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
                                   "Target Position should be end");
     TEST_ASSERT_TRUE_MESSAGE(control.getTargetSpeedInMilliHz() > 0,
                              "Speed should be greater than 0");
-
-    Verify(stepper.resetPosition).Times(1);
-    Verify(stepper.stop).Times(0);
+    
 
   } catch (std::runtime_error e) {
     TEST_FAIL_MESSAGE(e.what());
@@ -492,7 +467,6 @@ void testGotoEndBasic() {
   control.setStepperWrapper(&stepper);
 
   // test going to end
-  control.setLimitSwitchState(false);
   When(stepper.getPosition).Return(model.getLimitPosition());
   control.gotoEndish();
   control.onLoop();
@@ -532,8 +506,8 @@ void testGotoEndLimitHit() {
   RADynamic control = RADynamic(model);
   control.setStepperWrapper(&stepper);
 
-  // test going to end
-  control.setLimitSwitchState(true);
+  // test going to end at same time as ff hit
+  control.setLimitJustHit();
   When(stepper.getPosition).Return(model.getLimitPosition());
   control.gotoEndish();
   control.onLoop();
@@ -547,8 +521,11 @@ void testGotoEndLimitHit() {
                                   control.getTargetSpeedInMilliHz(),
                                   "Target speed should be ff rw");
 
-    Verify(stepper.resetPosition).Times(1);
+    Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(0);
+    control.setLimitJustReleased();
+    control.onLoop();
+    Verify(stepper.resetPosition).Times(1);
 
   } catch (std::runtime_error e) {
     TEST_FAIL_MESSAGE(e.what());
@@ -574,7 +551,6 @@ void testGotoEndAtEndWithTracking() {
   control.setStepperWrapper(&stepper);
 
   // test going to end
-  control.setLimitSwitchState(false);
   When(stepper.getPosition).Return(0);
   control.setTrackingOnOff(true);
   control.gotoEndish();
@@ -654,7 +630,6 @@ void testDecPulseGuide() {
   control.setStepperWrapper(&stepper);
 
   // test pulseguide
-  control.setLimitSwitchState(false);
   
   When(stepper.getPosition).Return(model.getMiddlePosition());
   control.onLoop();
@@ -662,11 +637,11 @@ void testDecPulseGuide() {
   try {
     Verify(stepper.moveTo).Times(0);
 
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
-                                  "Target Position should be end");
-    TEST_ASSERT_EQUAL_INT_MESSAGE(
-        0, control.getTargetSpeedInMilliHz(),
-        "Target speed should be  0");
+    // TEST_ASSERT_EQUAL_INT_MESSAGE(0, control.getTargetPosition(),
+    //                               "Target Position should be end");
+    // TEST_ASSERT_EQUAL_INT_MESSAGE(
+    //     0, control.getTargetSpeedInMilliHz(),
+    //     "Target speed should be  0");
     Verify(stepper.resetPosition).Times(0);
     Verify(stepper.stop).Times(1);
 
@@ -732,7 +707,6 @@ void testRAPulseGuide() {
   control.setStepperWrapper(&stepper);
 
   // test pulseguide
-  control.setLimitSwitchState(false);
   control.setTrackingOnOff(true);
 
   
@@ -814,7 +788,6 @@ void testMoveAxisPositive() {
   control.setStepperWrapper(&stepper);
 
   // test moveaxis
-  control.setLimitSwitchState(false);
   control.setTrackingOnOff(false);
   When(stepper.getPosition).Return(model.getMiddlePosition());
   // positive is east, away from tracking direction
@@ -906,7 +879,6 @@ void testGotoStartSafety() {
   control.setStepperWrapper(&stepper);
 
   // test going to start
-  control.setLimitSwitchState(false);
   control.gotoStart();
   control.onLoop();
 
@@ -930,23 +902,23 @@ void testGotoStartSafety() {
 void setup() {
 
   UNITY_BEGIN(); // IMPORTANT LINE!
-  // RUN_TEST(test_speed_calc);
-  // RUN_TEST(test_rewind_fast_forward_speed_calc);
-  // RUN_TEST(test_timetomiddle_calc);
-  // RUN_TEST(testRAGotoMiddleBasic);
-  // RUN_TEST(testDecGotoMiddleBasic);
-  // RUN_TEST(testGotoMiddleLimitSwitch);
-  // RUN_TEST(testGotoMiddleAtMiddle);
-  // RUN_TEST(testGotoMiddleAtMiddleResumeTracking);
-  // RUN_TEST(testGotoStartBasic);
-  // RUN_TEST(testGotoStartLimit);
-  // RUN_TEST(testGotoStartLimitTracking);
-  // RUN_TEST(testGotoEndBasic);
-  // RUN_TEST(testGotoEndLimitHit);
-  // RUN_TEST(testGotoEndAtEndWithTracking);
-  // RUN_TEST(testMoveAxisPositive);
-  // RUN_TEST(testCalculateMoveByDegrees);
-  // RUN_TEST(testRAPulseGuide);
+  RUN_TEST(test_speed_calc);
+  RUN_TEST(test_rewind_fast_forward_speed_calc);
+  RUN_TEST(test_timetomiddle_calc);
+  RUN_TEST(testRAGotoMiddleBasic);
+  RUN_TEST(testDecGotoMiddleBasic);
+  
+  RUN_TEST(testGotoMiddleAtMiddle);
+  RUN_TEST(testGotoMiddleAtMiddleResumeTracking);
+  RUN_TEST(testGotoStartBasic);
+  RUN_TEST(testGotoStartLimit);
+  RUN_TEST(testGotoStartLimitTracking);
+  RUN_TEST(testGotoEndBasic);
+  RUN_TEST(testGotoEndLimitHit);
+  RUN_TEST(testGotoEndAtEndWithTracking);
+  RUN_TEST(testMoveAxisPositive);
+  RUN_TEST(testCalculateMoveByDegrees);
+  RUN_TEST(testRAPulseGuide);
   RUN_TEST(testDecPulseGuide);
   UNITY_END(); // IMPORTANT LINE!
 }

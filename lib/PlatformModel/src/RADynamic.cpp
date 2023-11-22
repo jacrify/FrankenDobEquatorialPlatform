@@ -2,7 +2,10 @@
 #include "Logging.h"
 #include <cmath>
 
-void RADynamic::setTrackingOnOff(bool t) { trackingOn = t; }
+void RADynamic::setTrackingOnOff(bool t) {
+  trackingOn = t;
+  stopMove = true;
+}
 
 bool RADynamic::isTrackingOn() { return trackingOn; }
 

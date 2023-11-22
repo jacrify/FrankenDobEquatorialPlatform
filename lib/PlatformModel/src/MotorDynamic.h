@@ -51,7 +51,9 @@ public:
 
   // Input
   // Is Limit switch pushed
-  void setLimitSwitchState(bool state);
+  void setLimitJustHit();
+  void setLimitJustReleased();
+  
 
   /**
    * When limit switch position is not saved in preferences,
@@ -108,7 +110,9 @@ public:
   // Output
 
 protected:
-  bool limitSwitchState;
+  bool limitJustHit;
+  bool limitJustReleased;
+
   int32_t currentPosition;
 
   int32_t targetPosition;

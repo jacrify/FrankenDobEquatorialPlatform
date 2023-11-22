@@ -15,6 +15,8 @@ public:
   ConcreteStepperWrapper(Preferences &prefs, char* &pk);
   void setStepper(FastAccelStepper *stepper);
   void moveTo(int32_t position, uint32_t speedInMillihz) override;
+  void moveAndResetPosition(int32_t positionToMoveTo,
+                            int32_t positionToResetTo);
   void resetPosition(int32_t position) override;
   void stop() override;
   int32_t getPosition() override;

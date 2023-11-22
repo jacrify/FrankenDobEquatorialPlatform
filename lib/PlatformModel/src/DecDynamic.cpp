@@ -18,11 +18,14 @@ void DecDynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
     targetSpeedInArcSecsSec = model.getGuideRateArcSecondsSecond();
     log("N guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
     targetPosition = 0;
+
   } else {
     if (direction == 1) { // south: go down
       targetPosition = model.getLimitPosition();
       targetSpeedInArcSecsSec = -model.getGuideRateArcSecondsSecond();
-      log("S guide rate arc seconds %lf ", targetSpeedInArcSecsSec);
+
+      log("S guide rate arc seconds %lf ",
+                              targetSpeedInArcSecsSec);
     } else {
       log("Error: unexpected direction passed %d", direction);
       return;
@@ -33,7 +36,7 @@ void DecDynamic::pulseGuide(int direction, long pulseDurationInMilliseconds) {
       stepperWrapper->getPosition(),abs( targetSpeedInArcSecsSec));
 
   pulseGuideDurationMillis = pulseDurationInMilliseconds;
-  speedBeforePulseMHz = stepperWrapper->getStepperSpeed();
+  speedBeforePulseMHz = 0;
   log("Pulseguiding %s for %ld ms at speed %lu",
       direction == 0 ? "North" : "South", pulseDurationInMilliseconds,
       targetSpeedInMilliHz);
@@ -84,5 +87,6 @@ void DecDynamic::moveAxisPercentage(int percentage) {
 
 void DecDynamic::stopOrTrack(int32_t pos) {
   targetSpeedInMilliHz = 0;
+  log("Stopping");
   stepperWrapper->stop();
 }

@@ -111,7 +111,7 @@ void MotorUnit::setupButtons() {
   bouncePlay.interval(100);        // interval in ms
 
   bounceLimitRa.interval(10);  // interval in ms
-  bounceLimitDec.interval(10); // interval in ms
+  bounceLimitDec.interval(100); // interval in ms. Longer as we had ghost pushes
 }
 
 void MotorUnit::setUpTMCDriver(TMC2209Stepper &driver, int microsteps) {
@@ -211,8 +211,25 @@ bool isPlayJustReleased() {
   return bouncePlay.changed() && bouncePlay.read() != LOW;
 }
 
-bool isRaLimitSwitchHit() { return bounceLimitRa.read() == LOW; }
-bool isDecLimitSwitchHit() { return bounceLimitDec.read() == LOW; }
+bool isRALimitJustPushed() {
+  return bounceLimitRa.changed() && bounceLimitRa.read() == LOW;
+}
+
+bool isRALimitJustReleased() {
+  return bounceLimitDec.changed() && bounceLimitDec.read() != LOW;
+}
+
+//Note dec switch is wired the other way as it was givng false positives.
+bool isDecLimitJustReleased() {
+  return bounceLimitRa.changed() && bounceLimitRa.read() != HIGH;
+}
+
+//
+bool isDecLimitJustPushed() {
+  return bounceLimitDec.changed() && bounceLimitDec.read() == HIGH;
+}
+
+
 
 // double degreesPerSecondToArcSecondsPerSecond(double degreesPerSecond) {
 //   return degreesPerSecond * 3600.0;
@@ -261,8 +278,17 @@ void MotorUnit::onLoop() {
     bounceLimitRa.update();
     bounceLimitDec.update();
 
-    raDynamic.setLimitSwitchState(isRaLimitSwitchHit());
-    decDynamic.setLimitSwitchState(isDecLimitSwitchHit());
+    if (isDecLimitJustPushed()) {
+      decDynamic.setLimitJustHit();
+    } else if (isDecLimitJustReleased() ){
+      decDynamic.setLimitJustReleased();
+    }
+
+    if (isRALimitJustPushed()) {
+      raDynamic.setLimitJustHit();
+    } else if (isDecLimitJustReleased()) {
+      raDynamic.setLimitJustReleased();
+    }
 
     int32_t pos = rawrapper->getPosition();
 
