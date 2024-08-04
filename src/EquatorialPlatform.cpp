@@ -27,6 +27,7 @@ Preferences prefs;
 RADynamic raDynamic(raStatic);
 DecDynamic decDynamic(decStatic);
 MotorUnit motorUnit(raStatic, raDynamic, decStatic, decDynamic, prefs);
+Network network(prefs, WE_ARE_EQ);
 
 void setup() {
   Serial.begin(115200);
@@ -34,7 +35,7 @@ void setup() {
   LittleFS.begin();
 
   prefs.begin("Platform", false);
-  setupWifi(prefs);
+  network.setupWifi();
 
   // raStatic.setupModel();
 

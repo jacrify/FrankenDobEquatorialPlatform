@@ -1,9 +1,41 @@
 #ifndef NETWORK_H
 #define NETWORK_H
-#include "MotorUnit.h"
-#include "RAStatic.h"
+
 #include <Preferences.h>
 
-void setupWifi(Preferences &prefs);
+#define WE_ARE_EQ 1
+#define WE_ARE_FOCUSER 2
+#define WE_ARE_DSC 3
 
-#endif
+
+struct WiFiNetwork {
+  const char *ssidKey;
+  const char *passwordKey;
+  IPAddress local_IP;
+  IPAddress gateway;
+  IPAddress subnet;
+  IPAddress primaryDNS;
+};
+
+class Network {
+public:
+  Network(Preferences &p, int whoarewe);
+  void setupWifi();
+  void setUpAccessPoint();
+  void storeHomeWifiCreds(String ssid, String pw);
+  void storePhoneWifiCreds(String ssid, String pw);
+  void storeESP32WifiCreds(String ssid, String pw);
+
+private:
+  void storeWifiCreds(String ssid, String pw, const char *ssidKey,
+                      const char *pwKey);
+  void connectToWiFi(WiFiNetwork &network);
+  void logIP();
+
+  Preferences &preferences;
+  int who_are_we;
+  IPAddress home_wifi_ip;
+  IPAddress phone_wifi_ip;
+};
+
+#endif // NETWORK_H
