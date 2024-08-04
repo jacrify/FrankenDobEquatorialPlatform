@@ -7,6 +7,11 @@ WiFiManager wifiManager;
 #define HOMEWIFISSID "HOMEWIFISSID"
 #define HOMEWIFIPASS "HOMEWIFIPASS"
 
+IPAddress local_IP(172, 20, 10, 5);
+IPAddress gateway(172, 20, 10, 1);
+IPAddress subnet(255, 255, 255, 240);
+IPAddress primaryDNS(172, 20, 10, 1);   // iPhone hotspot usually acts as DNS server
+
 void logIP() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
@@ -24,11 +29,19 @@ void setupWifi(Preferences &prefs) {
   // prefs.putString(HOMEWIFISSID, "");
   // prefs.putString(HOMEWIFIPASS, "");
 
+  //Check for local hotspot. If it exists, connect to it and set fixed IP address.
+
   for (int i = 0; i < n; i++) {
     if (WiFi.SSID(i) == "dontlookup") {
       log("Connecting to 'dontlookup'...");
-      WiFi.begin("dontlookup", "dontlookdown");
-      logIP();
+
+      if (!WiFi.config(local_IP, gateway, subnet, primaryDNS)) {
+        log("STA Failed to configure");
+        WiFi.begin("dontlookup", "dontlookdown");
+      
+        logIP();
+     }
+      
       return;
     }
   }
