@@ -79,6 +79,7 @@ void setupUDPListener(MotorUnit &motor, RADynamic &raDynamic,
           if (command == "moveaxispercentage") {
             int axis = parameter1;
             double percentageOfSpeed = parameter2;
+            log("Move axis percentage received %i %f", axis,percentageOfSpeed);
             if (axis == 0)
               raDynamic.moveAxisPercentage(percentageOfSpeed);
             if (axis == 1)

@@ -122,30 +122,35 @@ void Network::setupWifi() {
   log("Scanning for networks...");
 
   int n = WiFi.scanNetworks();
+  bool espFound = false;
+  bool phoneFound = false;
+  bool homeFound = false;
+
   for (int i = 0; i < n; i++) {
     String foundSSID = WiFi.SSID(i);
+    log("Found network %s", foundSSID.c_str());
 
     if (foundSSID == preferences.getString(espNetwork.ssidKey)) {
-      log("Connecting to ESP32 hotspot...");
-      connectToWiFi(espNetwork);
-      return;
-    }
-
-    if (foundSSID == preferences.getString(phoneNetwork.ssidKey)) {
-      log("Connecting to Phone hotspot...");
-      connectToWiFi(phoneNetwork);
-      return;
-    }
-
-    if (foundSSID == preferences.getString(homeNetwork.ssidKey)) {
-      log("Connecting to Home WiFi...");
-      connectToWiFi(homeNetwork);
-      return;
+      espFound = true;
+    } else if (foundSSID == preferences.getString(phoneNetwork.ssidKey)) {
+      phoneFound = true;
+    } else if (foundSSID == preferences.getString(homeNetwork.ssidKey)) {
+      homeFound = true;
     }
   }
 
-  log("No known networks found. Please ensure network credentials are stored "
-      "in preferences.");
+  if (espFound) {
+    log("Connecting to ESP32 hotspot...");
+    connectToWiFi(espNetwork);
+  } else if (phoneFound) {
+    log("Connecting to Phone hotspot...");
+    connectToWiFi(phoneNetwork);
+  } else if (homeFound) {
+    log("Connecting to Home WiFi...");
+    connectToWiFi(homeNetwork);
+  } else {
+    log("No known networks found.");
+  }
 }
 
 /*
