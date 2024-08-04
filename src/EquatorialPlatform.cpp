@@ -35,6 +35,10 @@ void setup() {
   LittleFS.begin();
 
   prefs.begin("Platform", false);
+  // Fresh ESP32s need their wifi creds initialised (once off) as follows. Do not commit.
+  // network.storeESP32WifiCreds("","");
+  // network.storeHomeWifiCreds("", "");
+  // network.storePhoneWifiCreds("", "");
   network.setupWifi();
 
   // raStatic.setupModel();
