@@ -11,41 +11,40 @@
 #define ESPWIFISSID "ESPWIFISSID"
 #define ESPWIFIPASS "ESPWIFIPASS"
 
-
 WiFiManager wifiManager;
 
-// IP Setup for phone as hotspot
-WiFiNetwork phoneNetwork = {PHONEWIFISSID,
-                            PHONEWIFIPASS,
-                            IPAddress(172, 20, 10, 5),
-                            IPAddress(172, 20, 10, 1),
-                            IPAddress(255, 255, 255, 240),
-                            IPAddress(172, 20, 10, 1)};
-
-// IP Setup for home wifi
-WiFiNetwork homeNetwork = {HOMEWIFISSID,
-                           HOMEWIFIPASS,
-                           IPAddress(192, 168, 20, 150),
-                           IPAddress(192, 168, 20, 1),
-                           IPAddress(255, 255, 255, 0),
-                           IPAddress(192, 168, 20, 1)};
-
-// IP Setup for focuser as hotspot
-WiFiNetwork espNetwork = {ESPWIFISSID,
-                          ESPWIFIPASS,
-                          IPAddress(192, 168, 10, 5),
-                          IPAddress(192, 168, 20, 1),
-                          IPAddress(255, 255, 255, 0),
-                          IPAddress(192, 168, 20, 1)};
-
 /*
-* Initiative network, saying which device (focuser, eq, dsc)
-* we are. This allows setting of static IPs for the various
-* networks we are going to connect to.
-* Note this code is copied to all devices
-*/
+ * Initiative network, saying which device (focuser, eq, dsc)
+ * we are. This allows setting of static IPs for the various
+ * networks we are going to connect to.
+ * Note this code is copied to all devices
+ */
 Network::Network(Preferences &p, int whoarewe)
     : preferences(p), who_are_we(whoarewe) {
+
+  // IP Setup for phone as hotspot
+  phoneNetwork = {PHONEWIFISSID,
+                  PHONEWIFIPASS,
+                  IPAddress(172, 20, 10, 5),
+                  IPAddress(172, 20, 10, 1),
+                  IPAddress(255, 255, 255, 240),
+                  IPAddress(172, 20, 10, 1)};
+
+  // IP Setup for home wifi
+  homeNetwork = {HOMEWIFISSID,
+                 HOMEWIFIPASS,
+                 IPAddress(192, 168, 20, 150),
+                 IPAddress(192, 168, 20, 1),
+                 IPAddress(255, 255, 255, 0),
+                 IPAddress(192, 168, 20, 1)};
+
+  // IP Setup for focuser as hotspot
+  espNetwork = {ESPWIFISSID,
+                ESPWIFIPASS,
+                IPAddress(192, 168, 10, 5),
+                IPAddress(192, 168, 20, 1),
+                IPAddress(255, 255, 255, 0),
+                IPAddress(192, 168, 20, 1)};
   switch (whoarewe) {
   case WE_ARE_DSC:
     homeNetwork.local_IP = IPAddress(192, 168, 20, 151);
@@ -114,10 +113,10 @@ void Network::connectToWiFi(WiFiNetwork &network) {
 }
 
 /*
-* Scan for networks, and connect in priority order.
-* Assumes that credentials have been written to device first using
-* store*creds()
-*/
+ * Scan for networks, and connect in priority order.
+ * Assumes that credentials have been written to device first using
+ * store*creds()
+ */
 void Network::setupWifi() {
   log("Scanning for networks...");
 
@@ -154,9 +153,9 @@ void Network::setupWifi() {
 }
 
 /*
-* Special method to set up access point on one device if required.
-* Currently only used on the focuser as a cheat code.
-*/
+ * Special method to set up access point on one device if required.
+ * Currently only used on the focuser as a cheat code.
+ */
 
 void Network::setUpAccessPoint() {
   WiFi.softAPConfig(espNetwork.gateway, espNetwork.gateway, espNetwork.subnet);
